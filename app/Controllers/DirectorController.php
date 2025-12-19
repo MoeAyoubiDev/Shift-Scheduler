@@ -22,9 +22,9 @@ class DirectorController
         Auth::requireRole('Director');
         
         $user = Auth::user();
-        $performance = new Performance();
-        $sectionData = $performance->getDirectorDashboard($sectionId);
         
+        // Make sectionId available to the view
+        $GLOBALS['sectionId'] = $sectionId;
         require __DIR__ . '/../Views/director/section-view.php';
     }
 }

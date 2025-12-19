@@ -22,7 +22,7 @@ class ShiftRequest
             $weekStart = clone $submitDate;
             $weekStart->modify('monday this week');
             
-            $results = Database::callProcedure('sp_submit_shift_request', [
+            $procResult = Database::callProcedure('sp_submit_shift_request', [
                 $data['employee_id'],
                 $weekStart->format('Y-m-d'),
                 $data['submit_date'],
@@ -56,7 +56,7 @@ class ShiftRequest
         $result = ['success' => false, 'message' => ''];
         
         try {
-            Database::callProcedure('sp_review_shift_request', [
+            $procResult = Database::callProcedure('sp_review_shift_request', [
                 $requestId,
                 $reviewedByEmployeeId,
                 $status

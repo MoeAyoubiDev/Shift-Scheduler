@@ -17,7 +17,7 @@ class Schedule
         $result = ['success' => false, 'message' => '', 'schedule_id' => null];
         
         try {
-            Database::callProcedure('sp_generate_weekly_schedule', [
+            $procResult = Database::callProcedure('sp_generate_weekly_schedule', [
                 $weekStart,
                 $sectionId,
                 $generatedByEmployeeId
@@ -52,7 +52,7 @@ class Schedule
         $result = ['success' => false, 'message' => ''];
         
         try {
-            Database::callProcedure('sp_update_schedule_assignment', [
+            $procResult = Database::callProcedure('sp_update_schedule_assignment', [
                 $scheduleShiftId,
                 $employeeId,
                 $action

@@ -17,7 +17,7 @@ class Break
         $result = ['success' => false, 'message' => '', 'break_id' => null];
         
         try {
-            Database::callProcedure('sp_start_break', [
+            $procResult = Database::callProcedure('sp_start_break', [
                 $employeeId,
                 $workedDate,
                 $scheduleShiftId
@@ -45,7 +45,7 @@ class Break
         $result = ['success' => false, 'message' => '', 'break_id' => null];
         
         try {
-            Database::callProcedure('sp_end_break', [
+            $procResult = Database::callProcedure('sp_end_break', [
                 $employeeId,
                 $workedDate
             ]);

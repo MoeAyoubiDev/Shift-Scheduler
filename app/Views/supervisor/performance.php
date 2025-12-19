@@ -3,13 +3,14 @@ require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../../Core/Database.php';
 
 $db = Database::getInstance();
-$employees = $db->prepare("
+$stmt = $db->prepare("
     SELECT e.* FROM employees e
     INNER JOIN user_roles ur ON e.user_role_id = ur.id
     WHERE ur.section_id = ? AND e.is_active = 1
     ORDER BY e.full_name
-")->execute([$user['section_id']]);
-$employees = $db->fetchAll();
+");
+$stmt->execute([$user['section_id']]);
+$employees = $stmt->fetchAll();
 ?>
 
 <h1>Performance Analytics</h1>
