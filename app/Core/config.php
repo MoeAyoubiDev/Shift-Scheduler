@@ -5,7 +5,17 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-date_default_timezone_set('UTC');
+$appConfigPath = __DIR__ . '/../../config/app.php';
+$APP_CONFIG = file_exists($appConfigPath) ? require $appConfigPath : [];
+
+date_default_timezone_set($APP_CONFIG['timezone'] ?? 'UTC');
+
+function app_config(string $key, mixed $default = null): mixed
+{
+    global $APP_CONFIG;
+
+    return $APP_CONFIG[$key] ?? $default;
+}
 
 $DATABASE_CONFIG = [
     'host' => getenv('DB_HOST') ?: '127.0.0.1',
