@@ -5,24 +5,47 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$appConfigPath = __DIR__ . '/../../config/app.php';
-$APP_CONFIG = file_exists($appConfigPath) ? require $appConfigPath : [];
+$configDirectory = __DIR__ . '/../../config';
+$CONFIG = [];
+
+if (is_dir($configDirectory)) {
+    foreach (glob($configDirectory . '/*.php') ?: [] as $configFile) {
+        $key = basename($configFile, '.php');
+        $CONFIG[$key] = require $configFile;
+    }
+}
+
+$APP_CONFIG = $CONFIG['app'] ?? [];
 
 date_default_timezone_set($APP_CONFIG['timezone'] ?? 'UTC');
 
-function app_config(string $key, mixed $default = null): mixed
+function config(string $group, ?string $key = null, mixed $default = null): mixed
 {
-    global $APP_CONFIG;
+    global $CONFIG;
 
-    return $APP_CONFIG[$key] ?? $default;
+    if (!array_key_exists($group, $CONFIG)) {
+        return $default;
+    }
+
+    if ($key === null) {
+        return $CONFIG[$group];
+    }
+
+    return $CONFIG[$group][$key] ?? $default;
 }
 
+function app_config(string $key, mixed $default = null): mixed
+{
+    return config('app', $key, $default);
+}
+
+$databaseConfig = config('database') ?? [];
 $DATABASE_CONFIG = [
-    'host' => getenv('DB_HOST') ?: '127.0.0.1',
-    'port' => getenv('DB_PORT') ?: '3306',
-    'name' => getenv('DB_NAME') ?: 'shift_scheduler',
-    'user' => getenv('DB_USER') ?: 'root',
-    'pass' => getenv('DB_PASSWORD') ?: '',
+    'host' => getenv('DB_HOST') ?: ($databaseConfig['host'] ?? '127.0.0.1'),
+    'port' => getenv('DB_PORT') ?: ($databaseConfig['port'] ?? '3306'),
+    'name' => getenv('DB_NAME') ?: ($databaseConfig['name'] ?? 'shift_scheduler'),
+    'user' => getenv('DB_USER') ?: ($databaseConfig['user'] ?? 'root'),
+    'pass' => getenv('DB_PASSWORD') ?: ($databaseConfig['pass'] ?? ''),
 ];
 
 /**

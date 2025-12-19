@@ -139,16 +139,23 @@ function fetch_requests_with_details(string $weekStart): array
 
 function label_for_importance(string $importance): string
 {
-    return match ($importance) {
-        'high' => 'High',
-        'medium' => 'Medium',
-        default => 'Low',
-    };
+    $levels = config('schedule', 'importance_levels', []);
+
+    return $levels[$importance] ?? 'Low';
 }
 
 function schedule_option_label(string $option): string
 {
-    return $option === '5x2' ? '5 days on / 2 days off (9 hours)' : '6 days on / 1 day off (7.5 hours)';
+    $options = config('schedule', 'schedule_options', []);
+
+    if ($options === []) {
+        $options = [
+            '5x2' => '5 days on / 2 days off (9 hours)',
+            '6x1' => '6 days on / 1 day off (7.5 hours)',
+        ];
+    }
+
+    return $options[$option] ?? '6 days on / 1 day off (7.5 hours)';
 }
 
 function importance_badge(string $importance): string

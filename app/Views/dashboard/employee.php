@@ -1,5 +1,25 @@
 <?php
 declare(strict_types=1);
+
+$days = config('schedule', 'days', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+$shiftTypes = config('schedule', 'shift_types', ['AM', 'PM', 'MID']);
+$scheduleOptions = config('schedule', 'schedule_options', []);
+$importanceLevels = config('schedule', 'importance_levels', []);
+
+if ($scheduleOptions === []) {
+    $scheduleOptions = [
+        '5x2' => 'Work 5 days / 2 off (9 hours)',
+        '6x1' => 'Work 6 days / 1 off (7.5 hours)',
+    ];
+}
+
+if ($importanceLevels === []) {
+    $importanceLevels = [
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+    ];
+}
 ?>
 <section class="card">
     <div class="section-title">
@@ -14,7 +34,7 @@ declare(strict_types=1);
                 <div>
                     <label>Day</label>
                     <select name="requested_day" required>
-                        <?php foreach (['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day): ?>
+                        <?php foreach ($days as $day): ?>
                             <option value="<?= e($day) ?>"><?= e($day) ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -22,16 +42,17 @@ declare(strict_types=1);
                 <div>
                     <label>Shift Type</label>
                     <select name="shift_type" required>
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                        <option value="MID">MID</option>
+                        <?php foreach ($shiftTypes as $shiftType): ?>
+                            <option value="<?= e($shiftType) ?>"><?= e($shiftType) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
                     <label>Schedule Option</label>
                     <select name="schedule_option" required>
-                        <option value="5x2">Work 5 days / 2 off (9 hours)</option>
-                        <option value="6x1">Work 6 days / 1 off (7.5 hours)</option>
+                        <?php foreach ($scheduleOptions as $optionValue => $optionLabel): ?>
+                            <option value="<?= e($optionValue) ?>"><?= e($optionLabel) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
@@ -43,9 +64,9 @@ declare(strict_types=1);
                 <div>
                     <label>Importance</label>
                     <select name="importance" required>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
+                        <?php foreach ($importanceLevels as $importanceValue => $importanceLabel): ?>
+                            <option value="<?= e($importanceValue) ?>"><?= e($importanceLabel) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -112,25 +133,7 @@ declare(strict_types=1);
     </table>
 </section>
 
-<section class="card">
-    <div class="section-title">
-        <h2>My Schedule</h2>
-        <span>Personal assignments for the week</span>
-    </div>
-    <table>
-        <tr>
-            <th>Day</th>
-            <th>Shift</th>
-            <th>Status</th>
-            <th>Notes</th>
-        </tr>
-        <?php foreach (array_filter($schedule, fn($s) => (int) $s['user_id'] === (int) $user['id']) as $entry): ?>
-            <tr>
-                <td><?= e($entry['day']) ?></td>
-                <td><?= e($entry['shift_type']) ?></td>
-                <td><span class="status <?= e($entry['status']) ?>"><?= e(ucfirst(str_replace('_', ' ', $entry['status']))) ?></span></td>
-                <td><?= e($entry['notes'] ?? '') ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-</section>
+<?php render_view('shifts/employee-schedule', [
+    'user' => $user,
+    'schedule' => $schedule,
+]); ?>
