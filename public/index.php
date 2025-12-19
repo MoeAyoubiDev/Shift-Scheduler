@@ -194,36 +194,149 @@ function render_header(string $title, ?string $message): void
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= htmlspecialchars($title) ?></title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f8fa; }
-            header { background: #1e293b; color: #fff; padding: 12px 20px; }
-            main { padding: 20px; max-width: 1200px; margin: 0 auto; }
-            section { background: #fff; padding: 16px; margin-bottom: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-            h2 { margin-top: 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            table th, table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-            table th { background: #f3f4f6; }
-            label { display: block; margin: 8px 0 4px; font-weight: 600; }
-            input[type=text], input[type=email], select, textarea, input[type=number] { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
-            textarea { min-height: 80px; }
-            .btn { background: #2563eb; color: #fff; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; }
-            .btn.secondary { background: #6b7280; }
-            .btn.danger { background: #b91c1c; }
-            .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 12px; }
-            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-            .muted { color: #6b7280; }
-            .flag { color: #c2410c; font-weight: 700; }
-            .status { padding: 2px 8px; border-radius: 999px; }
+            :root {
+                color-scheme: light;
+                --bg: #f6f8ff;
+                --bg-accent: #edf0ff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --primary: #4f46e5;
+                --primary-dark: #4338ca;
+                --secondary: #0f172a;
+                --card: #ffffff;
+                --border: rgba(148, 163, 184, 0.35);
+                --success: #16a34a;
+                --warning: #ea580c;
+                --danger: #dc2626;
+                --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+                --radius: 16px;
+            }
+
+            * { box-sizing: border-box; }
+            body {
+                font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+                margin: 0;
+                color: var(--text);
+                background:
+                    radial-gradient(circle at top, #e0e7ff, transparent 55%),
+                    linear-gradient(140deg, #f8fafc 0%, #eef2ff 40%, #f1f5f9 100%);
+                min-height: 100vh;
+            }
+            header {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                background: rgba(15, 23, 42, 0.92);
+                color: #fff;
+                padding: 18px 24px;
+                backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            }
+            .header-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+            }
+            .brand-badge {
+                background: linear-gradient(135deg, #38bdf8, #6366f1);
+                color: #fff;
+                font-weight: 700;
+                padding: 6px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                text-transform: uppercase;
+            }
+            main { padding: 32px 20px 48px; max-width: 1200px; margin: 0 auto; }
+            section.card {
+                background: var(--card);
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                border: 1px solid rgba(148, 163, 184, 0.18);
+            }
+            h2 { margin-top: 0; font-size: 1.25rem; }
+            h3 { margin: 0 0 6px; }
+            p { margin: 0 0 12px; color: var(--muted); }
+            .section-title { display: flex; align-items: center; gap: 10px; }
+            .section-title span { font-size: 13px; color: var(--muted); }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; border-radius: 12px; overflow: hidden; }
+            table th, table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+            table th { background: #f1f5f9; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+            table tr:nth-child(even) td { background: #f8fafc; }
+            label { display: block; margin: 8px 0 4px; font-weight: 600; color: var(--text); }
+            input[type=text], input[type=email], select, textarea, input[type=number], input[type=password], input[type=date] {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid rgba(148, 163, 184, 0.4);
+                border-radius: 10px;
+                background: #fff;
+                font-size: 14px;
+            }
+            textarea { min-height: 100px; }
+            .btn {
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                color: #fff;
+                padding: 10px 16px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                box-shadow: 0 10px 18px rgba(79, 70, 229, 0.25);
+            }
+            .btn:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(79, 70, 229, 0.3); }
+            .btn.secondary { background: #0f172a; box-shadow: 0 10px 18px rgba(15, 23, 42, 0.2); }
+            .btn.danger { background: var(--danger); box-shadow: 0 10px 18px rgba(220, 38, 38, 0.2); }
+            .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 12px; font-weight: 600; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+            .muted { color: var(--muted); }
+            .flag { color: var(--warning); font-weight: 700; }
+            .status { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; display: inline-block; }
             .status.pending { background: #fef3c7; color: #92400e; }
             .status.accepted { background: #dcfce7; color: #166534; }
             .status.declined { background: #fee2e2; color: #991b1b; }
             .status.unmatched, .status.no_request { background: #e0f2fe; color: #075985; }
-            .notice { padding: 10px 12px; border-radius: 6px; background: #fff7ed; border: 1px solid #fed7aa; margin-bottom: 12px; }
+            .notice {
+                padding: 12px 16px;
+                border-radius: 12px;
+                background: #fff7ed;
+                border: 1px solid #fed7aa;
+                margin-bottom: 16px;
+                color: #9a3412;
+            }
+            .auth-card { max-width: 480px; margin: 40px auto; }
+            .hero { display: grid; gap: 6px; }
+            .hero h2 { font-size: 1.6rem; }
+            .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
             form.inline { display: inline; }
+            .inline + .inline { margin-left: 6px; }
+            .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
         </style>
     </head>
     <body>
     <header>
-        <strong>Shift Scheduler</strong>
+        <div class="header-content">
+            <div class="brand">
+                <span class="brand-badge">2026</span>
+                <div>
+                    <div>Shift Scheduler</div>
+                    <small class="muted">Smart weekly planning &amp; coverage</small>
+                </div>
+            </div>
+            <?php if (current_user()): ?>
+                <div class="pill">Secure Session Active</div>
+            <?php endif; ?>
+        </div>
     </header>
     <main>
         <?php if ($message): ?>
@@ -235,8 +348,11 @@ function render_header(string $title, ?string $message): void
 if (!$user):
     render_header('Shift Scheduler Login', $message);
     ?>
-    <section>
-        <h2>Login</h2>
+    <section class="card auth-card">
+        <div class="hero">
+            <h2>Welcome back</h2>
+            <p>Access schedules, requests, and analytics with your role-based dashboard.</p>
+        </div>
         <form method="post">
             <input type="hidden" name="action" value="login">
             <label>Username</label>
@@ -256,11 +372,14 @@ endif;
 
 render_header('Shift Scheduler', $message);
 ?>
-<section>
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-        <div>
+<section class="card">
+    <div style="display:flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div class="hero">
             <h2>Welcome, <?= htmlspecialchars($user['name']) ?></h2>
-            <p class="muted">Role: <?= htmlspecialchars(str_replace('_', ' ', ucfirst($user['role']))) ?> &middot; Week starting <?= htmlspecialchars($weekStart) ?></p>
+            <div class="meta-row">
+                <span class="pill"><?= htmlspecialchars(str_replace('_', ' ', ucfirst($user['role']))) ?></span>
+                <span class="pill">Week of <?= htmlspecialchars($weekStart) ?></span>
+            </div>
         </div>
         <form method="post">
             <input type="hidden" name="action" value="logout">
@@ -270,8 +389,11 @@ render_header('Shift Scheduler', $message);
 </section>
 
 <?php if (is_employee($user)): ?>
-    <section>
-        <h2>Submit Weekly Request</h2>
+    <section class="card">
+        <div class="section-title">
+            <h2>Submit Weekly Request</h2>
+            <span>Share availability before weekly lock</span>
+        </div>
         <?php if (!$submissionLocked && submission_window_open()): ?>
             <form method="post">
                 <input type="hidden" name="action" value="submit_request">
@@ -326,8 +448,11 @@ render_header('Shift Scheduler', $message);
         <?php endif; ?>
     </section>
 
-    <section>
-        <h2>My Request History</h2>
+    <section class="card">
+        <div class="section-title">
+            <h2>My Request History</h2>
+            <span>Track approvals and updates</span>
+        </div>
         <form method="get">
             <div class="grid">
                 <div>
@@ -381,8 +506,11 @@ render_header('Shift Scheduler', $message);
         </table>
     </section>
 
-    <section>
-        <h2>My Schedule</h2>
+    <section class="card">
+        <div class="section-title">
+            <h2>My Schedule</h2>
+            <span>Personal assignments for the week</span>
+        </div>
         <table>
             <tr>
                 <th>Day</th>
@@ -404,8 +532,11 @@ render_header('Shift Scheduler', $message);
 
 <?php if (!is_employee($user)): ?>
     <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Submission Controls</h2>
+        <section class="card">
+            <div class="section-title">
+                <h2>Submission Controls</h2>
+                <span>Lock or reopen requests instantly</span>
+            </div>
             <form method="post" class="inline">
                 <input type="hidden" name="action" value="toggle_submission">
                 <input type="hidden" name="locked" value="1">
@@ -419,8 +550,11 @@ render_header('Shift Scheduler', $message);
         </section>
     <?php endif; ?>
 
-    <section>
-        <h2>Requests (Week <?= htmlspecialchars($weekStart) ?>)</h2>
+    <section class="card">
+        <div class="section-title">
+            <h2>Requests (Week <?= htmlspecialchars($weekStart) ?>)</h2>
+            <span>Review demand and request priorities</span>
+        </div>
         <?php $requests = fetch_requests_with_details($weekStart); ?>
         <table>
             <tr>
@@ -484,8 +618,11 @@ render_header('Shift Scheduler', $message);
     </section>
 
     <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Shift Requirements &amp; Senior Staff</h2>
+        <section class="card">
+            <div class="section-title">
+                <h2>Shift Requirements &amp; Senior Staff</h2>
+                <span>Define weekly coverage targets</span>
+            </div>
             <form method="post" class="grid">
                 <input type="hidden" name="action" value="save_requirements">
                 <div>
@@ -515,10 +652,15 @@ render_header('Shift Scheduler', $message);
         </section>
     <?php endif; ?>
 
-    <section>
-        <h2>Schedule (Week <?= htmlspecialchars($weekStart) ?>)</h2>
+    <section class="card">
+        <div class="section-title">
+            <h2>Schedule (Week <?= htmlspecialchars($weekStart) ?>)</h2>
+            <span>Auto-generated assignments and notes</span>
+        </div>
         <?php if (!is_employee($user)): ?>
-            <p><a class="btn secondary" href="?download=schedule">Download Excel/CSV</a></p>
+            <div class="quick-actions">
+                <a class="btn secondary" href="?download=schedule">Download Excel/CSV</a>
+            </div>
         <?php endif; ?>
         <table>
             <tr>
@@ -562,8 +704,11 @@ render_header('Shift Scheduler', $message);
     </section>
 
     <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Manage Employees</h2>
+        <section class="card">
+            <div class="section-title">
+                <h2>Manage Employees</h2>
+                <span>Maintain active employee records</span>
+            </div>
             <?php
             $emps = $pdo->query('SELECT id, name, employee_identifier, email FROM users WHERE role = "employee" ORDER BY name')->fetchAll();
             ?>
