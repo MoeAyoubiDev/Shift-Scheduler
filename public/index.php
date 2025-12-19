@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../app/Helpers/helpers.php';
 require_once __DIR__ . '/../app/Helpers/schedule.php';
+require_once __DIR__ . '/../app/Controllers/AuthController.php';
+require_once __DIR__ . '/../app/Controllers/RequestController.php';
+require_once __DIR__ . '/../app/Controllers/AdminController.php';
 
 $pdo = db();
 $weekStart = current_week_start();
@@ -15,147 +18,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'login':
             $username = trim($_POST['username'] ?? '');
             $password = trim($_POST['password'] ?? '');
-            if (login($username, $password)) {
-                header('Location: /index.php');
-                exit;
-            }
-            $message = 'Invalid username or password.';
+            $message = AuthController::handleLogin($username, $password);
             break;
         case 'logout':
-            logout();
-            header('Location: /index.php');
-            exit;
+            AuthController::handleLogout();
+            break;
         case 'submit_request':
-            require_login();
-            $user = current_user();
-            if (!is_employee($user)) {
-                $message = 'Only employees can submit requests.';
-                break;
-            }
-
-            if (!submission_window_open()) {
-                $message = 'Sorry, you cannot submit a late request. Please contact your Team Leader for more information.';
-                break;
-            }
-
-            $requestedDay = $_POST['requested_day'] ?? 'Monday';
-            $shiftType = $_POST['shift_type'] ?? 'AM';
-            $dayOff = isset($_POST['day_off']) ? 1 : 0;
-            $scheduleOption = $_POST['schedule_option'] ?? '5x2';
-            $reason = trim($_POST['reason'] ?? '');
-            $importance = $_POST['importance'] ?? 'low';
-            $weekStart = $_POST['week_start'] ?: current_week_start();
-
-            if ($reason === '') {
-                $message = 'Please provide a reason for your request.';
-                break;
-            }
-
-            $previousWeek = (new DateTimeImmutable($weekStart))->modify('-7 days')->format('Y-m-d');
-            $prevStmt = $pdo->prepare('SELECT requested_day, shift_type, day_off FROM requests WHERE user_id = :uid AND week_start = :week_start LIMIT 1');
-            $prevStmt->execute(['uid' => $user['id'], 'week_start' => $previousWeek]);
-            $prevRow = $prevStmt->fetch();
-            $previousRequestSummary = $prevRow ? sprintf('%s %s (%s)', $prevRow['requested_day'], $prevRow['shift_type'], $prevRow['day_off'] ? 'Off' : 'On') : null;
-
-            $stmt = $pdo->prepare(
-                'INSERT INTO requests (user_id, requested_day, shift_type, day_off, schedule_option, reason, importance, status, submission_date, week_start, previous_week_request)
-                 VALUES (:user_id, :requested_day, :shift_type, :day_off, :schedule_option, :reason, :importance, "pending", NOW(), :week_start, :previous_week_request)'
-            );
-            $stmt->execute([
-                'user_id' => $user['id'],
-                'requested_day' => $requestedDay,
-                'shift_type' => $shiftType,
-                'day_off' => $dayOff,
-                'schedule_option' => $scheduleOption,
-                'reason' => $reason,
-                'importance' => $importance,
-                'week_start' => $weekStart,
-                'previous_week_request' => $previousRequestSummary,
-            ]);
-
-            $message = 'Request submitted successfully.';
+            $result = RequestController::handleSubmitRequest($pdo, $_POST);
+            $message = $result['message'];
+            $weekStart = $result['week_start'];
             break;
         case 'update_request_status':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can update requests.';
-                break;
-            }
-            $requestId = (int) ($_POST['request_id'] ?? 0);
-            $status = $_POST['status'] ?? 'pending';
-            $stmt = $pdo->prepare('UPDATE requests SET status = :status WHERE id = :id');
-            $stmt->execute(['status' => $status, 'id' => $requestId]);
+            $message = AdminController::handleUpdateRequestStatus($pdo, $_POST) ?? $message;
             break;
         case 'toggle_flag':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can flag requests.';
-                break;
-            }
-            $requestId = (int) ($_POST['request_id'] ?? 0);
-            $flagged = (int) ($_POST['flagged'] ?? 0);
-            $stmt = $pdo->prepare('UPDATE requests SET flagged = :flagged WHERE id = :id');
-            $stmt->execute(['flagged' => $flagged, 'id' => $requestId]);
+            $message = AdminController::handleToggleFlag($pdo, $_POST) ?? $message;
             break;
         case 'toggle_submission':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can toggle submissions.';
-                break;
-            }
-            $locked = isset($_POST['locked']) ? true : false;
-            set_submission_lock($weekStart, $locked);
+            $message = AdminController::handleToggleSubmission($weekStart, $_POST) ?? $message;
             break;
         case 'delete_employee':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can delete employees.';
-                break;
-            }
-            $employeeId = (int) ($_POST['employee_id'] ?? 0);
-            $pdo->prepare('DELETE FROM users WHERE id = :id AND role = "employee"')->execute(['id' => $employeeId]);
+            $message = AdminController::handleDeleteEmployee($pdo, $_POST) ?? $message;
             break;
         case 'save_requirements':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can edit requirements.';
-                break;
-            }
-            $am = (int) ($_POST['am_required'] ?? 0);
-            $pm = (int) ($_POST['pm_required'] ?? 0);
-            $mid = (int) ($_POST['mid_required'] ?? 0);
-            $senior = trim($_POST['senior_staff'] ?? '');
-            save_shift_requirements($weekStart, $am, $pm, $mid, $senior);
-            $message = 'Requirements saved.';
+            $message = AdminController::handleSaveRequirements($weekStart, $_POST) ?? $message;
             break;
         case 'generate_schedule':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can generate the schedule.';
-                break;
-            }
-            generate_schedule($weekStart);
-            $message = 'Schedule generated for the week.';
+            $message = AdminController::handleGenerateSchedule($weekStart) ?? $message;
             break;
         case 'update_schedule_entry':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can edit the schedule.';
-                break;
-            }
-            $entryId = (int) ($_POST['entry_id'] ?? 0);
-            $day = $_POST['day'] ?? 'Monday';
-            $shift = $_POST['shift_type'] ?? 'AM';
-            $notes = trim($_POST['notes'] ?? '');
-            update_schedule_entry($entryId, $day, $shift, $notes);
-            $message = 'Schedule entry updated.';
+            $message = AdminController::handleUpdateScheduleEntry($_POST) ?? $message;
             break;
     }
 }
