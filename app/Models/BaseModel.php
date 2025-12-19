@@ -8,6 +8,27 @@ class BaseModel
     protected string $table = '';
     protected array $fillable = [];
 
+    protected function callProcedure(string $procedure, array $params = [], bool $fetchAll = true): array
+    {
+        $placeholders = [];
+        foreach ($params as $key => $value) {
+            $placeholders[] = ':' . $key;
+        }
+
+        $sql = sprintf('CALL %s(%s)', $procedure, implode(', ', $placeholders));
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+
+        $result = $fetchAll ? $stmt->fetchAll() : $stmt->fetch();
+        $stmt->closeCursor();
+
+        if (!$result) {
+            return [];
+        }
+
+        return $fetchAll ? $result : [$result];
+    }
+
     public function all(): array
     {
         $stmt = db()->query(sprintf('SELECT * FROM %s', $this->table));

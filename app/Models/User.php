@@ -6,31 +6,60 @@ require_once __DIR__ . '/BaseModel.php';
 class User extends BaseModel
 {
     protected string $table = 'users';
-    protected array $fillable = [
-        'username',
-        'password_hash',
-        'email',
-        'is_active',
-        'created_at',
-        'updated_at',
-    ];
 
-    public function findByUsername(string $username): ?array
+    public static function authenticate(string $username, string $password): ?array
     {
-        return $this->firstWhere('username', $username);
+        $model = new self();
+        $rows = $model->callProcedure('sp_get_user_login', [
+            'p_username' => $username,
+        ]);
+
+        if (!$rows) {
+            return null;
+        }
+
+        $primary = $rows[0];
+        if (!password_verify($password, $primary['password_hash'])) {
+            return null;
+        }
+
+        $sections = [];
+        foreach ($rows as $row) {
+            $sections[] = [
+                'section_id' => (int) $row['section_id'],
+                'section_name' => $row['section_name'],
+            ];
+        }
+
+        return [
+            'id' => (int) $primary['user_id'],
+            'username' => $primary['username'],
+            'email' => $primary['email'],
+            'role' => $primary['role_name'],
+            'section_id' => $primary['section_id'] ? (int) $primary['section_id'] : null,
+            'section_name' => $primary['section_name'],
+            'employee_id' => $primary['employee_id'] ? (int) $primary['employee_id'] : null,
+            'is_senior' => (int) ($primary['is_senior'] ?? 0),
+            'seniority_level' => (int) ($primary['seniority_level'] ?? 0),
+            'sections' => $sections,
+        ];
     }
 
-    public function createWithPassword(string $username, string $password, ?string $email = null): int
+    public static function createEmployee(array $payload): int
     {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-
-        return $this->create([
-            'username' => $username,
-            'password_hash' => $hash,
-            'email' => $email,
-            'is_active' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+        $model = new self();
+        $rows = $model->callProcedure('sp_create_employee', [
+            'p_username' => $payload['username'],
+            'p_password_hash' => $payload['password_hash'],
+            'p_email' => $payload['email'],
+            'p_role_id' => $payload['role_id'],
+            'p_section_id' => $payload['section_id'],
+            'p_employee_code' => $payload['employee_code'],
+            'p_full_name' => $payload['full_name'],
+            'p_is_senior' => $payload['is_senior'],
+            'p_seniority_level' => $payload['seniority_level'],
         ]);
+
+        return (int) ($rows[0]['employee_id'] ?? 0);
     }
 }

@@ -3,18 +3,18 @@ declare(strict_types=1);
 ?>
 <section class="card auth-card">
     <div class="hero">
-        <h2>Welcome back</h2>
-        <p>Access schedules, requests, and analytics with your role-based dashboard.</p>
+        <h2>Shift Scheduler System</h2>
+        <p>Sign in with your username and password to access your section dashboard.</p>
     </div>
-    <form method="post">
+    <form method="post" action="/index.php">
         <input type="hidden" name="action" value="login">
-        <label>Username</label>
-        <input type="text" name="username" required>
-        <label>Password</label>
-        <input type="password" name="password" required>
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
         <div class="form-actions">
-            <button class="btn" type="submit">Sign in</button>
+            <button type="submit" class="btn">Login</button>
         </div>
     </form>
-    <p class="muted helper-text">Default credentials are seeded in <code>database.sql</code> (password: <strong>password123</strong>).</p>
 </section>

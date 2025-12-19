@@ -6,5 +6,11 @@ require_once __DIR__ . '/BaseModel.php';
 class Role extends BaseModel
 {
     protected string $table = 'roles';
-    protected array $fillable = ['RoleName', 'description'];
+    protected array $fillable = ['role_name', 'description'];
+
+    public static function listRoles(): array
+    {
+        $model = new self();
+        return $model->callProcedure('sp_get_roles');
+    }
 }

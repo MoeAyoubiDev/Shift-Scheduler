@@ -271,6 +271,30 @@ textarea {
     gap: 16px;
 }
 
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+
+.mini-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.metric {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 6px 0;
+}
+
 .muted {
     color: var(--muted);
 }
