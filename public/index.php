@@ -4,8 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../app/helpers.php';
 require_once __DIR__ . '/../app/schedule.php';
 
-$pdo = db();
-$weekStart = current_week_start();
+$weekStart = $_GET['week'] ?? current_week_start();
+$week = null;
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -27,164 +27,147 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         case 'submit_request':
             require_login();
+            $pdo = db();
             $user = current_user();
-            if (!is_employee($user)) {
+            if (!$user || !is_employee($user)) {
                 $message = 'Only employees can submit requests.';
                 break;
             }
 
-            if (!submission_window_open()) {
-                $message = 'Sorry, you cannot submit a late request. Please contact your Team Leader for more information.';
+            $week = ensure_week($weekStart);
+            if (!submission_window_open($weekStart)) {
+                $message = 'Submissions are closed for this week.';
                 break;
             }
 
-            $requestedDay = $_POST['requested_day'] ?? 'Monday';
-            $shiftType = $_POST['shift_type'] ?? 'AM';
+            $requestedDay = $_POST['requested_day'] ?? $week['week_start_date'];
+            $shiftDefinition = $_POST['shift_definition_id'] ?? null;
             $dayOff = isset($_POST['day_off']) ? 1 : 0;
-            $scheduleOption = $_POST['schedule_option'] ?? '5x2';
+            $schedulePattern = (int) ($_POST['schedule_pattern_id'] ?? 0);
             $reason = trim($_POST['reason'] ?? '');
-            $importance = $_POST['importance'] ?? 'low';
-            $weekStart = $_POST['week_start'] ?: current_week_start();
+            $importance = strtoupper($_POST['importance'] ?? 'NORMAL');
 
             if ($reason === '') {
                 $message = 'Please provide a reason for your request.';
                 break;
             }
 
-            $previousWeek = (new DateTimeImmutable($weekStart))->modify('-7 days')->format('Y-m-d');
-            $prevStmt = $pdo->prepare('SELECT requested_day, shift_type, day_off FROM requests WHERE user_id = :uid AND week_start = :week_start LIMIT 1');
-            $prevStmt->execute(['uid' => $user['id'], 'week_start' => $previousWeek]);
-            $prevRow = $prevStmt->fetch();
-            $previousRequestSummary = $prevRow ? sprintf('%s %s (%s)', $prevRow['requested_day'], $prevRow['shift_type'], $prevRow['day_off'] ? 'Off' : 'On') : null;
-
             $stmt = $pdo->prepare(
-                'INSERT INTO requests (user_id, requested_day, shift_type, day_off, schedule_option, reason, importance, status, submission_date, week_start, previous_week_request)
-                 VALUES (:user_id, :requested_day, :shift_type, :day_off, :schedule_option, :reason, :importance, "pending", NOW(), :week_start, :previous_week_request)'
+                'INSERT INTO shift_requests
+                (employee_id, week_id, SubmitDate, shift_definition_id, is_day_off, schedule_pattern_id, reason, importance_level, status, flagged_as_important, submitted_at)
+                VALUES (:employee_id, :week_id, :submit_date, :shift_definition_id, :is_day_off, :schedule_pattern_id, :reason, :importance_level, :status, :flagged, CURRENT_TIMESTAMP)'
             );
             $stmt->execute([
-                'user_id' => $user['id'],
-                'requested_day' => $requestedDay,
-                'shift_type' => $shiftType,
-                'day_off' => $dayOff,
-                'schedule_option' => $scheduleOption,
+                'employee_id' => $user['employee_id'],
+                'week_id' => $week['id'],
+                'submit_date' => $requestedDay,
+                'shift_definition_id' => $dayOff ? null : ($shiftDefinition ?: null),
+                'is_day_off' => $dayOff,
+                'schedule_pattern_id' => $schedulePattern,
                 'reason' => $reason,
-                'importance' => $importance,
-                'week_start' => $weekStart,
-                'previous_week_request' => $previousRequestSummary,
+                'importance_level' => $importance,
+                'status' => 'PENDING',
+                'flagged' => 0,
             ]);
 
             $message = 'Request submitted successfully.';
             break;
         case 'update_request_status':
             require_login();
+            $pdo = db();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can update requests.';
+            if (!$user || !is_admin($user)) {
+                $message = 'Only admins can update requests.';
                 break;
             }
             $requestId = (int) ($_POST['request_id'] ?? 0);
-            $status = $_POST['status'] ?? 'pending';
-            $stmt = $pdo->prepare('UPDATE requests SET status = :status WHERE id = :id');
-            $stmt->execute(['status' => $status, 'id' => $requestId]);
+            $status = strtoupper($_POST['status'] ?? 'PENDING');
+            $stmt = $pdo->prepare(
+                'UPDATE shift_requests
+                 SET status = :status, reviewed_by_admin_id = :reviewed_by, reviewed_at = CURRENT_TIMESTAMP
+                 WHERE id = :id'
+            );
+            $stmt->execute([
+                'status' => $status,
+                'reviewed_by' => $user['employee_id'],
+                'id' => $requestId,
+            ]);
             break;
         case 'toggle_flag':
             require_login();
+            $pdo = db();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can flag requests.';
+            if (!$user || !is_admin($user)) {
+                $message = 'Only admins can flag requests.';
                 break;
             }
             $requestId = (int) ($_POST['request_id'] ?? 0);
             $flagged = (int) ($_POST['flagged'] ?? 0);
-            $stmt = $pdo->prepare('UPDATE requests SET flagged = :flagged WHERE id = :id');
+            $stmt = $pdo->prepare('UPDATE shift_requests SET flagged_as_important = :flagged WHERE id = :id');
             $stmt->execute(['flagged' => $flagged, 'id' => $requestId]);
             break;
         case 'toggle_submission':
             require_login();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can toggle submissions.';
+            if (!$user || !is_admin($user)) {
+                $message = 'Only admins can toggle submissions.';
                 break;
             }
-            $locked = isset($_POST['locked']) ? true : false;
+            $week = ensure_week($weekStart);
+            $locked = isset($_POST['locked']);
             set_submission_lock($weekStart, $locked);
             break;
-        case 'delete_employee':
+        case 'save_requirement':
             require_login();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can delete employees.';
+            if (!$user || !is_admin($user)) {
+                $message = 'Only admins can update requirements.';
                 break;
             }
-            $employeeId = (int) ($_POST['employee_id'] ?? 0);
-            $pdo->prepare('DELETE FROM users WHERE id = :id AND role = "employee"')->execute(['id' => $employeeId]);
+            $week = ensure_week($weekStart);
+            $date = $_POST['requirement_date'] ?? $weekStart;
+            $shiftTypeId = (int) ($_POST['shift_type_id'] ?? 0);
+            $requiredCount = (int) ($_POST['required_count'] ?? 0);
+            if ($shiftTypeId > 0) {
+                save_shift_requirement((int) $week['id'], $date, $shiftTypeId, $requiredCount);
+                $message = 'Requirement saved.';
+            }
             break;
-        case 'save_requirements':
+        case 'create_schedule':
             require_login();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can edit requirements.';
+            if (!$user || !is_admin($user)) {
+                $message = 'Only admins can create schedules.';
                 break;
             }
-            $am = (int) ($_POST['am_required'] ?? 0);
-            $pm = (int) ($_POST['pm_required'] ?? 0);
-            $mid = (int) ($_POST['mid_required'] ?? 0);
-            $senior = trim($_POST['senior_staff'] ?? '');
-            save_shift_requirements($weekStart, $am, $pm, $mid, $senior);
-            $message = 'Requirements saved.';
+            $week = ensure_week($weekStart);
+            create_schedule_if_missing((int) $week['id'], (int) $user['employee_id']);
+            $message = 'Draft schedule created.';
             break;
-        case 'generate_schedule':
+        case 'mark_notification_read':
             require_login();
             $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can generate the schedule.';
-                break;
+            $notificationId = (int) ($_POST['notification_id'] ?? 0);
+            if ($notificationId && $user) {
+                mark_notification_read($notificationId, (int) $user['id']);
             }
-            generate_schedule($weekStart);
-            $message = 'Schedule generated for the week.';
-            break;
-        case 'update_schedule_entry':
-            require_login();
-            $user = current_user();
-            if (!is_primary_admin($user)) {
-                $message = 'Only the Primary Admin can edit the schedule.';
-                break;
-            }
-            $entryId = (int) ($_POST['entry_id'] ?? 0);
-            $day = $_POST['day'] ?? 'Monday';
-            $shift = $_POST['shift_type'] ?? 'AM';
-            $notes = trim($_POST['notes'] ?? '');
-            update_schedule_entry($entryId, $day, $shift, $notes);
-            $message = 'Schedule entry updated.';
             break;
     }
 }
 
 $user = current_user();
-$submissionLocked = is_submission_locked_for_week($weekStart);
-$requirements = fetch_shift_requirements($weekStart);
-$schedule = fetch_schedule($weekStart);
-
-if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule') {
-    header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="schedule-' . $weekStart . '.csv"');
-
-    $out = fopen('php://output', 'w');
-    fputcsv($out, ['Employee', 'Day', 'Shift', 'Status', 'Notes']);
-    foreach ($schedule as $entry) {
-        fputcsv($out, [
-            $entry['employee_name'],
-            $entry['day'],
-            $entry['shift_type'],
-            $entry['status'],
-            $entry['notes'],
-        ]);
-    }
-    fclose($out);
-    exit;
+if ($user) {
+    $week = $week ?? ensure_week($weekStart);
+    $submissionLocked = is_submission_locked_for_week($weekStart);
+    $shiftDefinitions = fetch_shift_definitions();
+    $schedulePatterns = fetch_schedule_patterns();
+    $shiftTypes = fetch_shift_types();
+    $requirements = fetch_shift_requirements((int) $week['id']);
+    $scheduleSummary = fetch_schedule_summary((int) $week['id']);
+    $scheduleAssignments = fetch_schedule_assignments((int) $week['id']);
 }
 
-function render_header(string $title, ?string $message): void
+function render_header(string $title, ?string $message, ?array $user): void
 {
     ?>
     <!doctype html>
@@ -193,37 +176,254 @@ function render_header(string $title, ?string $message): void
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= htmlspecialchars($title) ?></title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f8fa; }
-            header { background: #1e293b; color: #fff; padding: 12px 20px; }
-            main { padding: 20px; max-width: 1200px; margin: 0 auto; }
-            section { background: #fff; padding: 16px; margin-bottom: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-            h2 { margin-top: 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            table th, table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-            table th { background: #f3f4f6; }
-            label { display: block; margin: 8px 0 4px; font-weight: 600; }
-            input[type=text], input[type=email], select, textarea, input[type=number] { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
-            textarea { min-height: 80px; }
-            .btn { background: #2563eb; color: #fff; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; }
-            .btn.secondary { background: #6b7280; }
-            .btn.danger { background: #b91c1c; }
-            .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 12px; }
-            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-            .muted { color: #6b7280; }
-            .flag { color: #c2410c; font-weight: 700; }
-            .status { padding: 2px 8px; border-radius: 999px; }
-            .status.pending { background: #fef3c7; color: #92400e; }
-            .status.accepted { background: #dcfce7; color: #166534; }
-            .status.declined { background: #fee2e2; color: #991b1b; }
-            .status.unmatched, .status.no_request { background: #e0f2fe; color: #075985; }
-            .notice { padding: 10px 12px; border-radius: 6px; background: #fff7ed; border: 1px solid #fed7aa; margin-bottom: 12px; }
-            form.inline { display: inline; }
+            :root {
+                color-scheme: light;
+                --bg: #f5f7fb;
+                --card: rgba(255, 255, 255, 0.88);
+                --primary: #4f46e5;
+                --primary-dark: #312e81;
+                --accent: #0ea5e9;
+                --text: #0f172a;
+                --muted: #6b7280;
+                --border: rgba(148, 163, 184, 0.35);
+                --shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+            }
+
+            * { box-sizing: border-box; }
+
+            body {
+                margin: 0;
+                font-family: 'Inter', sans-serif;
+                color: var(--text);
+                background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 45%),
+                            radial-gradient(circle at 80% 10%, rgba(14, 165, 233, 0.18), transparent 40%),
+                            var(--bg);
+                min-height: 100vh;
+            }
+
+            header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                backdrop-filter: blur(18px);
+                background: rgba(15, 23, 42, 0.85);
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .nav {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 16px 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+
+            .nav .brand {
+                font-weight: 700;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .nav .brand span {
+                display: inline-flex;
+                width: 36px;
+                height: 36px;
+                border-radius: 12px;
+                background: linear-gradient(120deg, #6366f1, #0ea5e9);
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+                font-size: 0.9rem;
+            }
+
+            .nav-links a {
+                color: #e2e8f0;
+                text-decoration: none;
+                opacity: 0.85;
+            }
+
+            .nav-links a:hover { opacity: 1; }
+
+            main {
+                max-width: 1200px;
+                margin: 28px auto 80px;
+                padding: 0 24px 40px;
+            }
+
+            .hero {
+                display: grid;
+                grid-template-columns: minmax(240px, 1fr) minmax(280px, 340px);
+                gap: 24px;
+                align-items: stretch;
+            }
+
+            .card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 20px;
+                box-shadow: var(--shadow);
+                backdrop-filter: blur(10px);
+            }
+
+            .card h2 { margin-top: 0; }
+
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 16px;
+                margin-top: 16px;
+            }
+
+            .stat {
+                padding: 16px;
+                background: #f8fafc;
+                border-radius: 16px;
+                border: 1px solid rgba(148, 163, 184, 0.25);
+            }
+
+            .stat strong { display: block; font-size: 1.4rem; }
+
+            .grid { display: grid; gap: 20px; }
+
+            .grid.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+            .grid.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 0.75rem;
+                background: rgba(15, 23, 42, 0.08);
+                color: #1e293b;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 16px;
+                font-size: 0.9rem;
+            }
+
+            table th, table td {
+                text-align: left;
+                padding: 12px 10px;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+                vertical-align: top;
+            }
+
+            table th { color: #475569; font-weight: 600; }
+
+            label { display: block; margin: 12px 0 6px; font-weight: 600; }
+
+            input[type=text], input[type=email], input[type=password], input[type=date], select, textarea, input[type=number] {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 12px;
+                border: 1px solid rgba(148, 163, 184, 0.45);
+                background: #fff;
+                font-family: inherit;
+                font-size: 0.95rem;
+            }
+
+            textarea { min-height: 96px; resize: vertical; }
+
+            .btn {
+                border: none;
+                padding: 10px 16px;
+                border-radius: 12px;
+                cursor: pointer;
+                font-weight: 600;
+                font-family: inherit;
+                background: linear-gradient(120deg, var(--primary), var(--accent));
+                color: #fff;
+            }
+
+            .btn.secondary {
+                background: #e2e8f0;
+                color: #0f172a;
+            }
+
+            .btn.danger {
+                background: linear-gradient(120deg, #ef4444, #f97316);
+            }
+
+            .btn.ghost {
+                background: transparent;
+                border: 1px solid rgba(148, 163, 184, 0.6);
+                color: #0f172a;
+            }
+
+            .badge {
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                display: inline-flex;
+            }
+
+            .badge-high { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+            .badge-normal { background: rgba(14, 165, 233, 0.15); color: #0369a1; }
+            .badge-low { background: rgba(100, 116, 139, 0.15); color: #475569; }
+            .badge-success { background: rgba(16, 185, 129, 0.15); color: #047857; }
+            .badge-warning { background: rgba(234, 179, 8, 0.2); color: #a16207; }
+            .badge-danger { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+
+            .notice {
+                padding: 12px 14px;
+                border-radius: 12px;
+                background: rgba(254, 243, 199, 0.7);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                margin-bottom: 16px;
+            }
+
+            .muted { color: var(--muted); }
+            .stack { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+            .spacer { height: 12px; }
+            .inline { display: inline-flex; }
+
+            @media (max-width: 920px) {
+                .hero { grid-template-columns: 1fr; }
+                .nav { flex-direction: column; align-items: flex-start; }
+            }
         </style>
     </head>
     <body>
     <header>
-        <strong>Shift Scheduler</strong>
+        <div class="nav">
+            <div class="brand"><span>SS</span> Shift Scheduler Pro</div>
+            <nav class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#requests">Requests</a>
+                <a href="#schedule">Schedule</a>
+                <a href="#team">Team</a>
+                <a href="#settings">Settings</a>
+            </nav>
+            <?php if ($user): ?>
+                <form method="post" class="inline">
+                    <input type="hidden" name="action" value="logout">
+                    <button class="btn secondary" type="submit">Logout</button>
+                </form>
+            <?php endif; ?>
+        </div>
     </header>
     <main>
         <?php if ($message): ?>
@@ -233,366 +433,443 @@ function render_header(string $title, ?string $message): void
 }
 
 if (!$user):
-    render_header('Shift Scheduler Login', $message);
+    render_header('Shift Scheduler Login', $message, $user);
     ?>
-    <section>
-        <h2>Login</h2>
-        <form method="post">
-            <input type="hidden" name="action" value="login">
-            <label>Username</label>
-            <input type="text" name="username" required>
-            <label>Password</label>
-            <input type="password" name="password" required>
-            <div style="margin-top:12px;">
+    <section class="hero">
+        <div class="card">
+            <h2>Welcome back 👋</h2>
+            <p class="muted">Sign in to access shift planning, request management, and real-time schedule insights aligned with your database schema.</p>
+            <ul class="muted">
+                <li>Roles, sections, and employees linked to the SQL schema.</li>
+                <li>Shift requests and schedules aligned to weekly planning.</li>
+                <li>Notifications and system settings ready for rollout.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>Secure login</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="login">
+                <label>Username</label>
+                <input type="text" name="username" required>
+                <label>Password</label>
+                <input type="password" name="password" required>
+                <div class="spacer"></div>
                 <button class="btn" type="submit">Sign in</button>
-            </div>
-        </form>
-        <p class="muted" style="margin-top:12px;">Default credentials are seeded in <code>database.sql</code> (password: <strong>password123</strong>).</p>
+            </form>
+            <p class="muted" style="margin-top:12px;">Use a user seeded in <code>users</code> with a hashed password.</p>
+        </div>
     </section>
     </main></body></html>
     <?php
     exit;
 endif;
 
-render_header('Shift Scheduler', $message);
+render_header('Shift Scheduler', $message, $user);
+
+$pdo = db();
+$requests = fetch_requests_with_details((int) $week['id']);
+$notifications = fetch_notifications((int) $user['id']);
+$employeeHistory = is_employee($user)
+    ? fetch_request_history((int) $user['employee_id'], $_GET['from'] ?? null, $_GET['to'] ?? null, $_GET['on'] ?? null)
+    : [];
+
+$employeeCount = (int) $pdo->query('SELECT COUNT(*) AS total FROM employees')->fetch()['total'];
+$pendingCount = (int) $pdo->query("SELECT COUNT(*) AS total FROM shift_requests WHERE status = 'PENDING'")->fetch()['total'];
+$shiftCount = (int) $pdo->query('SELECT COUNT(*) AS total FROM shift_definitions')->fetch()['total'];
+$sectionCount = (int) $pdo->query('SELECT COUNT(*) AS total FROM sections')->fetch()['total'];
 ?>
-<section>
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h2>Welcome, <?= htmlspecialchars($user['name']) ?></h2>
-            <p class="muted">Role: <?= htmlspecialchars(str_replace('_', ' ', ucfirst($user['role']))) ?> &middot; Week starting <?= htmlspecialchars($weekStart) ?></p>
+<section id="overview" class="hero">
+    <div class="card">
+        <div class="stack">
+            <div>
+                <h2>Welcome, <?= htmlspecialchars($user['name']) ?></h2>
+                <p class="muted">Role: <?= htmlspecialchars($user['role']) ?> · Section: <?= htmlspecialchars($user['section']) ?></p>
+            </div>
+            <span class="pill"><?= htmlspecialchars($week['week_start_date']) ?> → <?= htmlspecialchars($week['week_end_date']) ?></span>
         </div>
-        <form method="post">
-            <input type="hidden" name="action" value="logout">
-            <button class="btn secondary" type="submit">Logout</button>
-        </form>
+        <div class="stats">
+            <div class="stat">
+                <strong><?= $employeeCount ?></strong>
+                <span class="muted">Employees</span>
+            </div>
+            <div class="stat">
+                <strong><?= $pendingCount ?></strong>
+                <span class="muted">Pending Requests</span>
+            </div>
+            <div class="stat">
+                <strong><?= $shiftCount ?></strong>
+                <span class="muted">Shift Definitions</span>
+            </div>
+            <div class="stat">
+                <strong><?= $sectionCount ?></strong>
+                <span class="muted">Sections</span>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h3>This week status</h3>
+        <p class="muted">Request submissions are currently <strong><?= $submissionLocked ? 'closed' : 'open' ?></strong>.</p>
+        <?php if (is_admin($user)): ?>
+            <form method="post" class="stack">
+                <input type="hidden" name="action" value="toggle_submission">
+                <?php if ($submissionLocked): ?>
+                    <button class="btn secondary" type="submit">Open submissions</button>
+                <?php else: ?>
+                    <input type="hidden" name="locked" value="1">
+                    <button class="btn danger" type="submit">Close submissions</button>
+                <?php endif; ?>
+            </form>
+        <?php else: ?>
+            <p class="muted">Check back with your team leader if you cannot submit.</p>
+        <?php endif; ?>
+        <div class="spacer"></div>
+        <div class="pill">Employee ID: <?= htmlspecialchars($user['employee_code']) ?></div>
     </div>
 </section>
 
-<?php if (is_employee($user)): ?>
-    <section>
-        <h2>Submit Weekly Request</h2>
-        <?php if (!$submissionLocked && submission_window_open()): ?>
-            <form method="post">
-                <input type="hidden" name="action" value="submit_request">
-                <input type="hidden" name="week_start" value="<?= htmlspecialchars($weekStart) ?>">
-                <div class="grid">
-                    <div>
-                        <label>Day</label>
-                        <select name="requested_day" required>
-                            <?php foreach (['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day): ?>
-                                <option value="<?= $day ?>"><?= $day ?></option>
+<section id="requests" class="card">
+    <h2>Shift Requests</h2>
+    <?php if (is_employee($user)): ?>
+        <div class="grid two">
+            <div>
+                <h3>Submit your request</h3>
+                <?php if (!$submissionLocked && submission_window_open($weekStart)): ?>
+                    <form method="post">
+                        <input type="hidden" name="action" value="submit_request">
+                        <label>Requested date</label>
+                        <input type="date" name="requested_day" value="<?= htmlspecialchars($week['week_start_date']) ?>" required>
+                        <label>Shift definition</label>
+                        <select name="shift_definition_id">
+                            <?php if (!$shiftDefinitions): ?>
+                                <option value="">No shifts configured</option>
+                            <?php endif; ?>
+                            <?php foreach ($shiftDefinitions as $definition): ?>
+                                <option value="<?= (int) $definition['id'] ?>">
+                                    <?= htmlspecialchars($definition['shiftName']) ?> · <?= htmlspecialchars($definition['category'] ?? 'N/A') ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div>
-                        <label>Shift Type</label>
-                        <select name="shift_type" required>
-                            <option value="AM">AM</option>
-                            <option value="PM">PM</option>
-                            <option value="MID">MID</option>
+                        <label>Schedule pattern</label>
+                        <select name="schedule_pattern_id" required>
+                            <?php foreach ($schedulePatterns as $pattern): ?>
+                                <option value="<?= (int) $pattern['id'] ?>">
+                                    <?= htmlspecialchars($pattern['names']) ?> · <?= (int) $pattern['work_days_per_week'] ?>/<?= (int) $pattern['off_days_per_week'] ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div>
-                        <label>Schedule Option</label>
-                        <select name="schedule_option" required>
-                            <option value="5x2">Work 5 days / 2 off (9 hours)</option>
-                            <option value="6x1">Work 6 days / 1 off (7.5 hours)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Day Off</label>
-                        <input type="checkbox" name="day_off" value="1"> Request this day off
-                    </div>
-                    <div>
                         <label>Importance</label>
                         <select name="importance" required>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
+                            <option value="LOW">Low</option>
+                            <option value="NORMAL" selected>Normal</option>
+                            <option value="HIGH">High</option>
                         </select>
+                        <label>Request day off</label>
+                        <input type="checkbox" name="day_off" value="1"> Yes, request this day off
+                        <label>Reason</label>
+                        <textarea name="reason" required placeholder="Provide reason or any note for your leader"></textarea>
+                        <div class="spacer"></div>
+                        <button class="btn" type="submit">Submit request</button>
+                    </form>
+                <?php else: ?>
+                    <div class="notice">Request submission is currently closed.</div>
+                <?php endif; ?>
+            </div>
+            <div>
+                <h3>My request history</h3>
+                <form method="get" class="grid">
+                    <div>
+                        <label>From</label>
+                        <input type="date" name="from" value="<?= htmlspecialchars($_GET['from'] ?? '') ?>">
                     </div>
-                </div>
-                <label style="margin-top:12px;">Reason</label>
-                <textarea name="reason" required placeholder="Provide a reason for your request"></textarea>
-                <div style="margin-top:12px;">
-                    <button class="btn" type="submit">Submit request</button>
-                </div>
-            </form>
-        <?php elseif ($submissionLocked): ?>
-            <div class="notice">Please contact your Team Leader for more information.</div>
-        <?php else: ?>
-            <div class="notice">Sorry, you cannot submit a late request. Please contact your Team Leader for more information.</div>
-        <?php endif; ?>
-    </section>
-
-    <section>
-        <h2>My Request History</h2>
-        <form method="get">
-            <div class="grid">
-                <div>
-                    <label>From</label>
-                    <input type="date" name="from" value="<?= htmlspecialchars($_GET['from'] ?? '') ?>">
-                </div>
-                <div>
-                    <label>To</label>
-                    <input type="date" name="to" value="<?= htmlspecialchars($_GET['to'] ?? '') ?>">
-                </div>
-                <div>
-                    <label>Specific date</label>
-                    <input type="date" name="on" value="<?= htmlspecialchars($_GET['on'] ?? '') ?>">
-                </div>
+                    <div>
+                        <label>To</label>
+                        <input type="date" name="to" value="<?= htmlspecialchars($_GET['to'] ?? '') ?>">
+                    </div>
+                    <div>
+                        <label>Specific date</label>
+                        <input type="date" name="on" value="<?= htmlspecialchars($_GET['on'] ?? '') ?>">
+                    </div>
+                    <div class="spacer"></div>
+                    <button class="btn secondary" type="submit">Filter</button>
+                </form>
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>Shift</th>
+                        <th>Pattern</th>
+                        <th>Importance</th>
+                        <th>Status</th>
+                    </tr>
+                    <?php foreach ($employeeHistory as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['SubmitDate']) ?></td>
+                            <td><?= htmlspecialchars($row['shiftName'] ?? 'Day off') ?></td>
+                            <td><?= htmlspecialchars($row['pattern_name'] ?? 'n/a') ?></td>
+                            <td><span class="<?= importance_badge($row['importance_level']) ?>"><?= htmlspecialchars($row['importance_level']) ?></span></td>
+                            <td><span class="<?= status_badge($row['status']) ?>"><?= htmlspecialchars($row['status']) ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
             </div>
-            <div style="margin-top:12px;">
-                <button class="btn secondary" type="submit">Filter</button>
+        </div>
+    <?php else: ?>
+        <div class="grid two">
+            <div>
+                <p class="muted">Review and approve employee shift requests for week starting <?= htmlspecialchars($week['week_start_date']) ?>.</p>
+                <table>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Request</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    <?php foreach ($requests as $req): ?>
+                        <tr>
+                            <td>
+                                <strong><?= htmlspecialchars($req['employee_name']) ?></strong><br>
+                                <span class="muted"><?= htmlspecialchars($req['employee_code']) ?></span>
+                            </td>
+                            <td>
+                                <?= htmlspecialchars($req['SubmitDate']) ?><br>
+                                <?= htmlspecialchars($req['shiftName'] ?? 'Day off') ?>
+                                <?php if ($req['flagged_as_important']): ?>
+                                    <div class="pill">Flagged</div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?= htmlspecialchars($req['reason']) ?><br>
+                                <span class="<?= importance_badge($req['importance_level']) ?>"><?= htmlspecialchars($req['importance_level']) ?></span>
+                            </td>
+                            <td><span class="<?= status_badge($req['status']) ?>"><?= htmlspecialchars($req['status']) ?></span></td>
+                            <td>
+                                <form method="post" class="stack">
+                                    <input type="hidden" name="action" value="update_request_status">
+                                    <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
+                                    <button class="btn" type="submit" name="status" value="APPROVED">Approve</button>
+                                    <button class="btn danger" type="submit" name="status" value="DECLINED">Decline</button>
+                                    <button class="btn ghost" type="submit" name="status" value="PENDING">Reset</button>
+                                </form>
+                                <form method="post" class="stack" style="margin-top:8px;">
+                                    <input type="hidden" name="action" value="toggle_flag">
+                                    <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
+                                    <input type="hidden" name="flagged" value="<?= $req['flagged_as_important'] ? 0 : 1 ?>">
+                                    <button class="btn secondary" type="submit"><?= $req['flagged_as_important'] ? 'Remove flag' : 'Flag important' ?></button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
             </div>
-        </form>
-        <?php
-        $history = fetch_request_history(
-            $user['id'],
-            $_GET['from'] ?? null,
-            $_GET['to'] ?? null,
-            $_GET['on'] ?? null
-        );
-        ?>
-        <table>
-            <tr>
-                <th>Submitted</th>
-                <th>Week</th>
-                <th>Day</th>
-                <th>Shift</th>
-                <th>Option</th>
-                <th>Reason</th>
-                <th>Importance</th>
-                <th>Status</th>
-            </tr>
-            <?php foreach ($history as $row): ?>
-                <tr>
-                    <td><?= htmlspecialchars($row['submission_date']) ?></td>
-                    <td><?= htmlspecialchars($row['week_start']) ?></td>
-                    <td><?= htmlspecialchars($row['requested_day']) ?> <?= $row['day_off'] ? '(Day off)' : '' ?></td>
-                    <td><?= htmlspecialchars($row['shift_type']) ?></td>
-                    <td><?= htmlspecialchars(schedule_option_label($row['schedule_option'])) ?></td>
-                    <td><?= htmlspecialchars($row['reason']) ?></td>
-                    <td <?= importance_badge($row['importance']) ?>><?= htmlspecialchars(ucfirst($row['importance'])) ?></td>
-                    <td><span class="status <?= htmlspecialchars($row['status']) ?>"><?= htmlspecialchars(ucfirst($row['status'])) ?></span></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    </section>
-
-    <section>
-        <h2>My Schedule</h2>
-        <table>
-            <tr>
-                <th>Day</th>
-                <th>Shift</th>
-                <th>Status</th>
-                <th>Notes</th>
-            </tr>
-            <?php foreach (array_filter($schedule, fn($s) => (int) $s['user_id'] === (int) $user['id']) as $entry): ?>
-                <tr>
-                    <td><?= htmlspecialchars($entry['day']) ?></td>
-                    <td><?= htmlspecialchars($entry['shift_type']) ?></td>
-                    <td><span class="status <?= htmlspecialchars($entry['status']) ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $entry['status']))) ?></span></td>
-                    <td><?= htmlspecialchars($entry['notes'] ?? '') ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    </section>
-<?php endif; ?>
-
-<?php if (!is_employee($user)): ?>
-    <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Submission Controls</h2>
-            <form method="post" class="inline">
-                <input type="hidden" name="action" value="toggle_submission">
-                <input type="hidden" name="locked" value="1">
-                <button class="btn danger" type="submit">Stop submissions for this week</button>
-            </form>
-            <form method="post" class="inline" style="margin-left:8px;">
-                <input type="hidden" name="action" value="toggle_submission">
-                <button class="btn secondary" type="submit">Allow submissions</button>
-            </form>
-            <p class="muted" style="margin-top:8px;">Current status: <?= $submissionLocked ? 'Disabled for this week' : 'Open (resets Monday)' ?></p>
-        </section>
+            <div>
+                <h3>Requirement planner</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_requirement">
+                    <label>Date</label>
+                    <input type="date" name="requirement_date" value="<?= htmlspecialchars($week['week_start_date']) ?>" required>
+                    <label>Shift type</label>
+                    <select name="shift_type_id" required>
+                        <?php foreach ($shiftTypes as $shiftType): ?>
+                            <option value="<?= (int) $shiftType['id'] ?>">
+                                <?= htmlspecialchars($shiftType['code']) ?> · <?= htmlspecialchars($shiftType['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label>Required count</label>
+                    <input type="number" name="required_count" min="0" value="0">
+                    <div class="spacer"></div>
+                    <button class="btn" type="submit">Save requirement</button>
+                </form>
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>Shift</th>
+                        <th>Required</th>
+                    </tr>
+                    <?php foreach ($requirements as $req): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($req['date']) ?></td>
+                            <td><?= htmlspecialchars($req['shift_code']) ?></td>
+                            <td><?= htmlspecialchars($req['required_count']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </div>
     <?php endif; ?>
+</section>
 
-    <section>
-        <h2>Requests (Week <?= htmlspecialchars($weekStart) ?>)</h2>
-        <?php $requests = fetch_requests_with_details($weekStart); ?>
-        <table>
-            <tr>
-                <th>Employee</th>
-                <th>Submitted</th>
-                <th>Requested</th>
-                <th>Schedule option</th>
-                <th>Reason / Importance</th>
-                <th>Status</th>
-                <th>Previous week</th>
-                <?php if (is_primary_admin($user)): ?><th>Actions</th><?php endif; ?>
-            </tr>
-            <?php foreach ($requests as $req): ?>
-                <tr>
-                    <td>
-                        <strong><?= htmlspecialchars($req['employee_name']) ?></strong><br>
-                        <span class="muted"><?= htmlspecialchars($req['employee_identifier']) ?></span><br>
-                        <span class="muted"><?= htmlspecialchars($req['email']) ?></span>
-                        <?php if ($req['flagged']): ?><div class="flag">Important</div><?php endif; ?>
-                    </td>
-                    <td><?= htmlspecialchars($req['submission_date']) ?></td>
-                    <td><?= htmlspecialchars($req['requested_day']) ?> <?= $req['day_off'] ? '(Day off)' : '' ?> &middot; <?= htmlspecialchars($req['shift_type']) ?></td>
-                    <td><?= htmlspecialchars(schedule_option_label($req['schedule_option'])) ?></td>
-                    <td>
-                        <?= htmlspecialchars($req['reason']) ?><br>
-                        <span <?= importance_badge($req['importance']) ?>><?= htmlspecialchars(ucfirst($req['importance'])) ?></span>
-                    </td>
-                    <td><span class="status <?= htmlspecialchars($req['status']) ?>"><?= htmlspecialchars(ucfirst($req['status'])) ?></span></td>
-                    <td><?= htmlspecialchars($req['previous_week_request'] ?? 'n/a') ?></td>
-                    <?php if (is_primary_admin($user)): ?>
-                        <td>
-                            <form method="post" class="inline">
-                                <input type="hidden" name="action" value="update_request_status">
-                                <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
-                                <input type="hidden" name="status" value="accepted">
-                                <button class="btn" type="submit">Accept</button>
-                            </form>
-                            <form method="post" class="inline">
-                                <input type="hidden" name="action" value="update_request_status">
-                                <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
-                                <input type="hidden" name="status" value="declined">
-                                <button class="btn danger" type="submit">Decline</button>
-                            </form>
-                            <form method="post" class="inline">
-                                <input type="hidden" name="action" value="update_request_status">
-                                <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
-                                <input type="hidden" name="status" value="pending">
-                                <button class="btn secondary" type="submit">Pending</button>
-                            </form>
-                            <form method="post" class="inline" style="margin-top:6px;">
-                                <input type="hidden" name="action" value="toggle_flag">
-                                <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
-                                <input type="hidden" name="flagged" value="<?= $req['flagged'] ? 0 : 1 ?>">
-                                <button class="btn secondary" type="submit"><?= $req['flagged'] ? 'Unflag' : 'Flag important' ?></button>
-                            </form>
-                        </td>
-                    <?php endif; ?>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    </section>
-
-    <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Shift Requirements &amp; Senior Staff</h2>
-            <form method="post" class="grid">
-                <input type="hidden" name="action" value="save_requirements">
-                <div>
-                    <label>AM required</label>
-                    <input type="number" name="am_required" value="<?= (int) $requirements['am_required'] ?>" min="0">
-                </div>
-                <div>
-                    <label>PM required</label>
-                    <input type="number" name="pm_required" value="<?= (int) $requirements['pm_required'] ?>" min="0">
-                </div>
-                <div>
-                    <label>MID required</label>
-                    <input type="number" name="mid_required" value="<?= (int) $requirements['mid_required'] ?>" min="0">
-                </div>
-                <div style="grid-column: 1 / -1;">
-                    <label>Senior staff (notes)</label>
-                    <textarea name="senior_staff" placeholder="List senior staff or team leaders"><?= htmlspecialchars($requirements['senior_staff'] ?? '') ?></textarea>
-                </div>
-                <div style="grid-column: 1 / -1;">
-                    <button class="btn" type="submit">Save requirements</button>
-                </div>
+<section id="schedule" class="card">
+    <div class="stack" style="justify-content: space-between;">
+        <div>
+            <h2>Weekly Schedule</h2>
+            <p class="muted">Work plan mapped to schedules, shifts, and assignments.</p>
+        </div>
+        <?php if (is_admin($user)): ?>
+            <form method="post">
+                <input type="hidden" name="action" value="create_schedule">
+                <button class="btn" type="submit">Create draft schedule</button>
             </form>
-            <form method="post" style="margin-top:12px;">
-                <input type="hidden" name="action" value="generate_schedule">
-                <button class="btn" type="submit">Generate Schedule</button>
-            </form>
-        </section>
-    <?php endif; ?>
-
-    <section>
-        <h2>Schedule (Week <?= htmlspecialchars($weekStart) ?>)</h2>
-        <?php if (!is_employee($user)): ?>
-            <p><a class="btn secondary" href="?download=schedule">Download Excel/CSV</a></p>
         <?php endif; ?>
-        <table>
+    </div>
+    <?php if ($scheduleSummary): ?>
+        <div class="grid three">
+            <div class="stat">
+                <strong><?= htmlspecialchars($scheduleSummary['status']) ?></strong>
+                <span class="muted">Status</span>
+            </div>
+            <div class="stat">
+                <strong><?= htmlspecialchars($scheduleSummary['generated_by'] ?? 'n/a') ?></strong>
+                <span class="muted">Generated by</span>
+            </div>
+            <div class="stat">
+                <strong><?= htmlspecialchars($scheduleSummary['generated_at']) ?></strong>
+                <span class="muted">Generated at</span>
+            </div>
+        </div>
+    <?php else: ?>
+        <p class="muted">No schedule has been generated for this week.</p>
+    <?php endif; ?>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Required</th>
+            <th>Assigned</th>
+            <th>Source</th>
+        </tr>
+        <?php foreach ($scheduleAssignments as $entry): ?>
             <tr>
-                <th>Employee</th>
-                <th>Day</th>
-                <th>Shift</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <?php if (is_primary_admin($user)): ?><th>Edit</th><?php endif; ?>
+                <td><?= htmlspecialchars($entry['date']) ?></td>
+                <td><?= htmlspecialchars($entry['shiftName']) ?> (<?= htmlspecialchars($entry['category'] ?? '') ?>)</td>
+                <td><?= htmlspecialchars($entry['required_count']) ?></td>
+                <td><?= htmlspecialchars($entry['full_name'] ?? 'Unassigned') ?></td>
+                <td><?= htmlspecialchars($entry['assignment_source'] ?? 'Pending') ?></td>
             </tr>
-            <?php foreach ($schedule as $entry): ?>
-                <tr>
-                    <td><?= htmlspecialchars($entry['employee_name']) ?></td>
-                    <td><?= htmlspecialchars($entry['day']) ?></td>
-                    <td><?= htmlspecialchars($entry['shift_type']) ?></td>
-                    <td><span class="status <?= htmlspecialchars($entry['status']) ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $entry['status']))) ?></span></td>
-                    <td><?= htmlspecialchars($entry['notes'] ?? '') ?></td>
-                    <?php if (is_primary_admin($user)): ?>
-                        <td>
-                            <form method="post" class="grid" style="grid-template-columns: repeat(3, 1fr); gap:6px; align-items: center;">
-                                <input type="hidden" name="action" value="update_schedule_entry">
-                                <input type="hidden" name="entry_id" value="<?= (int) $entry['id'] ?>">
-                                <select name="day">
-                                    <?php foreach (['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','N/A'] as $day): ?>
-                                        <option value="<?= $day ?>" <?= $day === $entry['day'] ? 'selected' : '' ?>><?= $day ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <select name="shift_type">
-                                    <?php foreach (['AM','PM','MID','OFF','UNASSIGNED'] as $shift): ?>
-                                        <option value="<?= $shift ?>" <?= $shift === $entry['shift_type'] ? 'selected' : '' ?>><?= $shift ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <input type="text" name="notes" value="<?= htmlspecialchars($entry['notes'] ?? '') ?>" placeholder="Notes">
-                                <button class="btn secondary" type="submit" style="grid-column: 1 / -1;">Save</button>
-                            </form>
-                        </td>
-                    <?php endif; ?>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    </section>
+        <?php endforeach; ?>
+    </table>
+</section>
 
-    <?php if (is_primary_admin($user)): ?>
-        <section>
-            <h2>Manage Employees</h2>
+<section id="team" class="card">
+    <h2>Team &amp; Directory</h2>
+    <div class="grid three">
+        <div>
+            <h3>Employees</h3>
             <?php
-            $emps = $pdo->query('SELECT id, name, employee_identifier, email FROM users WHERE role = "employee" ORDER BY name')->fetchAll();
+            $employees = $pdo->query(
+                'SELECT full_name, employee_code, email, is_senior, seniority_level
+                 FROM employees
+                 ORDER BY full_name'
+            )->fetchAll();
             ?>
             <table>
                 <tr>
                     <th>Name</th>
-                    <th>Employee ID</th>
-                    <th>Email</th>
-                    <th>Actions</th>
+                    <th>Level</th>
+                    <th>Contact</th>
                 </tr>
-                <?php foreach ($emps as $emp): ?>
+                <?php foreach ($employees as $employee): ?>
                     <tr>
-                        <td><?= htmlspecialchars($emp['name']) ?></td>
-                        <td><?= htmlspecialchars($emp['employee_identifier']) ?></td>
-                        <td><?= htmlspecialchars($emp['email']) ?></td>
                         <td>
-                            <form method="post" class="inline">
-                                <input type="hidden" name="action" value="delete_employee">
-                                <input type="hidden" name="employee_id" value="<?= (int) $emp['id'] ?>">
-                                <button class="btn danger" type="submit">Delete</button>
-                            </form>
+                            <?= htmlspecialchars($employee['full_name']) ?><br>
+                            <span class="muted"><?= htmlspecialchars($employee['employee_code']) ?></span>
+                        </td>
+                        <td>
+                            <?= $employee['is_senior'] ? 'Senior' : 'Staff' ?><br>
+                            <span class="muted">Level <?= htmlspecialchars((string) $employee['seniority_level']) ?></span>
+                        </td>
+                        <td><?= htmlspecialchars($employee['email'] ?? 'n/a') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+        <div>
+            <h3>Shift definitions</h3>
+            <table>
+                <tr>
+                    <th>Shift</th>
+                    <th>Time</th>
+                    <th>Type</th>
+                </tr>
+                <?php foreach ($shiftDefinitions as $definition): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($definition['shiftName']) ?></td>
+                        <td><?= htmlspecialchars((string) $definition['start_time']) ?> - <?= htmlspecialchars((string) $definition['end_time']) ?></td>
+                        <td><?= htmlspecialchars($definition['category'] ?? '') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+        <div>
+            <h3>Schedule patterns</h3>
+            <table>
+                <tr>
+                    <th>Pattern</th>
+                    <th>Work/Off</th>
+                </tr>
+                <?php foreach ($schedulePatterns as $pattern): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($pattern['names']) ?></td>
+                        <td><?= (int) $pattern['work_days_per_week'] ?>/<?= (int) $pattern['off_days_per_week'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section id="settings" class="card">
+    <h2>Notifications &amp; System Settings</h2>
+    <div class="grid two">
+        <div>
+            <h3>Notifications</h3>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                </tr>
+                <?php foreach ($notifications as $note): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($note['type']) ?></td>
+                        <td>
+                            <strong><?= htmlspecialchars($note['title']) ?></strong><br>
+                            <?= htmlspecialchars($note['body'] ?? '') ?>
+                        </td>
+                        <td>
+                            <?= $note['is_read'] ? 'Read' : 'Unread' ?>
+                            <?php if (!$note['is_read']): ?>
+                                <form method="post">
+                                    <input type="hidden" name="action" value="mark_notification_read">
+                                    <input type="hidden" name="notification_id" value="<?= (int) $note['id'] ?>">
+                                    <button class="btn ghost" type="submit">Mark read</button>
+                                </form>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
-            <p class="muted" style="margin-top:8px;">Add new employees by inserting them into the <code>users</code> table with the <strong>employee</strong> role.</p>
-        </section>
-    <?php endif; ?>
-<?php endif; ?>
+        </div>
+        <div>
+            <h3>System settings</h3>
+            <?php $settings = $pdo->query('SELECT * FROM system_settings ORDER BY Systemkey')->fetchAll(); ?>
+            <table>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <?php foreach ($settings as $setting): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($setting['Systemkey']) ?></td>
+                        <td><?= htmlspecialchars($setting['Svalue'] ?? 'n/a') ?></td>
+                        <td><?= htmlspecialchars($setting['descriptions'] ?? '') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+    </div>
+</section>
 
 </main>
 </body>

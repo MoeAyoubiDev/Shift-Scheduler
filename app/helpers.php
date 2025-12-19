@@ -16,6 +16,10 @@ function login(string $username, string $password): bool
         return false;
     }
 
+    if (!(bool) $user['is_active']) {
+        return false;
+    }
+
     $_SESSION['user'] = $user;
     return true;
 }
@@ -35,38 +39,91 @@ function require_login(): void
 
 function find_user_by_username(string $username): ?array
 {
-    $stmt = db()->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
+    $stmt = db()->prepare(
+        'SELECT u.*, ur.id AS user_role_id, r.RoleName AS role_name, s.section_name,
+                e.id AS employee_id, e.full_name, e.employee_code, e.is_senior,
+                e.seniority_level, e.is_active AS employee_active
+         FROM users u
+         LEFT JOIN user_roles ur ON ur.userId = u.id
+         LEFT JOIN roles r ON r.id = ur.role_id
+         LEFT JOIN sections s ON s.id = ur.section_id
+         LEFT JOIN employees e ON e.user_rolesId = ur.id
+         WHERE u.username = :username'
+    );
     $stmt->execute(['username' => $username]);
-    $user = $stmt->fetch();
+    $row = $stmt->fetch();
 
-    return $user ?: null;
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        'id' => (int) $row['id'],
+        'username' => $row['username'],
+        'email' => $row['email'],
+        'password_hash' => $row['password_hash'],
+        'is_active' => (int) $row['is_active'],
+        'role' => $row['role_name'] ?? 'Employee',
+        'section' => $row['section_name'] ?? 'Unassigned',
+        'user_role_id' => $row['user_role_id'],
+        'employee_id' => $row['employee_id'],
+        'name' => $row['full_name'] ?? $row['username'],
+        'employee_code' => $row['employee_code'] ?? 'N/A',
+        'is_senior' => (bool) $row['is_senior'],
+        'seniority_level' => (int) $row['seniority_level'],
+        'employee_active' => (bool) $row['employee_active'],
+    ];
 }
 
-function is_primary_admin(array $user): bool
+function is_admin(array $user): bool
 {
-    return $user['role'] === 'primary_admin';
-}
-
-function is_secondary_admin(array $user): bool
-{
-    return $user['role'] === 'secondary_admin';
+    $role = strtolower($user['role'] ?? '');
+    return str_contains($role, 'admin')
+        || str_contains($role, 'leader')
+        || str_contains($role, 'manager')
+        || str_contains($role, 'supervisor');
 }
 
 function is_employee(array $user): bool
 {
-    return $user['role'] === 'employee';
+    return !empty($user['employee_id']);
 }
 
-function submission_window_open(): bool
+function ensure_week(string $weekStart): array
+{
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT * FROM weeks WHERE week_start_date = :week_start LIMIT 1');
+    $stmt->execute(['week_start' => $weekStart]);
+    $week = $stmt->fetch();
+
+    if ($week) {
+        return $week;
+    }
+
+    $weekEnd = week_end_from_start($weekStart);
+    $insert = $pdo->prepare(
+        'INSERT INTO weeks (week_start_date, week_end_date, is_locked_for_requests, created_at)
+         VALUES (:week_start, :week_end, 0, CURRENT_TIMESTAMP)'
+    );
+    $insert->execute([
+        'week_start' => $weekStart,
+        'week_end' => $weekEnd,
+    ]);
+
+    $stmt->execute(['week_start' => $weekStart]);
+    return $stmt->fetch();
+}
+
+function submission_window_open(string $weekStart): bool
 {
     $today = new DateTimeImmutable();
-    $dayOfWeek = (int) $today->format('N'); // 1 (Mon) - 7 (Sun)
+    $dayOfWeek = (int) $today->format('N');
 
     if ($dayOfWeek > 5) {
         return false;
     }
 
-    if (is_submission_locked_for_week(current_week_start())) {
+    if (is_submission_locked_for_week($weekStart)) {
         return false;
     }
 
@@ -75,86 +132,120 @@ function submission_window_open(): bool
 
 function is_submission_locked_for_week(string $weekStart): bool
 {
-    $stmt = db()->prepare('SELECT is_locked FROM submission_controls WHERE week_start = :week_start LIMIT 1');
-    $stmt->execute(['week_start' => $weekStart]);
-    $row = $stmt->fetch();
-
-    return $row ? (bool) $row['is_locked'] : false;
+    $week = ensure_week($weekStart);
+    return (bool) $week['is_locked_for_requests'];
 }
 
 function set_submission_lock(string $weekStart, bool $locked): void
 {
-    $stmt = db()->prepare('INSERT INTO submission_controls (week_start, is_locked, updated_at)
-        VALUES (:week_start, :is_locked, NOW())
-        ON DUPLICATE KEY UPDATE is_locked = VALUES(is_locked), updated_at = VALUES(updated_at)');
+    $week = ensure_week($weekStart);
+    $stmt = db()->prepare('UPDATE weeks SET is_locked_for_requests = :locked, lock_reason = :reason WHERE id = :id');
     $stmt->execute([
-        'week_start' => $weekStart,
-        'is_locked' => $locked ? 1 : 0,
+        'locked' => $locked ? 1 : 0,
+        'reason' => $locked ? 'Locked by admin' : null,
+        'id' => $week['id'],
     ]);
 }
 
-function fetch_request_history(int $userId, ?string $fromDate, ?string $toDate, ?string $specificDate): array
+function fetch_shift_definitions(): array
 {
-    $conditions = ['user_id = :user_id'];
-    $params = ['user_id' => $userId];
+    $stmt = db()->query('SELECT * FROM shift_definitions ORDER BY shiftName');
+    return $stmt->fetchAll();
+}
+
+function fetch_shift_types(): array
+{
+    $stmt = db()->query('SELECT * FROM shift_types ORDER BY code');
+    return $stmt->fetchAll();
+}
+
+function fetch_schedule_patterns(): array
+{
+    $stmt = db()->query('SELECT * FROM schedule_patterns ORDER BY work_days_per_week DESC');
+    return $stmt->fetchAll();
+}
+
+function fetch_request_history(int $employeeId, ?string $fromDate, ?string $toDate, ?string $specificDate): array
+{
+    $conditions = ['r.employee_id = :employee_id'];
+    $params = ['employee_id' => $employeeId];
 
     if ($specificDate) {
-        $conditions[] = 'DATE(submission_date) = :specific_date';
+        $conditions[] = 'r.SubmitDate = :specific_date';
         $params['specific_date'] = $specificDate;
     } else {
         if ($fromDate) {
-            $conditions[] = 'DATE(submission_date) >= :from_date';
+            $conditions[] = 'r.SubmitDate >= :from_date';
             $params['from_date'] = $fromDate;
         }
         if ($toDate) {
-            $conditions[] = 'DATE(submission_date) <= :to_date';
+            $conditions[] = 'r.SubmitDate <= :to_date';
             $params['to_date'] = $toDate;
         }
     }
 
-    $sql = 'SELECT r.*, u.name AS employee_name, u.employee_identifier
-            FROM requests r
-            INNER JOIN users u ON u.id = r.user_id
+    $sql = 'SELECT r.*, sd.shiftName, sd.category, sp.names AS pattern_name
+            FROM shift_requests r
+            LEFT JOIN shift_definitions sd ON sd.id = r.shift_definition_id
+            LEFT JOIN schedule_patterns sp ON sp.id = r.schedule_pattern_id
             WHERE ' . implode(' AND ', $conditions) . '
-            ORDER BY submission_date DESC';
+            ORDER BY r.SubmitDate DESC';
 
     $stmt = db()->prepare($sql);
     $stmt->execute($params);
     return $stmt->fetchAll();
 }
 
-function fetch_requests_with_details(string $weekStart): array
+function fetch_requests_with_details(int $weekId): array
 {
     $stmt = db()->prepare(
-        'SELECT r.*, u.name AS employee_name, u.employee_identifier, u.email
-         FROM requests r
-         INNER JOIN users u ON u.id = r.user_id
-         WHERE r.week_start = :week_start
-         ORDER BY r.submission_date DESC'
+        'SELECT r.*, e.full_name AS employee_name, e.employee_code, e.email,
+                sd.shiftName, sd.category, sp.names AS pattern_name
+         FROM shift_requests r
+         INNER JOIN employees e ON e.id = r.employee_id
+         LEFT JOIN shift_definitions sd ON sd.id = r.shift_definition_id
+         LEFT JOIN schedule_patterns sp ON sp.id = r.schedule_pattern_id
+         WHERE r.week_id = :week_id
+         ORDER BY r.submitted_at DESC'
     );
-    $stmt->execute(['week_start' => $weekStart]);
+    $stmt->execute(['week_id' => $weekId]);
     return $stmt->fetchAll();
 }
 
-function label_for_importance(string $importance): string
+function fetch_notifications(int $userId): array
 {
-    return match ($importance) {
-        'high' => 'High',
-        'medium' => 'Medium',
-        default => 'Low',
-    };
+    $stmt = db()->prepare(
+        'SELECT * FROM notifications WHERE user_id = :user_id ORDER BY created_at DESC'
+    );
+    $stmt->execute(['user_id' => $userId]);
+    return $stmt->fetchAll();
 }
 
-function schedule_option_label(string $option): string
+function mark_notification_read(int $notificationId, int $userId): void
 {
-    return $option === '5x2' ? '5 days on / 2 days off (9 hours)' : '6 days on / 1 day off (7.5 hours)';
+    $stmt = db()->prepare(
+        'UPDATE notifications SET is_read = 1, read_at = CURRENT_TIMESTAMP WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+        'id' => $notificationId,
+        'user_id' => $userId,
+    ]);
 }
 
 function importance_badge(string $importance): string
 {
-    return match ($importance) {
-        'high' => 'style="color:#c0392b;font-weight:700;"',
-        'medium' => 'style="color:#d35400;font-weight:600;"',
-        default => 'style="color:#2c3e50;"',
+    return match (strtoupper($importance)) {
+        'HIGH' => 'badge badge-high',
+        'NORMAL' => 'badge badge-normal',
+        default => 'badge badge-low',
+    };
+}
+
+function status_badge(string $status): string
+{
+    return match (strtoupper($status)) {
+        'APPROVED' => 'badge badge-success',
+        'DECLINED' => 'badge badge-danger',
+        default => 'badge badge-warning',
     };
 }
