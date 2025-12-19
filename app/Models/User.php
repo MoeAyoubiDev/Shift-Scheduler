@@ -1,36 +1,31 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/BaseModel.php';
+require_once __DIR__ . '/../Core/Database.php';
 
-class User extends BaseModel
+class User
 {
-    protected string $table = 'users';
-    protected array $fillable = [
-        'username',
-        'password_hash',
-        'email',
-        'is_active',
-        'created_at',
-        'updated_at',
-    ];
-
+    private PDO $db;
+    
+    public function __construct()
+    {
+        $this->db = Database::getInstance();
+    }
+    
     public function findByUsername(string $username): ?array
     {
-        return $this->firstWhere('username', $username);
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        return $stmt->fetch() ?: null;
     }
-
-    public function createWithPassword(string $username, string $password, ?string $email = null): int
+    
+    public function create(string $username, string $password, ?string $email = null): int
     {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-
-        return $this->create([
-            'username' => $username,
-            'password_hash' => $hash,
-            'email' => $email,
-            'is_active' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $stmt = $this->db->prepare(
+            "INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([$username, $hash, $email]);
+        return (int) $this->db->lastInsertId();
     }
 }

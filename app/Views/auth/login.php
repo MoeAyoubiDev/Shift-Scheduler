@@ -1,20 +1,24 @@
 <?php
-declare(strict_types=1);
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../../Core/CSRF.php';
 ?>
-<section class="card auth-card">
-    <div class="hero">
-        <h2>Welcome back</h2>
-        <p>Access schedules, requests, and analytics with your role-based dashboard.</p>
+
+<div class="login-container">
+    <div class="login-box">
+        <h1>Shift Scheduler Login</h1>
+        <form method="POST" action="/login.php">
+            <?= CSRF::tokenField() ?>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
     </div>
-    <form method="post">
-        <input type="hidden" name="action" value="login">
-        <label>Username</label>
-        <input type="text" name="username" required>
-        <label>Password</label>
-        <input type="password" name="password" required>
-        <div class="form-actions">
-            <button class="btn" type="submit">Sign in</button>
-        </div>
-    </form>
-    <p class="muted helper-text">Default credentials are seeded in <code>database.sql</code> (password: <strong>password123</strong>).</p>
-</section>
+</div>
+
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

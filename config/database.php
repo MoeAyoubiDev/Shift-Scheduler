@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 return [
-    'host' => '127.0.0.1',
-    'port' => '3306',
-    'name' => 'ShiftSchedulerDB',
-    'user' => 'shift_user',
-    'pass' => 'StrongPassword123!',
+    'host' => getenv('DB_HOST') ?: '127.0.0.1',
+    'port' => getenv('DB_PORT') ?: '3306',
+    'name' => getenv('DB_NAME') ?: 'ShiftSchedulerDB',
+    'user' => getenv('DB_USER') ?: 'root',
+    'pass' => getenv('DB_PASSWORD') ?: '',
 ];

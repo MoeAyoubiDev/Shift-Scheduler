@@ -1,112 +1,283 @@
-Shift Scheduler System
-======================
+# Shift Scheduler System
 
-This project is a lightweight PHP/MySQL application that lets team leaders collect weekly shift requests from employees, review/approve them as a Primary Admin, and generate a weekly schedule (including unmatched/no-request groupings). Secondary Admins can view everything in read-only mode.
+A complete production-ready shift scheduling system built with PHP (MVC architecture) and MySQL.
 
 ## Features
 
-- Static-credential login for Employees, Primary Admin, and Secondary Admin (seed data provided).
-- Employees can submit weekly requests (day, shift type, day off, schedule option, reason, importance) Monday–Friday only; attempts after Friday or while submissions are blocked show the required error messaging.
-- Primary Admin controls request approvals/declines/pending status, flags important requests, and can temporarily stop submissions for the current week.
-- Shift requirements (AM/PM/MID headcount + senior staff notes) feed into an auto-generated weekly schedule with buckets for unmatched and no-request employees; Primary Admin can edit schedule entries after generation.
-- Employees can filter their request history and view their personal schedule; admins can view all requests with previous-week context.
+- **Role-Based Access Control**: Director, Team Leader, Supervisor, Senior, and Employee roles with specific permissions
+- **Shift Request Management**: Employees can submit shift requests (Monday-Saturday only)
+- **Schedule Generation**: Automated weekly schedule generation based on approved requests
+- **Break Management**: 30-minute break tracking with delay monitoring
+- **Performance Analytics**: Comprehensive reporting with filtering options
+- **CSV Export**: Export schedules as CSV files
 
-## Project Plan (2026 Professional Update)
+## Requirements
 
-**Project Overview**
-- Web-based Employee Shift Scheduling System for directors, team leaders, senior staff, and employees.
-- Automates weekly scheduling, improves visibility, and centralizes requests/approvals.
-- Built with PHP 8.x and MySQL for compatibility, performance, and scalability.
+- PHP 8.0 or higher
+- MySQL 5.7 or higher
+- Apache/Nginx web server
+- SSL certificate (for production)
 
-**Objectives**
-- Automate weekly scheduling and reduce manual errors.
-- Provide role-based dashboards and real-time coverage visibility.
-- Allow digital requests for day-offs and shift changes.
-- Maintain a complete history of schedules, requests, and attendance.
+## Installation
 
-**Users / Stakeholders**
-- Employees, Senior Employees, Team Leaders, Directors/Administrators, HR/Management.
+### 1. Database Setup
 
-**Technical Requirements**
-1. **Frontend**: HTML5, CSS3, JavaScript, Bootstrap.
-2. **Backend**: PHP 8.x with business logic for scheduling, request rules, breaks, and weekly locking.
-3. **Database**: MySQL/MariaDB with core tables for users, roles, sections, schedules, requests, and analytics.
-4. **Additional Features**: role dashboards, week locking, secure auth, reporting exports, and analytics.
+```bash
+# Import database schema
+mysql -u root -p < database/schema.sql
 
-**Development Phases**
-1. **Design**: database schema, user journeys, and wireframes for login, dashboards, schedules, and requests.
-2. **Core System**: router, MVC structure, DB connection, and session handling.
-3. **Modules**:
-   - Director: global weekly view, analytics, and approvals.
-   - Team Leader: schedule generation and week lock controls.
-   - Senior: daily shifts and break tracking.
-   - Employee: requests, schedule views, and status history.
-4. **Testing & Refinement**: unit tests, scheduling accuracy, role permissions, and responsive UI polish.
-5. **Documentation**: user manual, technical docs, deployment instructions.
-
-**Expected Outcomes**
-- Fully working role-based scheduling system.
-- Transparent and fair scheduling with optimized coverage.
-- Reduced administrative workload and improved communication.
-
-**Current Repository Structure**
-```
-shift-system/
-├── app/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Views/
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   ├── partials/
-│   │   └── shifts/
-│   ├── Core/
-│   └── Helpers/
-├── config/
-├── database/
-│   └── database.sql
-├── public/
-│   ├── assets/
-│   │   ├── css/
-│   │   ├── js/
-│   │   └── img/
-│   └── index.php
-├── .env
-├── composer.json
-└── README.md
+# Import stored procedures (use fixed version for PHP compatibility)
+mysql -u root -p < database/stored_procedures_fixed.sql
+# OR use the original version
+# mysql -u root -p < database/stored_procedures.sql
 ```
 
-## Getting started
+### 2. Configuration
 
-1. Create a MySQL database (default name: `shift_scheduler`) and import the schema/seed data:
+Update `config/database.php` with your database credentials:
 
-   ```bash
-   mysql -u root -p shift_scheduler < database/database.sql
-   ```
+```php
+return [
+    'host' => '127.0.0.1',
+    'port' => '3306',
+    'name' => 'ShiftSchedulerDB',
+    'user' => 'your_db_user',
+    'pass' => 'your_db_password',
+];
+```
 
-   The seed users share the password `password123`:
+Or set environment variables:
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
 
-   - Primary Admin: `primaryadmin`
-   - Secondary Admin: `secondaryadmin`
-   - Employees: `alice`, `bob`
+### 3. Web Server Configuration
 
-2. Configure database credentials via environment variables if needed:
+#### Apache (.htaccess)
 
-   - `DB_HOST` (default `127.0.0.1`)
-   - `DB_PORT` (default `3306`)
-   - `DB_NAME` (default `shift_scheduler`)
-   - `DB_USER` (default `root`)
-   - `DB_PASSWORD` (default empty)
+Create `.htaccess` in the `public` directory:
 
-3. Serve the app (document root should be `public/`):
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+```
 
-   ```bash
-   php -S localhost:8000 -t public
-   ```
+#### Nginx
 
-4. Log in with one of the seeded accounts and start submitting/approving requests.
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/Shift-Scheduler/public;
+    index index.php;
 
-## Notes
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-- Submission blocks reset each Monday; the Primary Admin can re-enable submissions at any time.
-- Generated schedules live in the database; export or email workflows can be layered on as follow-up work.
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}
+```
+
+### 4. Permissions
+
+```bash
+chmod -R 755 /path/to/Shift-Scheduler
+chown -R www-data:www-data /path/to/Shift-Scheduler
+```
+
+## User Roles & Permissions
+
+### Director
+- Can access both sections (App After-Sales and Agent After-Sales)
+- Read-only access to all data
+- Must choose section after login
+
+### Team Leader
+- Full CRUD permissions in assigned section
+- Create & manage employees
+- Approve/decline shift requests
+- Generate and edit weekly schedules
+- Monitor breaks & delays
+- View performance analytics
+- Export schedules as CSV
+
+### Supervisor
+- Read-only access to assigned section
+- View schedules, employees, performance, and break reports
+
+### Senior
+- Manages today's shift only
+- Can see employees working in current shift
+- Can assign and control breaks
+- Can monitor who is late to break or return
+- Can view weekly schedule summary
+
+### Employee
+- Can submit shift requests
+- Can view weekly schedule
+- Can start and end one 30-minute shift break per day
+
+## Database Structure
+
+The system uses the following main tables:
+- `users` - User accounts
+- `roles` - User roles
+- `sections` - Company sections
+- `user_roles` - User-role-section assignments
+- `employees` - Employee information
+- `shift_definitions` - Shift types
+- `shift_requests` - Employee shift requests
+- `schedules` - Weekly schedules
+- `schedule_assignments` - Employee-shift assignments
+- `employee_breaks` - Break tracking
+- `system_settings` - System configuration
+
+All business logic is implemented using MySQL stored procedures.
+
+## Security Features
+
+- Password hashing using bcrypt
+- Prepared statements for all database queries
+- Session-based authentication
+- CSRF protection
+- Role & section-based access control
+
+## Deployment (DigitalOcean Ubuntu Server)
+
+### 1. Server Setup
+
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install PHP and extensions
+sudo apt install php8.1-fpm php8.1-mysql php8.1-mbstring php8.1-xml -y
+
+# Install MySQL
+sudo apt install mysql-server -y
+
+# Install Nginx
+sudo apt install nginx -y
+```
+
+### 2. SSL Setup (Let's Encrypt)
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx -y
+
+# Obtain certificate
+sudo certbot --nginx -d your-domain.com
+```
+
+### 3. Database Setup
+
+```bash
+# Secure MySQL installation
+sudo mysql_secure_installation
+
+# Create database and user
+sudo mysql -u root -p
+```
+
+```sql
+CREATE DATABASE ShiftSchedulerDB;
+CREATE USER 'shift_user'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON ShiftSchedulerDB.* TO 'shift_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### 4. Deploy Application
+
+```bash
+# Clone or upload files
+cd /var/www
+sudo git clone your-repo Shift-Scheduler
+# or upload via SFTP
+
+# Set permissions
+sudo chown -R www-data:www-data /var/www/Shift-Scheduler
+sudo chmod -R 755 /var/www/Shift-Scheduler
+```
+
+### 5. Configure Nginx
+
+Create `/etc/nginx/sites-available/shift-scheduler`:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+    root /var/www/Shift-Scheduler/public;
+    index index.php;
+
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}
+```
+
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/shift-scheduler /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+## Creating Initial Users
+
+```sql
+-- Create a Director user
+INSERT INTO users (username, password_hash, email) 
+VALUES ('director', '$2y$10$...', 'director@example.com');
+
+-- Assign Director role to both sections
+INSERT INTO user_roles (user_id, role_id, section_id)
+SELECT u.id, r.id, s.id
+FROM users u, roles r, sections s
+WHERE u.username = 'director' 
+  AND r.role_name = 'Director';
+```
+
+Use PHP to generate password hashes:
+```php
+echo password_hash('your_password', PASSWORD_BCRYPT);
+```
+
+## Support
+
+For issues or questions, please refer to the documentation or contact the development team.
+
+## License
+
+Proprietary - All rights reserved.
