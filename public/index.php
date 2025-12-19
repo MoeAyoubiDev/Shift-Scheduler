@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../app/helpers.php';
-require_once __DIR__ . '/../app/schedule.php';
+require_once __DIR__ . '/../app/Helpers/helpers.php';
+require_once __DIR__ . '/../app/Helpers/schedule.php';
 
 $pdo = db();
 $weekStart = current_week_start();

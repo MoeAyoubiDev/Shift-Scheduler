@@ -1,0 +1,8 @@
+{
+  "name": "shift-system/shift-scheduler",
+  "description": "Shift Scheduler System",
+  "type": "project",
+  "require": {
+    "php": ">=8.0"
+  }
+}

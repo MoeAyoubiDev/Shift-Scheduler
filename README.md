@@ -56,12 +56,20 @@ shift-system/
 │   ├── Controllers/
 │   ├── Models/
 │   ├── Views/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── partials/
+│   │   └── shifts/
 │   ├── Core/
 │   └── Helpers/
 ├── config/
-├── database.sql
+├── database/
+│   └── database.sql
 ├── public/
 │   ├── assets/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
 │   └── index.php
 ├── .env
 ├── composer.json
@@ -73,7 +81,7 @@ shift-system/
 1. Create a MySQL database (default name: `shift_scheduler`) and import the schema/seed data:
 
    ```bash
-   mysql -u root -p shift_scheduler < database.sql
+   mysql -u root -p shift_scheduler < database/database.sql
    ```
 
    The seed users share the password `password123`:
