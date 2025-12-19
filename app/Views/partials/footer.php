@@ -5,11 +5,11 @@ declare(strict_types=1);
 <footer class="site-footer">
     <div>
         <strong><?= e(app_config('name', 'Shift Scheduler')) ?></strong>
-        <span class="muted">Operational analytics &amp; staffing visibility.</span>
+        <span class="muted">Production-ready schedules, break monitoring, and analytics.</span>
     </div>
     <div class="footer-meta">
         <span class="status-indicator"></span>
-        <span>All systems synced</span>
+        <span>Last sync <?= e((new DateTimeImmutable())->format('M d, Y H:i')) ?></span>
     </div>
 </footer>
 <script src="/assets/js/app.js"></script>

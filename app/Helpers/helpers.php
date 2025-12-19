@@ -3,17 +3,48 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../Core/config.php';
 require_once __DIR__ . '/view.php';
+require_once __DIR__ . '/../Models/User.php';
 
 function current_user(): ?array
 {
     return $_SESSION['user'] ?? null;
 }
 
+function current_role(): ?string
+{
+    $user = current_user();
+    return $user['role'] ?? null;
+}
+
+function current_section_id(): ?int
+{
+    $user = current_user();
+    if (!$user) {
+        return null;
+    }
+
+    if ($user['role'] === 'Director') {
+        return $_SESSION['selected_section_id'] ?? null;
+    }
+
+    return $user['section_id'] ?? null;
+}
+
+function set_current_section(int $sectionId): void
+{
+    if ($sectionId <= 0) {
+        unset($_SESSION['selected_section_id']);
+        return;
+    }
+
+    $_SESSION['selected_section_id'] = $sectionId;
+}
+
 function login(string $username, string $password): bool
 {
-    $user = find_user_by_username($username);
+    $user = User::authenticate($username, $password);
 
-    if (!$user || !password_verify($password, $user['password_hash'])) {
+    if (!$user) {
         return false;
     }
 
@@ -23,7 +54,7 @@ function login(string $username, string $password): bool
 
 function logout(): void
 {
-    unset($_SESSION['user']);
+    unset($_SESSION['user'], $_SESSION['selected_section_id']);
 }
 
 function require_login(): void
@@ -34,135 +65,59 @@ function require_login(): void
     }
 }
 
-function find_user_by_username(string $username): ?array
+function require_role(array $roles): void
 {
-    $stmt = db()->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
-    $stmt->execute(['username' => $username]);
-    $user = $stmt->fetch();
-
-    return $user ?: null;
+    $userRole = current_role();
+    if (!$userRole || !in_array($userRole, $roles, true)) {
+        http_response_code(403);
+        render_view('partials/header', [
+            'title' => 'Access Denied',
+            'message' => 'You do not have permission to access this page.',
+        ]);
+        render_view('partials/footer');
+        exit;
+    }
 }
 
-function is_primary_admin(array $user): bool
+function csrf_token(): string
 {
-    return $user['role'] === 'primary_admin';
-}
-
-function is_secondary_admin(array $user): bool
-{
-    return $user['role'] === 'secondary_admin';
-}
-
-function is_employee(array $user): bool
-{
-    return $user['role'] === 'employee';
-}
-
-function submission_window_open(): bool
-{
-    $today = new DateTimeImmutable();
-    $dayOfWeek = (int) $today->format('N'); // 1 (Mon) - 7 (Sun)
-
-    if ($dayOfWeek > 5) {
-        return false;
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 
-    if (is_submission_locked_for_week(current_week_start())) {
-        return false;
+    return $_SESSION['csrf_token'];
+}
+
+function verify_csrf(?string $token): bool
+{
+    return $token !== null && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+function require_csrf(array $payload): void
+{
+    if (!verify_csrf($payload['csrf_token'] ?? null)) {
+        http_response_code(419);
+        render_view('partials/header', [
+            'title' => 'Invalid Session',
+            'message' => 'Your session expired or the form is invalid. Please try again.',
+        ]);
+        render_view('partials/footer');
+        exit;
+    }
+}
+
+function submission_window_open(DateTimeImmutable $date): bool
+{
+    $dayOfWeek = (int) $date->format('N');
+
+    return $dayOfWeek >= 1 && $dayOfWeek <= 6;
+}
+
+function format_date(?string $date): string
+{
+    if (!$date) {
+        return 'N/A';
     }
 
-    return true;
-}
-
-function is_submission_locked_for_week(string $weekStart): bool
-{
-    $stmt = db()->prepare('SELECT is_locked FROM submission_controls WHERE week_start = :week_start LIMIT 1');
-    $stmt->execute(['week_start' => $weekStart]);
-    $row = $stmt->fetch();
-
-    return $row ? (bool) $row['is_locked'] : false;
-}
-
-function set_submission_lock(string $weekStart, bool $locked): void
-{
-    $stmt = db()->prepare('INSERT INTO submission_controls (week_start, is_locked, updated_at)
-        VALUES (:week_start, :is_locked, NOW())
-        ON DUPLICATE KEY UPDATE is_locked = VALUES(is_locked), updated_at = VALUES(updated_at)');
-    $stmt->execute([
-        'week_start' => $weekStart,
-        'is_locked' => $locked ? 1 : 0,
-    ]);
-}
-
-function fetch_request_history(int $userId, ?string $fromDate, ?string $toDate, ?string $specificDate): array
-{
-    $conditions = ['user_id = :user_id'];
-    $params = ['user_id' => $userId];
-
-    if ($specificDate) {
-        $conditions[] = 'DATE(submission_date) = :specific_date';
-        $params['specific_date'] = $specificDate;
-    } else {
-        if ($fromDate) {
-            $conditions[] = 'DATE(submission_date) >= :from_date';
-            $params['from_date'] = $fromDate;
-        }
-        if ($toDate) {
-            $conditions[] = 'DATE(submission_date) <= :to_date';
-            $params['to_date'] = $toDate;
-        }
-    }
-
-    $sql = 'SELECT r.*, u.name AS employee_name, u.employee_identifier
-            FROM requests r
-            INNER JOIN users u ON u.id = r.user_id
-            WHERE ' . implode(' AND ', $conditions) . '
-            ORDER BY submission_date DESC';
-
-    $stmt = db()->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll();
-}
-
-function fetch_requests_with_details(string $weekStart): array
-{
-    $stmt = db()->prepare(
-        'SELECT r.*, u.name AS employee_name, u.employee_identifier, u.email
-         FROM requests r
-         INNER JOIN users u ON u.id = r.user_id
-         WHERE r.week_start = :week_start
-         ORDER BY r.submission_date DESC'
-    );
-    $stmt->execute(['week_start' => $weekStart]);
-    return $stmt->fetchAll();
-}
-
-function label_for_importance(string $importance): string
-{
-    $levels = config('schedule', 'importance_levels', []);
-
-    return $levels[$importance] ?? 'Low';
-}
-
-function schedule_option_label(string $option): string
-{
-    $options = config('schedule', 'schedule_options', []);
-
-    if ($options === []) {
-        $options = [
-            '5x2' => '5 days on / 2 days off (9 hours)',
-            '6x1' => '6 days on / 1 day off (7.5 hours)',
-        ];
-    }
-
-    return $options[$option] ?? '6 days on / 1 day off (7.5 hours)';
-}
-
-function importance_badge(string $importance): string
-{
-    return match ($importance) {
-        'high' => 'style="color:#c0392b;font-weight:700;"',
-        'medium' => 'style="color:#d35400;font-weight:600;"',
-        default => 'style="color:#2c3e50;"',
-    };
+    return (new DateTimeImmutable($date))->format('M d, Y');
 }

@@ -2,8 +2,12 @@
 declare(strict_types=1);
 
 $pageTitle = $title ?? app_config('name', 'Shift Scheduler');
-$tagline = app_config('tagline', 'Smart weekly planning & coverage');
+$tagline = app_config('tagline', 'Unified coverage, breaks, and analytics');
 $brandYear = app_config('brand_year', '2026');
+$user = current_user();
+$role = $user['role'] ?? null;
+$sectionName = $user['section_name'] ?? null;
+$currentSectionId = current_section_id();
 ?>
 <!doctype html>
 <html lang="en">
@@ -28,10 +32,19 @@ $brandYear = app_config('brand_year', '2026');
             </div>
         </div>
         <div class="header-actions">
-            <?php if (current_user()): ?>
-                <div class="pill">Secure Session Active</div>
+            <?php if ($user): ?>
+                <div class="pill"><?= e($role) ?></div>
+                <?php if ($sectionName || $currentSectionId): ?>
+                    <div class="pill">Section: <?= e($sectionName ?? 'Selected') ?></div>
+                <?php endif; ?>
+                <form method="post" class="inline" action="/index.php">
+                    <input type="hidden" name="action" value="logout">
+                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                    <button type="submit" class="btn secondary small">Logout</button>
+                </form>
+            <?php else: ?>
+                <div class="pill">Secure Session Ready</div>
             <?php endif; ?>
-            <div class="status-badge">Server-ready</div>
         </div>
     </div>
 </header>
