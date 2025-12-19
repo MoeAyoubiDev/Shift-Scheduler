@@ -44,7 +44,7 @@ $editableShiftTypes = config('schedule', 'editable_shift_types', ['AM', 'PM', 'M
                                 <?php endforeach; ?>
                             </select>
                             <input type="text" name="notes" value="<?= e($entry['notes'] ?? '') ?>" placeholder="Notes">
-                            <button class="btn secondary" type="submit">Save</button>
+                            <button class="btn secondary small" type="submit">Save</button>
                         </form>
                     </td>
                 <?php endif; ?>
