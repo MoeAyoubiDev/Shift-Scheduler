@@ -1,5 +1,5 @@
 # Apache configuration for Shift Scheduler
-# Place this file in the public directory
+# This file is in the public directory (web root)
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
