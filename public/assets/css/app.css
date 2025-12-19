@@ -7,6 +7,7 @@
     --primary: #4f46e5;
     --primary-dark: #4338ca;
     --secondary: #0f172a;
+    --accent: #38bdf8;
     --card: #ffffff;
     --border: rgba(148, 163, 184, 0.35);
     --success: #16a34a;
@@ -30,6 +31,22 @@ body {
     min-height: 100vh;
 }
 
+body.page-shell {
+    position: relative;
+    overflow-x: hidden;
+}
+
+body.page-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.25), transparent 45%),
+        radial-gradient(circle at 85% 0%, rgba(99, 102, 241, 0.2), transparent 50%),
+        radial-gradient(circle at 50% 90%, rgba(14, 165, 233, 0.15), transparent 55%);
+    z-index: -1;
+}
+
 header {
     position: sticky;
     top: 0;
@@ -47,6 +64,7 @@ header {
     justify-content: space-between;
     max-width: 1200px;
     margin: 0 auto;
+    gap: 16px;
 }
 
 .brand {
@@ -67,6 +85,14 @@ header {
     text-transform: uppercase;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 main {
     padding: 32px 20px 48px;
     max-width: 1200px;
@@ -80,6 +106,7 @@ section.card {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     border: 1px solid rgba(148, 163, 184, 0.18);
+    backdrop-filter: blur(6px);
 }
 
 h2 {
@@ -113,6 +140,8 @@ table {
     margin-top: 12px;
     border-radius: 12px;
     overflow: hidden;
+    background: #fff;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
 }
 
 table th,
@@ -120,6 +149,7 @@ table td {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--border);
+    vertical-align: top;
 }
 
 table th {
@@ -154,6 +184,19 @@ input[type="date"] {
     border-radius: 10px;
     background: #fff;
     font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus {
+    outline: none;
+    border-color: rgba(79, 70, 229, 0.6);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 textarea {
@@ -174,6 +217,7 @@ textarea {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
 }
 
 .btn:hover {
@@ -191,6 +235,12 @@ textarea {
     box-shadow: 0 10px 18px rgba(220, 38, 38, 0.2);
 }
 
+.btn.small {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
 .pill {
     display: inline-flex;
     align-items: center;
@@ -200,6 +250,18 @@ textarea {
     background: #e0f2fe;
     color: #075985;
     font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge {
+    background: rgba(56, 189, 248, 0.16);
+    color: #e0f2fe;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     font-weight: 600;
 }
 
@@ -338,4 +400,61 @@ form.inline {
 
 .edit-grid button {
     grid-column: 1 / -1;
+}
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.site-footer {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    border-top: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.footer-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #22c55e;
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+
+@media (max-width: 900px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 720px) {
+    header {
+        padding: 16px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .site-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

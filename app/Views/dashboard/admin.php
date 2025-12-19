@@ -54,30 +54,30 @@ declare(strict_types=1);
                 <td><span class="status <?= e($req['status']) ?>"><?= e(ucfirst($req['status'])) ?></span></td>
                 <td><?= e($req['previous_week_request'] ?? 'n/a') ?></td>
                 <?php if (is_primary_admin($user)): ?>
-                    <td>
+                    <td class="table-actions">
                         <form method="post" class="inline">
                             <input type="hidden" name="action" value="update_request_status">
                             <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
                             <input type="hidden" name="status" value="accepted">
-                            <button class="btn" type="submit">Accept</button>
+                            <button class="btn small" type="submit">Accept</button>
                         </form>
                         <form method="post" class="inline">
                             <input type="hidden" name="action" value="update_request_status">
                             <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
                             <input type="hidden" name="status" value="declined">
-                            <button class="btn danger" type="submit">Decline</button>
+                            <button class="btn danger small" type="submit">Decline</button>
                         </form>
                         <form method="post" class="inline">
                             <input type="hidden" name="action" value="update_request_status">
                             <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
                             <input type="hidden" name="status" value="pending">
-                            <button class="btn secondary" type="submit">Pending</button>
+                            <button class="btn secondary small" type="submit">Pending</button>
                         </form>
                         <form method="post" class="inline inline-block">
                             <input type="hidden" name="action" value="toggle_flag">
                             <input type="hidden" name="request_id" value="<?= (int) $req['id'] ?>">
                             <input type="hidden" name="flagged" value="<?= $req['flagged'] ? 0 : 1 ?>">
-                            <button class="btn secondary" type="submit"><?= $req['flagged'] ? 'Unflag' : 'Flag important' ?></button>
+                            <button class="btn secondary small" type="submit"><?= $req['flagged'] ? 'Unflag' : 'Flag important' ?></button>
                         </form>
                     </td>
                 <?php endif; ?>
@@ -145,11 +145,11 @@ declare(strict_types=1);
                     <td><?= e($emp['name']) ?></td>
                     <td><?= e($emp['employee_identifier']) ?></td>
                     <td><?= e($emp['email']) ?></td>
-                    <td>
+                    <td class="table-actions">
                         <form method="post" class="inline">
                             <input type="hidden" name="action" value="delete_employee">
                             <input type="hidden" name="employee_id" value="<?= (int) $emp['id'] ?>">
-                            <button class="btn danger" type="submit">Delete</button>
+                            <button class="btn danger small" type="submit">Delete</button>
                         </form>
                     </td>
                 </tr>
