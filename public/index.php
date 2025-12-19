@@ -100,19 +100,26 @@ switch ($path) {
         EmployeeController::manageBreak();
         break;
         
+    case '/supervisor/schedule.php':
+        require_once __DIR__ . '/../app/Controllers/SupervisorController.php';
+        SupervisorController::schedule();
+        break;
+        
+    case '/supervisor/performance.php':
+        require_once __DIR__ . '/../app/Controllers/SupervisorController.php';
+        SupervisorController::performance();
+        break;
+        
+    case '/supervisor/breaks.php':
+        require_once __DIR__ . '/../app/Controllers/SupervisorController.php';
+        SupervisorController::breaks();
+        break;
+        
     default:
         // Handle dynamic routes
         if (preg_match('#^/director/section/(\d+)$#', $path, $matches)) {
             require_once __DIR__ . '/../app/Controllers/DirectorController.php';
             DirectorController::viewSection((int) $matches[1]);
-            break;
-        }
-        
-        // Handle supervisor routes
-        if (preg_match('#^/supervisor/(schedule|performance|breaks)\.php$#', $path, $matches)) {
-            require_once __DIR__ . '/../app/Controllers/SupervisorController.php';
-            $method = $matches[1];
-            SupervisorController::$method();
             break;
         }
         

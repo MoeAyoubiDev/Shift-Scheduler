@@ -12,7 +12,7 @@ class Auth
         
         // Note: In production, password verification should be done in PHP
         // For stored procedure compatibility, we'll verify in PHP after getting hash
-        $stmt = $db->prepare("SELECT id, username, password_hash, is_active FROM users WHERE username = ?");
+        $stmt = $db->prepare("SELECT id, username, password_hash, email, is_active FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
         
