@@ -319,6 +319,72 @@ Team Leaders can export weekly schedules as CSV:
 /index.php?download=schedule
 ```
 
+## Deployment & Updates
+
+### After Git Pull - Changes Not Appearing
+
+If you've pulled code changes but they're not showing on your server, follow these steps:
+
+#### Quick Fix (Recommended)
+Run the deployment script:
+```bash
+cd /var/www/shift-scheduler
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### Manual Steps
+
+1. **Restart PHP-FPM** (Most Important!)
+   ```bash
+   # Find your PHP version
+   php -v
+   
+   # Restart PHP-FPM (replace 8.2 with your version)
+   sudo systemctl restart php8.2-fpm
+   # OR
+   sudo systemctl restart php-fpm
+   ```
+
+2. **Clear PHP Opcache**
+   - Visit: `http://your-domain/clear_cache.php`
+   - OR run: `php -r "opcache_reset();"`
+
+3. **Reload Web Server**
+   ```bash
+   # For Nginx
+   sudo systemctl reload nginx
+   
+   # For Apache
+   sudo systemctl reload apache2
+   ```
+
+4. **Verify Files Were Updated**
+   ```bash
+   cd /var/www/shift-scheduler
+   git log -1 --stat
+   git status
+   ```
+
+5. **Check File Permissions**
+   ```bash
+   sudo chown -R www-data:www-data /var/www/shift-scheduler
+   sudo find /var/www/shift-scheduler -type d -exec chmod 755 {} \;
+   sudo find /var/www/shift-scheduler -type f -exec chmod 644 {} \;
+   ```
+
+6. **Hard Refresh Browser**
+   - Press `Ctrl+F5` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+   - Or clear browser cache
+
+#### Common Causes
+
+- **PHP Opcache**: PHP caches compiled code. Restart PHP-FPM to clear it.
+- **PHP-FPM Process Pool**: Old processes may still have old code in memory.
+- **Browser Cache**: Your browser may be caching old CSS/JS files.
+- **File Permissions**: Files may not be readable by the web server.
+- **Wrong Directory**: Make sure you're pulling to the correct location.
+
 ## Troubleshooting
 
 ### Database Connection Issues
@@ -333,6 +399,9 @@ Team Leaders can export weekly schedules as CSV:
 ### PHP Errors
 - Check PHP error log: `/var/log/php8.2-fpm.log`
 - Enable error display in development (disable in production)
+
+### Changes Not Appearing After Git Pull
+See "Deployment & Updates" section above for detailed steps.
 
 ## Support
 
