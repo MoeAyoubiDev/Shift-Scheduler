@@ -4,7 +4,7 @@ USE ShiftSchedulerDB;
 -- Create a sample director user (password: director123)
 -- Password hash for 'director123'
 INSERT INTO users (username, password_hash, email) VALUES
-('director', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'director@example.com')
+('director', '$2y$12$NtlKf44L3CaGSrdi6WxkN..TN4StFjW3yLOO1lhdCbMFd4Umx8zRK', 'director@example.com')
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Assign director role to both sections
@@ -15,8 +15,9 @@ WHERE u.username = 'director' AND r.role_name = 'Director'
 ON DUPLICATE KEY UPDATE user_id=user_id;
 
 -- Create a sample team leader user (password: teamleader123)
+-- Password hash for 'teamleader123'
 INSERT INTO users (username, password_hash, email) VALUES
-('teamleader', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teamleader@example.com')
+('teamleader', '$2y$12$tq1pqr5GYICX4jlQVzmgw.wVIuN6f4Xpthza3SDymd7fx2EGAdPsG', 'teamleader@example.com')
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Get App After-Sales section ID and Team Leader role ID
