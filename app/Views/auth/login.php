@@ -16,20 +16,6 @@ declare(strict_types=1);
                 <h2 class="department-name">Support Department</h2>
                 <p class="system-name">Workforce Management Portal</p>
             </div>
-            <div class="login-features">
-                <div class="feature-item">
-                    <span class="feature-icon">🔒</span>
-                    <span>Secure Authentication</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">📊</span>
-                    <span>Real-time Scheduling</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">👥</span>
-                    <span>Team Management</span>
-                </div>
-            </div>
         </div>
         
         <div class="login-right-panel">
