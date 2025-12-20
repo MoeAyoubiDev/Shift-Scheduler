@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+// Login page - credentials section removed
 ?>
 <div class="login-container">
     <div class="login-wrapper">
