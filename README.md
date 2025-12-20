@@ -292,12 +292,42 @@ sudo chmod -R 775 /var/www/shift-scheduler/public/assets
 
 ## Database Seed Data
 
-Default test accounts (password: `password`):
-- **Director**: `director` (access to both sections)
-- **Team Leader**: `teamleader` (App After-Sales section)
-- **Employee**: `employee` (App After-Sales section)
+### Default Login Credentials
 
-**Important**: Change all default passwords in production!
+The following test accounts are created when you import the database schema. **All accounts use the password: `password`**
+
+| Role | Username | Password | Section Access | Notes |
+|------|----------|----------|----------------|-------|
+| **Director** | `director` | `password` | Both sections (App After-Sales & Agent After-Sales) | Read-only access to all sections |
+| **Team Leader** | `teamleader` | `password` | App After-Sales | Full CRUD permissions in assigned section |
+| **Employee** | `employee` | `password` | App After-Sales | Can submit shift requests and view schedules |
+
+### Additional Roles Available
+
+The following roles are defined in the system but require manual account creation:
+
+- **Supervisor**: Read-only access for assigned section
+- **Senior**: Shift leader for today's operations (cannot submit shift requests)
+
+To create accounts for these roles, use the Team Leader dashboard or insert directly into the database.
+
+### Quick Login Reference
+
+```
+Director:
+  Username: director
+  Password: password
+
+Team Leader:
+  Username: teamleader
+  Password: password
+
+Employee:
+  Username: employee
+  Password: password
+```
+
+**⚠️ Security Warning**: These are default test credentials. **You MUST change all passwords in production!** Never use these credentials on a live/production system.
 
 ## Security Features
 
