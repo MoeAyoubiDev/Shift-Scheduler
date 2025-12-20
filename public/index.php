@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // Clear opcache in development to ensure fresh files are loaded
-if (function_exists('opcache_reset') && (getenv('APP_ENV') === 'development' || !getenv('APP_ENV'))) {
+if (function_exists('opcache_reset')) {
     opcache_reset();
     clearstatcache(true);
 }
@@ -117,6 +117,11 @@ if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $ro
 }
 
 if (!$user) {
+    // Force no cache for login page
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
     render_view('partials/header', [
         'title' => 'Shift Scheduler Login',
         'message' => $message,
