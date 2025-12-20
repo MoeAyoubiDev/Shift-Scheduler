@@ -39,11 +39,31 @@ function app_config(string $key, mixed $default = null): mixed
     return config('app', $key, $default);
 }
 
+// Load .env file if it exists
+$envFile = __DIR__ . '/../../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue; // Skip comments
+        }
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            if (!isset($_ENV[$key])) {
+                $_ENV[$key] = $value;
+                putenv("$key=$value");
+            }
+        }
+    }
+}
+
 $databaseConfig = config('database') ?? [];
 $DATABASE_CONFIG = [
-    'host' => getenv('DB_HOST') ?: ($databaseConfig['host'] ?? '127.0.0.1'),
+    'host' => getenv('DB_HOST') ?: ($databaseConfig['host'] ?? 'localhost'),
     'port' => getenv('DB_PORT') ?: ($databaseConfig['port'] ?? '3306'),
-    'name' => getenv('DB_NAME') ?: ($databaseConfig['name'] ?? 'shift_scheduler'),
+    'name' => getenv('DB_NAME') ?: ($databaseConfig['name'] ?? 'ShiftSchedulerDB'),
     'user' => getenv('DB_USER') ?: ($databaseConfig['user'] ?? 'root'),
     'pass' => getenv('DB_PASSWORD') ?: ($databaseConfig['pass'] ?? ''),
 ];
