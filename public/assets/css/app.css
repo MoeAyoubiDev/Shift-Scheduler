@@ -44,6 +44,15 @@ body.login-page::before {
     display: none;
 }
 
+body.login-page header {
+    display: none !important;
+}
+
+body.login-page main {
+    padding: 0;
+    max-width: 100%;
+}
+
 body.page-shell::before {
     content: "";
     position: fixed;
