@@ -3,13 +3,17 @@ declare(strict_types=1);
 ?>
 <section class="card auth-card">
     <div class="hero">
-        <h2>Shift Scheduler System</h2>
-        <p>Sign in with your username and password to access your section dashboard.</p>
+        <div class="login-brand">
+            <div class="login-logo">📅</div>
+            <h1>Support Department</h1>
+            <h2>Shift Management System</h2>
+        </div>
+        <p class="login-subtitle">Please enter your credentials to access the shift scheduling portal</p>
     </div>
     
     <div class="demo-credentials">
-        <h3 style="margin-top: 0;">🔐 Demo Login Credentials</h3>
-        <p class="muted" style="margin-bottom: 1.25rem; font-size: 0.875rem;">Click "Use" button to auto-fill the login form below</p>
+        <h3>Test Account Credentials</h3>
+        <p class="muted" style="margin-bottom: 1.25rem; font-size: 0.875rem;">Select a role below to auto-fill login credentials</p>
         <div class="demo-accounts">
             <div class="demo-account">
                 <div class="demo-account-header">
@@ -65,16 +69,23 @@ declare(strict_types=1);
         </div>
     </div>
 
-    <form method="post" action="/index.php" id="login-form">
+    <form method="post" action="/index.php" id="login-form" class="login-form">
         <input type="hidden" name="action" value="login">
         <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required autocomplete="username">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required autocomplete="current-password">
-        <div class="form-actions">
-            <button type="submit" class="btn">Login</button>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter your username">
         </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </div>
+        <p class="login-footer-note">
+            <small class="muted">Authorized personnel only. All access is logged and monitored.</small>
+        </p>
     </form>
 </section>
 

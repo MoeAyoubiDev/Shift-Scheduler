@@ -347,8 +347,44 @@ textarea {
 }
 
 .auth-card {
-    max-width: 480px;
-    margin: 40px auto;
+    max-width: 520px;
+    margin: 60px auto;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.login-brand h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+.login-brand h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin: 0 0 1rem 0;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.6;
 }
 
 .hero {
@@ -358,6 +394,51 @@ textarea {
 
 .hero h2 {
     font-size: 1.6rem;
+}
+
+.login-form {
+    margin-top: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.login-footer-note {
+    margin-top: 1.5rem;
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .hero-row {
@@ -468,19 +549,22 @@ form.inline {
 }
 
 .demo-credentials {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 2px solid #0ea5e9;
-    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+    border-left: 4px solid var(--primary);
 }
 
 .demo-credentials h3 {
     margin: 0 0 0.75rem 0;
-    font-size: 1.1rem;
-    color: #0369a1;
-    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
 }
 
 .demo-accounts {
@@ -594,5 +678,22 @@ form.inline {
     .credential-value {
         width: 100%;
         text-align: left;
+    }
+
+    .auth-card {
+        padding: 1.5rem;
+        margin: 30px auto;
+    }
+
+    .login-brand h1 {
+        font-size: 1.5rem;
+    }
+
+    .login-brand h2 {
+        font-size: 1.1rem;
+    }
+
+    .login-logo {
+        font-size: 2.5rem;
     }
 }

@@ -25,10 +25,14 @@ $currentSectionId = current_section_id();
 <header>
     <div class="header-content">
         <div class="brand">
-            <span class="brand-badge"><?= e($brandYear) ?></span>
+            <?php if ($user): ?>
+                <span class="brand-badge"><?= e($brandYear) ?></span>
+            <?php endif; ?>
             <div>
-                <div><?= e(app_config('name', 'Shift Scheduler')) ?></div>
-                <small class="muted"><?= e($tagline) ?></small>
+                <div><?= e(app_config('name', 'Shift Management System')) ?></div>
+                <?php if ($user): ?>
+                    <small class="muted"><?= e($tagline) ?></small>
+                <?php endif; ?>
             </div>
         </div>
         <div class="header-actions">
@@ -42,8 +46,6 @@ $currentSectionId = current_section_id();
                     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                     <button type="submit" class="btn secondary small">Logout</button>
                 </form>
-            <?php else: ?>
-                <div class="pill">Secure Session Ready</div>
             <?php endif; ?>
         </div>
     </div>
