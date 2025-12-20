@@ -21,35 +21,31 @@ $currentSectionId = current_section_id();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body class="page-shell">
+<body class="page-shell <?= !$user ? 'login-page' : '' ?>">
+<?php if ($user): ?>
 <header>
     <div class="header-content">
         <div class="brand">
-            <?php if ($user): ?>
-                <span class="brand-badge"><?= e($brandYear) ?></span>
-            <?php endif; ?>
+            <span class="brand-badge"><?= e($brandYear) ?></span>
             <div>
                 <div><?= e(app_config('name', 'Shift Management System')) ?></div>
-                <?php if ($user): ?>
-                    <small class="muted"><?= e($tagline) ?></small>
-                <?php endif; ?>
+                <small class="muted"><?= e($tagline) ?></small>
             </div>
         </div>
         <div class="header-actions">
-            <?php if ($user): ?>
-                <div class="pill"><?= e($role) ?></div>
-                <?php if ($sectionName || $currentSectionId): ?>
-                    <div class="pill">Section: <?= e($sectionName ?? 'Selected') ?></div>
-                <?php endif; ?>
-                <form method="post" class="inline" action="/index.php">
-                    <input type="hidden" name="action" value="logout">
-                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                    <button type="submit" class="btn secondary small">Logout</button>
-                </form>
+            <div class="pill"><?= e($role) ?></div>
+            <?php if ($sectionName || $currentSectionId): ?>
+                <div class="pill">Section: <?= e($sectionName ?? 'Selected') ?></div>
             <?php endif; ?>
+            <form method="post" class="inline" action="/index.php">
+                <input type="hidden" name="action" value="logout">
+                <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                <button type="submit" class="btn secondary small">Logout</button>
+            </form>
         </div>
     </div>
 </header>
+<?php endif; ?>
 <main>
     <?php if (!empty($message)): ?>
         <div class="notice"><?= e($message) ?></div>
