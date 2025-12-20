@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// Login page - Credentials section removed - Version: 2.0
+// Login page - No demo credentials - Clean version
 ?>
 <div class="login-container">
     <div class="login-wrapper">
