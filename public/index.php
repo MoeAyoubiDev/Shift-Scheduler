@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Clear opcache in development to ensure fresh files are loaded
+if (function_exists('opcache_reset') && (getenv('APP_ENV') === 'development' || !getenv('APP_ENV'))) {
+    opcache_reset();
+    clearstatcache(true);
+}
+
 require_once __DIR__ . '/../app/Helpers/helpers.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/DirectorController.php';
