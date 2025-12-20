@@ -467,6 +467,75 @@ form.inline {
     }
 }
 
+.demo-credentials {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #0ea5e9;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.demo-credentials h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: #0369a1;
+    font-weight: 600;
+}
+
+.demo-accounts {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.demo-account {
+    background: white;
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.demo-account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 150px;
+}
+
+.demo-account-info strong {
+    color: #0c4a6e;
+    font-size: 0.9rem;
+}
+
+.demo-account-credentials {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.demo-account-credentials code {
+    background: #f1f5f9;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.demo-account-credentials .btn.small {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
 @media (max-width: 720px) {
     header {
         padding: 16px;
@@ -480,5 +549,15 @@ form.inline {
     .site-footer {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .demo-account {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .demo-account-credentials {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
