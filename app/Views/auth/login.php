@@ -46,7 +46,12 @@ declare(strict_types=1);
                     <div class="form-group">
                         <label for="username">Username</label>
                         <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
+                            <span class="input-icon input-icon-user">
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3.1875 15.5625C3.1875 13.125 5.0625 11.25 7.5 11.25H10.5C12.9375 11.25 14.8125 13.125 14.8125 15.5625" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
                             <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter your username">
                         </div>
                     </div>
@@ -54,7 +59,12 @@ declare(strict_types=1);
                     <div class="form-group">
                         <label for="password">Password</label>
                         <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
+                            <span class="input-icon input-icon-lock">
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.5 7.5V5.25C4.5 3.17893 6.17893 1.5 8.25 1.5H9.75C11.8211 1.5 13.5 3.17893 13.5 5.25V7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <rect x="4.5" y="7.5" width="9" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
+                                </svg>
+                            </span>
                             <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
                         </div>
                     </div>
