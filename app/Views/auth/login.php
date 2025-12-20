@@ -8,40 +8,58 @@ declare(strict_types=1);
     </div>
     
     <div class="demo-credentials">
-        <h3>Demo Credentials</h3>
-        <p class="muted" style="margin-bottom: 1rem; font-size: 0.875rem;">Click "Use" to auto-fill login credentials</p>
+        <h3 style="margin-top: 0;">🔐 Demo Login Credentials</h3>
+        <p class="muted" style="margin-bottom: 1.25rem; font-size: 0.875rem;">Click "Use" button to auto-fill the login form below</p>
         <div class="demo-accounts">
             <div class="demo-account">
-                <div class="demo-account-info">
-                    <strong>Director</strong>
-                    <span class="muted" style="font-size: 0.8rem;">Access to both sections</span>
+                <div class="demo-account-header">
+                    <strong class="demo-role-name">Director</strong>
+                    <span class="demo-role-desc">Access to both sections (Read-only)</span>
                 </div>
                 <div class="demo-account-credentials">
-                    <code>director</code>
-                    <code>password</code>
-                    <button type="button" onclick="fillCredentials('director', 'password')" class="btn small">Use</button>
+                    <div class="credential-item">
+                        <span class="credential-label">Username:</span>
+                        <span class="credential-value">director</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Password:</span>
+                        <span class="credential-value">password</span>
+                    </div>
+                    <button type="button" onclick="fillCredentials('director', 'password')" class="btn small">Use This</button>
                 </div>
             </div>
             <div class="demo-account">
-                <div class="demo-account-info">
-                    <strong>Team Leader</strong>
-                    <span class="muted" style="font-size: 0.8rem;">Full CRUD permissions</span>
+                <div class="demo-account-header">
+                    <strong class="demo-role-name">Team Leader</strong>
+                    <span class="demo-role-desc">Full CRUD permissions</span>
                 </div>
                 <div class="demo-account-credentials">
-                    <code>teamleader</code>
-                    <code>password</code>
-                    <button type="button" onclick="fillCredentials('teamleader', 'password')" class="btn small">Use</button>
+                    <div class="credential-item">
+                        <span class="credential-label">Username:</span>
+                        <span class="credential-value">teamleader</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Password:</span>
+                        <span class="credential-value">password</span>
+                    </div>
+                    <button type="button" onclick="fillCredentials('teamleader', 'password')" class="btn small">Use This</button>
                 </div>
             </div>
             <div class="demo-account">
-                <div class="demo-account-info">
-                    <strong>Employee</strong>
-                    <span class="muted" style="font-size: 0.8rem;">Submit requests & view schedule</span>
+                <div class="demo-account-header">
+                    <strong class="demo-role-name">Employee</strong>
+                    <span class="demo-role-desc">Submit requests & view schedule</span>
                 </div>
                 <div class="demo-account-credentials">
-                    <code>employee</code>
-                    <code>password</code>
-                    <button type="button" onclick="fillCredentials('employee', 'password')" class="btn small">Use</button>
+                    <div class="credential-item">
+                        <span class="credential-label">Username:</span>
+                        <span class="credential-value">employee</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Password:</span>
+                        <span class="credential-value">password</span>
+                    </div>
+                    <button type="button" onclick="fillCredentials('employee', 'password')" class="btn small">Use This</button>
                 </div>
             </div>
         </div>

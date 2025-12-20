@@ -469,71 +469,97 @@ form.inline {
 
 .demo-credentials {
     background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 1px solid #0ea5e9;
+    border: 2px solid #0ea5e9;
     border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
 }
 
 .demo-credentials h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.95rem;
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
     color: #0369a1;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .demo-accounts {
     display: grid;
-    gap: 0.75rem;
+    gap: 1rem;
 }
 
 .demo-account {
     background: white;
-    border: 1px solid rgba(14, 165, 233, 0.2);
-    border-radius: 8px;
-    padding: 0.75rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.demo-account-info {
+    border: 2px solid rgba(14, 165, 233, 0.3);
+    border-radius: 10px;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    flex: 1;
-    min-width: 150px;
+    gap: 1rem;
 }
 
-.demo-account-info strong {
+.demo-account-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.demo-role-name {
     color: #0c4a6e;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.demo-role-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
 }
 
 .demo-account-credentials {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
-.demo-account-credentials code {
-    background: #f1f5f9;
-    padding: 0.35rem 0.65rem;
+.credential-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: #f8fafc;
     border-radius: 6px;
-    font-size: 0.8rem;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    color: #0f172a;
     border: 1px solid #e2e8f0;
-    font-weight: 500;
+}
+
+.credential-label {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+    min-width: 80px;
+}
+
+.credential-value {
+    background: #ffffff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+    border: 2px solid #0ea5e9;
+    flex: 1;
+    text-align: center;
+    letter-spacing: 0.5px;
 }
 
 .demo-account-credentials .btn.small {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 0.25rem;
 }
 
 @media (max-width: 720px) {
@@ -552,12 +578,21 @@ form.inline {
     }
 
     .demo-account {
-        flex-direction: column;
-        align-items: flex-start;
+        padding: 1rem;
     }
 
-    .demo-account-credentials {
+    .credential-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .credential-label {
+        min-width: auto;
+    }
+
+    .credential-value {
         width: 100%;
-        justify-content: flex-start;
+        text-align: left;
     }
 }
