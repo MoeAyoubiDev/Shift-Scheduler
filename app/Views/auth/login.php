@@ -38,33 +38,6 @@ declare(strict_types=1);
                     <p>Enter your credentials to access the system</p>
                 </div>
 
-                <div class="demo-credentials-box">
-                    <div class="demo-header">
-                        <span class="demo-icon">🔑</span>
-                        <span>Test Credentials</span>
-                    </div>
-                    <div class="demo-accounts-grid">
-                        <div class="demo-account-card" onclick="fillCredentials('director', 'password')">
-                            <div class="demo-role">Director</div>
-                            <div class="demo-creds">
-                                <span>director</span> / <span>password</span>
-                            </div>
-                        </div>
-                        <div class="demo-account-card" onclick="fillCredentials('teamleader', 'password')">
-                            <div class="demo-role">Team Leader</div>
-                            <div class="demo-creds">
-                                <span>teamleader</span> / <span>password</span>
-                            </div>
-                        </div>
-                        <div class="demo-account-card" onclick="fillCredentials('employee', 'password')">
-                            <div class="demo-role">Employee</div>
-                            <div class="demo-creds">
-                                <span>employee</span> / <span>password</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <form method="post" action="/index.php" id="login-form" class="login-form">
                     <input type="hidden" name="action" value="login">
                     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
@@ -112,55 +85,3 @@ declare(strict_types=1);
         </div>
     </div>
 </div>
-
-<script>
-function fillCredentials(username, password) {
-    const usernameField = document.getElementById('username');
-    const passwordField = document.getElementById('password');
-    
-    usernameField.value = username;
-    passwordField.value = password;
-    
-    usernameField.style.transition = 'all 0.3s ease';
-    passwordField.style.transition = 'all 0.3s ease';
-    usernameField.style.backgroundColor = '#fef3c7';
-    usernameField.style.borderColor = '#f59e0b';
-    passwordField.style.backgroundColor = '#fef3c7';
-    passwordField.style.borderColor = '#f59e0b';
-    
-    usernameField.focus();
-    
-    setTimeout(() => {
-        usernameField.style.backgroundColor = '';
-        usernameField.style.borderColor = '';
-        passwordField.style.backgroundColor = '';
-        passwordField.style.borderColor = '';
-    }, 1500);
-}
-</script>
-
-<script>
-function fillCredentials(username, password) {
-    const usernameField = document.getElementById('username');
-    const passwordField = document.getElementById('password');
-    
-    // Fill the fields
-    usernameField.value = username;
-    passwordField.value = password;
-    
-    // Highlight the fields briefly
-    usernameField.style.transition = 'background-color 0.3s ease';
-    passwordField.style.transition = 'background-color 0.3s ease';
-    usernameField.style.backgroundColor = '#fef3c7';
-    passwordField.style.backgroundColor = '#fef3c7';
-    
-    // Focus on username field
-    usernameField.focus();
-    
-    // Remove highlight after animation
-    setTimeout(() => {
-        usernameField.style.backgroundColor = '';
-        passwordField.style.backgroundColor = '';
-    }, 1500);
-}
-</script>
