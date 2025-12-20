@@ -13,23 +13,24 @@ class ShiftRequest extends BaseModel
         $rows = $model->callProcedure('sp_submit_shift_request', [
             'p_employee_id' => $payload['employee_id'],
             'p_week_id' => $payload['week_id'],
-            'p_submit_date' => $payload['submit_date'],
-            'p_shift_definition_id' => $payload['shift_definition_id'],
-            'p_is_day_off' => $payload['is_day_off'],
+            'p_request_date' => $payload['request_date'],
+            'p_shift_definition_id' => $payload['shift_definition_id'] ?? 0,
+            'p_is_day_off' => $payload['is_day_off'] ?? 0,
             'p_schedule_pattern_id' => $payload['schedule_pattern_id'],
-            'p_reason' => $payload['reason'],
-            'p_importance_level' => $payload['importance_level'],
+            'p_reason' => $payload['reason'] ?? null,
+            'p_importance_level' => $payload['importance_level'] ?? 'NORMAL',
         ]);
 
         return (int) ($rows[0]['request_id'] ?? 0);
     }
 
-    public static function listByWeek(int $weekId, int $sectionId): array
+    public static function listByWeek(int $weekId, int $sectionId, ?int $employeeId = null): array
     {
         $model = new self();
         return $model->callProcedure('sp_get_shift_requests', [
             'p_week_id' => $weekId,
             'p_section_id' => $sectionId,
+            'p_employee_id' => $employeeId,
         ]);
     }
 

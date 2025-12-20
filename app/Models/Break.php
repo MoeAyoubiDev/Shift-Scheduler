@@ -34,4 +34,15 @@ class BreakModel extends BaseModel
             'p_today' => $date,
         ]);
     }
+
+    public static function getEmployeeBreak(int $employeeId, string $date): ?array
+    {
+        $model = new self();
+        $rows = $model->callProcedure('sp_get_employee_break', [
+            'p_employee_id' => $employeeId,
+            'p_worked_date' => $date,
+        ], false);
+
+        return $rows[0] ?? null;
+    }
 }

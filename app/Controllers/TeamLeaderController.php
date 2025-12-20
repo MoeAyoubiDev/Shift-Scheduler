@@ -15,24 +15,33 @@ class TeamLeaderController
         require_role(['Team Leader']);
         require_csrf($payload);
 
+        $sectionId = current_section_id();
+        if (!$sectionId) {
+            return 'Section not selected.';
+        }
+
         $password = trim($payload['password'] ?? '');
         if ($password === '') {
             return 'Password is required.';
         }
 
-        $employeeId = User::createEmployee([
-            'username' => trim($payload['username'] ?? ''),
-            'password_hash' => password_hash($password, PASSWORD_BCRYPT),
-            'email' => trim($payload['email'] ?? ''),
-            'role_id' => (int) ($payload['role_id'] ?? 0),
-            'section_id' => (int) ($payload['section_id'] ?? 0),
-            'employee_code' => trim($payload['employee_code'] ?? ''),
-            'full_name' => trim($payload['full_name'] ?? ''),
-            'is_senior' => isset($payload['is_senior']) ? 1 : 0,
-            'seniority_level' => (int) ($payload['seniority_level'] ?? 0),
-        ]);
+        try {
+            $employeeId = User::createEmployee([
+                'username' => trim($payload['username'] ?? ''),
+                'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                'email' => trim($payload['email'] ?? ''),
+                'role_id' => (int) ($payload['role_id'] ?? 0),
+                'section_id' => $sectionId,
+                'employee_code' => trim($payload['employee_code'] ?? ''),
+                'full_name' => trim($payload['full_name'] ?? ''),
+                'is_senior' => isset($payload['is_senior']) ? 1 : 0,
+                'seniority_level' => (int) ($payload['seniority_level'] ?? 0),
+            ]);
 
-        return $employeeId > 0 ? 'Employee created successfully.' : 'Unable to create employee.';
+            return $employeeId > 0 ? 'Employee created successfully.' : 'Unable to create employee.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
     }
 
     public static function handleUpdateRequestStatus(array $payload): ?string
@@ -94,11 +103,36 @@ class TeamLeaderController
 
         $assignmentId = (int) ($payload['assignment_id'] ?? 0);
         $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
+        $employeeId = isset($payload['employee_id']) ? (int) $payload['employee_id'] : null;
+        
         if ($assignmentId <= 0 || $shiftDefinitionId <= 0) {
             return 'Invalid schedule update.';
         }
 
-        Schedule::updateAssignment($assignmentId, $shiftDefinitionId);
-        return 'Schedule assignment updated.';
+        try {
+            Schedule::updateAssignment($assignmentId, $shiftDefinitionId, $employeeId);
+            return 'Schedule assignment updated.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    }
+
+    public static function handleDeleteAssignment(array $payload): string
+    {
+        require_login();
+        require_role(['Team Leader']);
+        require_csrf($payload);
+
+        $assignmentId = (int) ($payload['assignment_id'] ?? 0);
+        if ($assignmentId <= 0) {
+            return 'Invalid assignment ID.';
+        }
+
+        try {
+            Schedule::deleteAssignment($assignmentId);
+            return 'Assignment deleted.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
     }
 }

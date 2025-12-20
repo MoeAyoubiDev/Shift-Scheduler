@@ -85,12 +85,21 @@ class Schedule extends BaseModel
         ]);
     }
 
-    public static function updateAssignment(int $assignmentId, int $shiftDefinitionId): void
+    public static function updateAssignment(int $assignmentId, int $shiftDefinitionId, ?int $employeeId = null): void
     {
         $model = new self();
         $model->callProcedure('sp_update_schedule_assignment', [
             'p_assignment_id' => $assignmentId,
             'p_shift_definition_id' => $shiftDefinitionId,
+            'p_employee_id' => $employeeId,
+        ]);
+    }
+
+    public static function deleteAssignment(int $assignmentId): void
+    {
+        $model = new self();
+        $model->callProcedure('sp_delete_schedule_assignment', [
+            'p_assignment_id' => $assignmentId,
         ]);
     }
 }

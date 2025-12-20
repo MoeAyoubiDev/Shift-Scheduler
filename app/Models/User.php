@@ -10,7 +10,7 @@ class User extends BaseModel
     public static function authenticate(string $username, string $password): ?array
     {
         $model = new self();
-        $rows = $model->callProcedure('sp_get_user_login', [
+        $rows = $model->callProcedure('sp_verify_login', [
             'p_username' => $username,
         ]);
 
@@ -20,6 +20,10 @@ class User extends BaseModel
 
         $primary = $rows[0];
         if (!password_verify($password, $primary['password_hash'])) {
+            return null;
+        }
+
+        if (!$primary['is_active']) {
             return null;
         }
 
@@ -41,6 +45,7 @@ class User extends BaseModel
             'employee_id' => $primary['employee_id'] ? (int) $primary['employee_id'] : null,
             'is_senior' => (int) ($primary['is_senior'] ?? 0),
             'seniority_level' => (int) ($primary['seniority_level'] ?? 0),
+            'employee_code' => $primary['employee_code'] ?? null,
             'sections' => $sections,
         ];
     }

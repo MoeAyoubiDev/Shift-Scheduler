@@ -60,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'update_assignment':
             $message = TeamLeaderController::handleUpdateAssignment($_POST);
             break;
+        case 'delete_assignment':
+            $message = TeamLeaderController::handleDeleteAssignment($_POST);
+            break;
         case 'start_break':
             if (current_role() === 'Senior') {
                 $message = SeniorController::handleBreakAction($_POST, 'start');
@@ -199,17 +202,28 @@ if ($role === 'Director') {
         'weekly' => $weekly,
     ]);
 } else {
+    // Employee role
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
     $patterns = Schedule::getSchedulePatterns();
     $shiftDefinitions = Schedule::getShiftDefinitions();
+    $myRequests = $sectionId && isset($user['employee_id']) 
+        ? ShiftRequest::listByWeek($weekId, $sectionId, (int) $user['employee_id']) 
+        : [];
+    $myBreak = isset($user['employee_id']) 
+        ? BreakModel::getEmployeeBreak((int) $user['employee_id'], $today->format('Y-m-d'))
+        : null;
 
     render_view('employee/dashboard', [
         'user' => $user,
         'weekStart' => $weekStart,
         'weekEnd' => $weekEnd,
+        'weekId' => $weekId,
         'schedule' => $schedule,
         'patterns' => $patterns,
         'shiftDefinitions' => $shiftDefinitions,
+        'myRequests' => $myRequests,
+        'myBreak' => $myBreak,
+        'today' => $today->format('Y-m-d'),
     ]);
 }
 

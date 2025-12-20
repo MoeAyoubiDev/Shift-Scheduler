@@ -61,7 +61,7 @@ declare(strict_types=1);
         <thead>
         <tr>
             <th>Employee</th>
-            <th>Submit Date</th>
+            <th>Request Date</th>
             <th>Shift</th>
             <th>Pattern</th>
             <th>Importance</th>
@@ -72,8 +72,8 @@ declare(strict_types=1);
         <?php foreach ($requests as $request): ?>
             <tr>
                 <td><?= e($request['employee_name']) ?></td>
-                <td><?= e($request['submit_date']) ?></td>
-                <td><?= e($request['shift_name']) ?></td>
+                <td><?= e($request['request_date'] ?? $request['submit_date'] ?? 'N/A') ?></td>
+                <td><?= e($request['shift_name'] ?? 'OFF') ?></td>
                 <td><?= e($request['pattern_name']) ?></td>
                 <td><?= e($request['importance_level']) ?></td>
                 <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
