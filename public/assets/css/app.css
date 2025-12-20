@@ -74,8 +74,89 @@ body.page-shell::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
     padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    /* Animated gradient background with moving overlays */
+    background-image: 
+        radial-gradient(circle at 15% 30%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 85% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+    animation: gradientMove 20s ease-in-out infinite;
+}
+
+/* Animated floating gradient orbs */
+.login-container::before,
+.login-container::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.login-container::before {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(30, 58, 138, 0.9) 0%, rgba(30, 58, 138, 0.3) 40%, transparent 70%);
+    top: -250px;
+    left: -250px;
+    animation: floatOrb1 25s ease-in-out infinite;
+}
+
+.login-container::after {
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.7) 0%, rgba(56, 189, 248, 0.2) 40%, transparent 70%);
+    bottom: -350px;
+    right: -350px;
+    animation: floatOrb2 30s ease-in-out infinite;
+}
+
+@keyframes floatOrb1 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(50px, -40px) scale(1.15);
+    }
+    50% {
+        transform: translate(-30px, 50px) scale(0.9);
+    }
+    75% {
+        transform: translate(40px, 30px) scale(1.1);
+    }
+}
+
+@keyframes floatOrb2 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(-60px, 40px) scale(1.2);
+    }
+    50% {
+        transform: translate(40px, -50px) scale(0.85);
+    }
+    75% {
+        transform: translate(-30px, -40px) scale(1.05);
+    }
+}
+
+@keyframes gradientMove {
+    0%, 100% {
+        background-position: 0% 0%, 100% 100%, 50% 0%, 0% 0%;
+    }
+    33% {
+        background-position: 30% 40%, 70% 60%, 60% 20%, 0% 0%;
+    }
+    66% {
+        background-position: 60% 20%, 40% 80%, 30% 40%, 0% 0%;
+    }
 }
 
 .login-wrapper {
@@ -87,6 +168,8 @@ body.page-shell::before {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    z-index: 1;
 }
 
 .login-left-panel {
@@ -299,7 +382,7 @@ body.page-shell::before {
 
 .form-group input {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 3rem;
+    padding: 0.875rem 1rem;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
     font-size: 1rem;
@@ -312,11 +395,6 @@ body.page-shell::before {
     outline: none;
     border-color: #1e3a8a;
     box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-}
-
-.form-group:focus-within .input-icon {
-    color: #64748b;
-    opacity: 0.85;
 }
 
 .form-group input::placeholder {
