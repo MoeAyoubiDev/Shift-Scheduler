@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
-// Clear opcache in development to ensure fresh files are loaded
-if (function_exists('opcache_reset')) {
+// Clear opcache only in development mode
+// In production, opcache should be managed by PHP-FPM restart
+$appEnv = getenv('APP_ENV') ?: 'production';
+if ($appEnv === 'development' && function_exists('opcache_reset')) {
     opcache_reset();
     clearstatcache(true);
 }

@@ -148,6 +148,8 @@ Shift-Scheduler/
 
 ### Production Deployment (DigitalOcean Ubuntu Server)
 
+> **📘 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+
 #### Prerequisites
 - Ubuntu 20.04+ server
 - Root or sudo access
@@ -232,13 +234,33 @@ cd /var/www
 sudo git clone <repository-url> shift-scheduler
 cd shift-scheduler
 sudo chown -R www-data:www-data /var/www/shift-scheduler
-sudo chmod -R 755 /var/www/shift-scheduler
+sudo chmod +x deploy.sh post-deploy.sh
 ```
 
-Update database config:
+**Set up environment file:**
 ```bash
-sudo nano config/database.php
+# Create .env file for production (DO NOT commit this file)
+nano .env
 ```
+
+Add your database credentials:
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=ShiftSchedulerDB
+DB_USER=shift_user
+DB_PASSWORD=your_secure_password
+APP_ENV=production
+APP_DEBUG=false
+APP_TIMEZONE=UTC
+```
+
+**Run initial deployment:**
+```bash
+./deploy.sh
+```
+
+> **Note:** The `config/database.php` file is now optional if you use `.env` file. The application will use environment variables first, then fall back to `config/database.php`.
 
 #### Step 6: Install SSL with Let's Encrypt
 ```bash
@@ -320,6 +342,19 @@ Team Leaders can export weekly schedules as CSV:
 ```
 
 ## Deployment & Updates
+
+> **📘 For complete deployment guide, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+
+### Quick Deployment
+
+After initial setup, update your server with one command:
+
+```bash
+cd /var/www/shift-scheduler
+./update.sh
+```
+
+This automatically pulls the latest code and runs the deployment script.
 
 ### After Git Pull - Changes Not Appearing
 

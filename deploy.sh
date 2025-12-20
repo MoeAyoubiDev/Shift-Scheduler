@@ -1,8 +1,12 @@
 #!/bin/bash
 # Deployment script for Shift Scheduler
 # Run this script on your server after git pull to ensure changes are applied
+# Usage: ./deploy.sh [--skip-git] [--skip-permissions]
+
+set -e  # Exit on error
 
 echo "🚀 Starting deployment process..."
+echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,28 +26,40 @@ if [ ! -f "public/index.php" ]; then
 fi
 echo -e "${GREEN}✓ Directory verified${NC}"
 
-# Step 2: Check git status
-echo -e "${YELLOW}Step 2: Checking git status...${NC}"
-if [ -d ".git" ]; then
-    git status
-    echo -e "${GREEN}✓ Git status checked${NC}"
+# Step 2: Check git status (skip if --skip-git flag is set)
+if [[ ! "$*" =~ "--skip-git" ]]; then
+    echo -e "${YELLOW}Step 2: Checking git status...${NC}"
+    if [ -d ".git" ]; then
+        # Show last commit
+        echo "Last commit:"
+        git log -1 --oneline 2>/dev/null || echo "No commits found"
+        echo ""
+        git status
+        echo -e "${GREEN}✓ Git status checked${NC}"
+    else
+        echo -e "${YELLOW}⚠ Warning: .git directory not found. Skipping git status.${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠ Warning: .git directory not found. Skipping git status.${NC}"
+    echo -e "${YELLOW}Step 2: Skipping git status (--skip-git flag)${NC}"
 fi
 
-# Step 3: Set proper permissions
-echo -e "${YELLOW}Step 3: Setting file permissions...${NC}"
-# Find web server user (common: www-data, nginx, apache)
-WEB_USER="www-data"
-if id "$WEB_USER" &>/dev/null; then
-    sudo chown -R "$WEB_USER:$WEB_USER" "$SCRIPT_DIR"
-    sudo find "$SCRIPT_DIR" -type d -exec chmod 755 {} \;
-    sudo find "$SCRIPT_DIR" -type f -exec chmod 644 {} \;
-    sudo chmod -R 775 "$SCRIPT_DIR/public/assets" 2>/dev/null || true
-    echo -e "${GREEN}✓ Permissions set for $WEB_USER${NC}"
+# Step 3: Set proper permissions (skip if --skip-permissions flag is set)
+if [[ ! "$*" =~ "--skip-permissions" ]]; then
+    echo -e "${YELLOW}Step 3: Setting file permissions...${NC}"
+    # Find web server user (common: www-data, nginx, apache)
+    WEB_USER="www-data"
+    if id "$WEB_USER" &>/dev/null; then
+        sudo chown -R "$WEB_USER:$WEB_USER" "$SCRIPT_DIR"
+        sudo find "$SCRIPT_DIR" -type d -exec chmod 755 {} \;
+        sudo find "$SCRIPT_DIR" -type f -exec chmod 644 {} \;
+        sudo chmod -R 775 "$SCRIPT_DIR/public/assets" 2>/dev/null || true
+        echo -e "${GREEN}✓ Permissions set for $WEB_USER${NC}"
+    else
+        echo -e "${YELLOW}⚠ Warning: $WEB_USER user not found. Skipping permission changes.${NC}"
+        echo -e "${YELLOW}   You may need to run: sudo chown -R www-data:www-data $SCRIPT_DIR${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠ Warning: $WEB_USER user not found. Skipping permission changes.${NC}"
-    echo -e "${YELLOW}   You may need to run: sudo chown -R www-data:www-data $SCRIPT_DIR${NC}"
+    echo -e "${YELLOW}Step 3: Skipping permissions (--skip-permissions flag)${NC}"
 fi
 
 # Step 4: Clear PHP opcache by restarting PHP-FPM
@@ -92,9 +108,36 @@ else
     echo -e "${YELLOW}⚠ No files modified in last 5 minutes. This is normal if you just pulled.${NC}"
 fi
 
-# Step 8: Check if clear_cache.php is accessible
-echo -e "${YELLOW}Step 8: Deployment summary...${NC}"
-echo -e "${GREEN}✓ Deployment script completed!${NC}"
+# Step 8: Verify .env file exists (warn if missing)
+echo -e "${YELLOW}Step 8: Checking environment configuration...${NC}"
+if [ -f ".env" ]; then
+    echo -e "${GREEN}✓ .env file found${NC}"
+else
+    echo -e "${YELLOW}⚠ Warning: .env file not found.${NC}"
+    echo -e "${YELLOW}   Create it from .env.example if needed for production.${NC}"
+fi
+
+# Step 9: Test database connection (if .env exists)
+if [ -f ".env" ] && command -v php &> /dev/null; then
+    echo -e "${YELLOW}Step 9: Testing database connection...${NC}"
+    php -r "
+    require_once 'app/Core/config.php';
+    try {
+        \$db = db();
+        echo '✓ Database connection successful\n';
+    } catch (Exception \$e) {
+        echo '⚠ Database connection failed: ' . \$e->getMessage() . '\n';
+    }
+    " 2>/dev/null || echo -e "${YELLOW}⚠ Could not test database connection${NC}"
+else
+    echo -e "${YELLOW}Step 9: Skipping database test (no .env or PHP not found)${NC}"
+fi
+
+# Step 10: Deployment summary
+echo ""
+echo -e "${YELLOW}════════════════════════════════════════${NC}"
+echo -e "${GREEN}✓ Deployment script completed successfully!${NC}"
+echo -e "${YELLOW}════════════════════════════════════════${NC}"
 echo ""
 echo -e "${YELLOW}📋 Next steps:${NC}"
 echo "1. Visit your website and do a hard refresh (Ctrl+F5 or Cmd+Shift+R)"
@@ -102,5 +145,5 @@ echo "2. If changes still don't appear, visit: http://your-domain/clear_cache.ph
 echo "3. Check PHP error logs: sudo tail -f /var/log/php${PHP_VERSION}-fpm.log"
 echo "4. Verify files were updated: git log -1 --stat"
 echo ""
-echo -e "${GREEN}✨ Done!${NC}"
+echo -e "${GREEN}✨ Deployment completed at $(date '+%Y-%m-%d %H:%M:%S')${NC}"
 
