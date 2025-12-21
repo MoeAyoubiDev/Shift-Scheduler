@@ -304,10 +304,10 @@ SELECT
     @next_week_id,
     e.id,
     DATE_ADD(@monday_current, INTERVAL 7 + FLOOR(RAND() * 7) DAY),
-    FLOOR(1 + RAND() * 5),
-    FLOOR(1 + RAND() * 3),
-    ELT(FLOOR(1 + RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
-    ELT(FLOOR(1 + RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
+    1 + FLOOR(RAND() * 5), -- shift_definition_id: 1-5
+    1 + FLOOR(RAND() * 2), -- schedule_pattern_id: 1-2 (only 2 patterns exist)
+    ELT(1 + FLOOR(RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
+    ELT(1 + FLOOR(RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
     CONCAT('Test request for ', e.full_name),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 7) DAY)
 FROM employees e
@@ -321,10 +321,10 @@ SELECT
     @next_week_id,
     e.id,
     DATE_ADD(@monday_current, INTERVAL 7 + FLOOR(RAND() * 7) DAY),
-    FLOOR(1 + RAND() * 5),
-    FLOOR(1 + RAND() * 3),
-    ELT(FLOOR(1 + RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
-    ELT(FLOOR(1 + RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
+    1 + FLOOR(RAND() * 5), -- shift_definition_id: 1-5
+    1 + FLOOR(RAND() * 2), -- schedule_pattern_id: 1-2 (only 2 patterns exist)
+    ELT(1 + FLOOR(RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
+    ELT(1 + FLOOR(RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
     CONCAT('Test request for ', e.full_name),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 7) DAY)
 FROM employees e
@@ -347,11 +347,12 @@ SET @schedule_app_id = (SELECT id FROM schedules WHERE week_id = @current_week_i
 SET @schedule_agent_id = (SELECT id FROM schedules WHERE week_id = @current_week_id AND section_id = 2 LIMIT 1);
 
 -- Create schedule shifts for the week (Monday to Sunday)
+-- shift_definitions: 1=AM, 2=Mid, 3=PM, 4=Midnight, 5=Overnight, 6=Day Off
 INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id)
 SELECT 
     @schedule_app_id,
     DATE_ADD(@monday_current, INTERVAL day_offset DAY),
-    FLOOR(1 + RAND() * 5)
+    1 + FLOOR(RAND() * 6) -- shift_definition_id: 1-6
 FROM (
     SELECT 0 AS day_offset UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
 ) AS days
@@ -362,7 +363,7 @@ INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id)
 SELECT 
     @schedule_agent_id,
     DATE_ADD(@monday_current, INTERVAL day_offset DAY),
-    FLOOR(1 + RAND() * 5)
+    1 + FLOOR(RAND() * 6) -- shift_definition_id: 1-6
 FROM (
     SELECT 0 AS day_offset UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
 ) AS days
