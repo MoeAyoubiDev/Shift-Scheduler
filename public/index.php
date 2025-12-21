@@ -77,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete_employee':
             $message = TeamLeaderController::handleDeleteEmployee($_POST) ?? $message;
             break;
+        case 'assign_shift':
+            $message = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId) ?? $message;
+            break;
         case 'create_leader':
             $message = DirectorController::handleCreateLeader($_POST) ?? $message;
             break;

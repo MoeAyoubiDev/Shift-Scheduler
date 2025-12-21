@@ -344,6 +344,114 @@ for ($i = 0; $i < 7; $i++) {
 
         <!-- Weekly Schedule Section -->
         <section class="dashboard-section" data-section="weekly-schedule">
+            <!-- Shift Requests Panel -->
+            <div class="card requests-panel">
+                <div class="section-title">
+                    <h3>Shift Requests for Next Week</h3>
+                    <span><?= e(count($requests)) ?> pending requests</span>
+                </div>
+                <?php if (!empty($requests)): ?>
+                    <div class="requests-list">
+                        <?php 
+                        // Group requests by employee and date
+                        $requestsByEmployee = [];
+                        foreach ($requests as $request) {
+                            $empId = (int) ($request['employee_id'] ?? 0);
+                            $date = $request['request_date'] ?? '';
+                            if (!isset($requestsByEmployee[$empId])) {
+                                $requestsByEmployee[$empId] = [];
+                            }
+                            if (!isset($requestsByEmployee[$empId][$date])) {
+                                $requestsByEmployee[$empId][$date] = [];
+                            }
+                            $requestsByEmployee[$empId][$date][] = $request;
+                        }
+                        ?>
+                        <?php foreach ($requestsByEmployee as $empId => $employeeRequests): ?>
+                            <?php 
+                            $firstRequest = reset($employeeRequests);
+                            $firstRequest = reset($firstRequest);
+                            $employeeName = $firstRequest['employee_name'] ?? 'Unknown';
+                            ?>
+                            <div class="request-group" data-employee-id="<?= e((string) $empId) ?>">
+                                <div class="request-employee-header">
+                                    <strong><?= e($employeeName) ?></strong>
+                                    <span class="request-count"><?= e(count(array_merge(...array_values($employeeRequests)))) ?> request(s)</span>
+                                </div>
+                                <div class="request-items">
+                                    <?php foreach ($employeeRequests as $date => $dateRequests): ?>
+                                        <?php foreach ($dateRequests as $request): ?>
+                                            <div class="request-item" data-request-id="<?= e((string) $request['id']) ?>" data-employee-id="<?= e((string) $empId) ?>" data-date="<?= e($date) ?>" data-shift-id="<?= e((string) ($request['shift_definition_id'] ?? 0)) ?>">
+                                                <div class="request-info">
+                                                    <div class="request-date-shift">
+                                                        <span class="request-date"><?= e((new DateTimeImmutable($date))->format('D, M j')) ?></span>
+                                                        <span class="request-shift"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
+                                                        <?php if (!empty($request['importance_level']) && $request['importance_level'] !== 'NORMAL'): ?>
+                                                            <span class="pill importance-<?= strtolower($request['importance_level']) ?>"><?= e($request['importance_level']) ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <?php if (!empty($request['reason'])): ?>
+                                                        <div class="request-reason"><?= e($request['reason']) ?></div>
+                                                    <?php endif; ?>
+                                                    <div class="request-status">
+                                                        <span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span>
+                                                    </div>
+                                                </div>
+                                                <div class="request-actions">
+                                                    <button type="button" class="btn-assign-request btn-small" 
+                                                            data-request-id="<?= e((string) $request['id']) ?>"
+                                                            data-employee-id="<?= e((string) $empId) ?>"
+                                                            data-date="<?= e($date) ?>"
+                                                            data-shift-id="<?= e((string) ($request['shift_definition_id'] ?? 0)) ?>"
+                                                            title="Assign to schedule">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 2V14M2 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                        </svg>
+                                                        Assign
+                                                    </button>
+                                                    <form method="post" action="/index.php" class="inline request-status-form">
+                                                        <input type="hidden" name="action" value="update_request_status">
+                                                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                                        <input type="hidden" name="status" value="APPROVED">
+                                                        <button type="submit" class="btn-small btn-approve" title="Approve request">
+                                                            ✓ Approve
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="/index.php" class="inline request-status-form">
+                                                        <input type="hidden" name="action" value="update_request_status">
+                                                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                                        <input type="hidden" name="status" value="PENDING">
+                                                        <button type="submit" class="btn-small btn-pending" title="Keep pending">
+                                                            ⏱ Pending
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="/index.php" class="inline request-status-form">
+                                                        <input type="hidden" name="action" value="update_request_status">
+                                                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                                        <input type="hidden" name="status" value="DECLINED">
+                                                        <button type="submit" class="btn-small btn-decline" title="Decline request">
+                                                            ✗ Decline
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-title">No shift requests</div>
+                        <p class="empty-state-text">All requests have been processed or no requests submitted for this week.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <div class="card">
                 <!-- Schedule Header with Controls -->
                 <div class="schedule-header">
@@ -512,7 +620,16 @@ for ($i = 0; $i < 7; $i++) {
                                                 <?php
                                                 $dayShifts = $employeeSchedule[$empId][$dayInfo['date']] ?? [];
                                                 if (empty($dayShifts)): ?>
-                                                    <div class="shift-empty">—</div>
+                                                    <div class="shift-empty">
+                                                        <button type="button" class="btn-assign-shift" 
+                                                                data-date="<?= e($dayInfo['date']) ?>"
+                                                                data-employee-id="<?= e((string) $empId) ?>"
+                                                                title="Click to assign shift">
+                                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                                <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 <?php else: ?>
                                                     <div class="shift-pills">
                                                         <?php foreach ($dayShifts as $shift): ?>
@@ -563,13 +680,23 @@ for ($i = 0; $i < 7; $i++) {
                                                                 $timeDisplay = date('H:i', strtotime($shift['start_time']));
                                                             }
                                                             ?>
-                                                            <div class="<?= e($shiftClass) ?>" title="<?= e($shift['notes'] ?? '') ?>">
+                                                            <div class="<?= e($shiftClass) ?> shift-editable" 
+                                                                 data-assignment-id="<?= e((string) ($shift['assignment_id'] ?? '')) ?>"
+                                                                 data-shift-def-id="<?= e((string) ($shift['shift_definition_id'] ?? '')) ?>"
+                                                                 data-date="<?= e($dayInfo['date']) ?>"
+                                                                 data-employee-id="<?= e((string) $empId) ?>"
+                                                                 title="<?= e($shift['notes'] ?? 'Click to edit') ?>">
                                                                 <?php if (!empty($timeDisplay) && strpos($shiftLabel, 'Vacation') === false && strpos($shiftLabel, 'Medical') === false && strpos($shiftLabel, 'Moving') === false): ?>
                                                                     <span class="shift-time-start"><?= e(explode(' - ', $timeDisplay)[0]) ?></span>
                                                                     <span class="shift-time-end"><?= e(explode(' - ', $timeDisplay)[1] ?? '') ?></span>
                                                                 <?php else: ?>
                                                                     <span class="shift-label"><?= e($shiftLabel) ?></span>
                                                                 <?php endif; ?>
+                                                                <button type="button" class="shift-edit-btn" title="Edit shift">
+                                                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                                                        <path d="M8.5 1.5L10.5 3.5M9 1L2 8V10H4L11 3L9 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                    </svg>
+                                                                </button>
                                                             </div>
                                                         <?php endforeach; ?>
                                                     </div>
@@ -581,6 +708,67 @@ for ($i = 0; $i < 7; $i++) {
                             <?php endif; ?>
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Assignment Modal -->
+                <div id="assign-modal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Assign Shift</h3>
+                            <button type="button" class="modal-close">&times;</button>
+                        </div>
+                        <form id="assign-shift-form" method="post" action="/index.php">
+                            <input type="hidden" name="action" value="assign_shift">
+                            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                            <input type="hidden" name="date" id="assign-date">
+                            <input type="hidden" name="employee_id" id="assign-employee-id">
+                            <input type="hidden" name="request_id" id="assign-request-id">
+                            
+                            <div class="form-group">
+                                <label>Employee</label>
+                                <select name="employee_id" id="assign-employee-select" required>
+                                    <option value="">Select Employee</option>
+                                    <?php foreach ($employees as $emp): ?>
+                                        <option value="<?= e((string) $emp['id']) ?>"><?= e($emp['full_name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Shift Type</label>
+                                <select name="shift_definition_id" id="assign-shift-def" required>
+                                    <option value="">Select Shift</option>
+                                    <?php foreach ($shiftDefinitions as $def): ?>
+                                        <option value="<?= e((string) $def['definition_id']) ?>" 
+                                                data-start="<?= e($def['start_time'] ?? '') ?>"
+                                                data-end="<?= e($def['end_time'] ?? '') ?>">
+                                            <?= e($def['definition_name']) ?> (<?= e($def['shift_type_name'] ?? '') ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Custom Start Time (optional)</label>
+                                <input type="time" name="custom_start_time" id="assign-start-time" placeholder="HH:MM">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Custom End Time (optional)</label>
+                                <input type="time" name="custom_end_time" id="assign-end-time" placeholder="HH:MM">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Notes (optional)</label>
+                                <textarea name="notes" id="assign-notes" rows="2" placeholder="Add notes..."></textarea>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn secondary modal-cancel">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Assign Shift</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>

@@ -61,15 +61,111 @@ if (typeof window !== 'undefined') {
         const shiftCells = document.querySelectorAll('.shift-cell');
         shiftCells.forEach(cell => {
             cell.addEventListener('click', function(e) {
-                if (e.target.classList.contains('shift-pill')) {
-                    // Show edit modal or inline editor
-                    console.log('Edit shift:', {
-                        employeeId: cell.getAttribute('data-employee-id'),
-                        date: cell.getAttribute('data-date')
-                    });
+                if (e.target.closest('.shift-editable') || e.target.closest('.shift-edit-btn')) {
+                    const shiftPill = e.target.closest('.shift-editable');
+                    if (shiftPill) {
+                        openAssignModal(
+                            shiftPill.getAttribute('data-date'),
+                            shiftPill.getAttribute('data-employee-id'),
+                            shiftPill.getAttribute('data-assignment-id'),
+                            shiftPill.getAttribute('data-shift-def-id')
+                        );
+                    }
                 }
             });
         });
+        
+        // Assign shift from empty cell
+        document.querySelectorAll('.btn-assign-shift').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const cell = this.closest('.shift-cell');
+                openAssignModal(
+                    cell.getAttribute('data-date'),
+                    cell.getAttribute('data-employee-id')
+                );
+            });
+        });
+        
+        // Assign from request
+        document.querySelectorAll('.btn-assign-request').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openAssignModal(
+                    this.getAttribute('data-date'),
+                    this.getAttribute('data-employee-id'),
+                    null,
+                    this.getAttribute('data-shift-id'),
+                    this.getAttribute('data-request-id')
+                );
+            });
+        });
+        
+        // Modal functionality
+        const modal = document.getElementById('assign-modal');
+        const modalClose = document.querySelector('.modal-close');
+        const modalCancel = document.querySelector('.modal-cancel');
+        
+        if (modalClose) {
+            modalClose.addEventListener('click', closeModal);
+        }
+        if (modalCancel) {
+            modalCancel.addEventListener('click', closeModal);
+        }
+        
+        // Close modal on outside click
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+        
+        // Auto-fill shift times when shift definition changes
+        const shiftDefSelect = document.getElementById('assign-shift-def');
+        if (shiftDefSelect) {
+            shiftDefSelect.addEventListener('change', function() {
+                const option = this.options[this.selectedIndex];
+                const startTime = option.getAttribute('data-start');
+                const endTime = option.getAttribute('data-end');
+                const startInput = document.getElementById('assign-start-time');
+                const endInput = document.getElementById('assign-end-time');
+                
+                if (startTime && startInput && !startInput.value) {
+                    startInput.value = startTime.substring(0, 5); // Convert HH:MM:SS to HH:MM
+                }
+                if (endTime && endInput && !endInput.value) {
+                    endInput.value = endTime.substring(0, 5);
+                }
+            });
+        }
+    }
+    
+    function openAssignModal(date, employeeId, assignmentId = null, shiftDefId = null, requestId = null) {
+        const modal = document.getElementById('assign-modal');
+        if (!modal) return;
+        
+        document.getElementById('assign-date').value = date;
+        document.getElementById('assign-employee-id').value = employeeId;
+        document.getElementById('assign-employee-select').value = employeeId;
+        if (requestId) {
+            document.getElementById('assign-request-id').value = requestId;
+        }
+        if (shiftDefId) {
+            document.getElementById('assign-shift-def').value = shiftDefId;
+            // Trigger change to auto-fill times
+            document.getElementById('assign-shift-def').dispatchEvent(new Event('change'));
+        }
+        
+        modal.style.display = 'flex';
+    }
+    
+    function closeModal() {
+        const modal = document.getElementById('assign-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
     }
     
     // Initialize when DOM is ready

@@ -220,4 +220,110 @@ class TeamLeaderController
             return 'Error: ' . $e->getMessage();
         }
     }
+
+    public static function handleAssignShift(array $payload, int $weekId, int $sectionId): string
+    {
+        require_login();
+        require_role(['Team Leader']);
+        require_csrf($payload);
+
+        $employeeId = (int) ($payload['employee_id'] ?? 0);
+        $date = trim($payload['date'] ?? '');
+        $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
+        $customStartTime = trim($payload['custom_start_time'] ?? '');
+        $customEndTime = trim($payload['custom_end_time'] ?? '');
+        $notes = trim($payload['notes'] ?? '');
+        $requestId = isset($payload['request_id']) ? (int) $payload['request_id'] : null;
+
+        if ($employeeId <= 0 || $date === '' || $shiftDefinitionId <= 0) {
+            return 'Invalid assignment data.';
+        }
+
+        try {
+            // Get or create schedule for this week
+            require_once __DIR__ . '/../Core/config.php';
+            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND section_id = :section_id');
+            $stmt->execute(['week_id' => $weekId, 'section_id' => $sectionId]);
+            $schedule = $stmt->fetch();
+            
+            if (!$schedule) {
+                // Create schedule
+                $user = current_user();
+                $stmt = db()->prepare('INSERT INTO schedules (week_id, section_id, generated_by_admin_id) VALUES (:week_id, :section_id, :admin_id)');
+                $stmt->execute([
+                    'week_id' => $weekId,
+                    'section_id' => $sectionId,
+                    'admin_id' => (int) $user['employee_id']
+                ]);
+                $scheduleId = (int) db()->lastInsertId();
+            } else {
+                $scheduleId = (int) $schedule['id'];
+            }
+
+            // Get or create schedule_shift for this date and shift definition
+            $stmt = db()->prepare('SELECT id FROM schedule_shifts WHERE schedule_id = :schedule_id AND shift_date = :date AND shift_definition_id = :shift_def_id');
+            $stmt->execute([
+                'schedule_id' => $scheduleId,
+                'date' => $date,
+                'shift_def_id' => $shiftDefinitionId
+            ]);
+            $scheduleShift = $stmt->fetch();
+            
+            if (!$scheduleShift) {
+                // Create schedule_shift
+                $stmt = db()->prepare('INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id, required_count) VALUES (:schedule_id, :date, :shift_def_id, 1)');
+                $stmt->execute([
+                    'schedule_id' => $scheduleId,
+                    'date' => $date,
+                    'shift_def_id' => $shiftDefinitionId
+                ]);
+                $scheduleShiftId = (int) db()->lastInsertId();
+            } else {
+                $scheduleShiftId = (int) $scheduleShift['id'];
+            }
+
+            // Check if assignment already exists
+            $stmt = db()->prepare('SELECT id FROM schedule_assignments WHERE schedule_shift_id = :shift_id AND employee_id = :emp_id');
+            $stmt->execute(['shift_id' => $scheduleShiftId, 'emp_id' => $employeeId]);
+            $existing = $stmt->fetch();
+
+            // Build notes with custom times if provided
+            $assignmentNotes = $notes;
+            if ($customStartTime || $customEndTime) {
+                $timeNote = 'Custom times: ';
+                if ($customStartTime) $timeNote .= $customStartTime;
+                if ($customStartTime && $customEndTime) $timeNote .= ' - ';
+                if ($customEndTime) $timeNote .= $customEndTime;
+                $assignmentNotes = ($notes ? $notes . ' | ' : '') . $timeNote;
+            }
+
+            if ($existing) {
+                // Update existing assignment
+                $stmt = db()->prepare('UPDATE schedule_assignments SET notes = :notes, assignment_source = "MANUALLY_ADJUSTED" WHERE id = :id');
+                $stmt->execute([
+                    'id' => (int) $existing['id'],
+                    'notes' => $assignmentNotes
+                ]);
+            } else {
+                // Create new assignment
+                $stmt = db()->prepare('INSERT INTO schedule_assignments (schedule_shift_id, employee_id, assignment_source, notes) VALUES (:shift_id, :emp_id, :source, :notes)');
+                $stmt->execute([
+                    'shift_id' => $scheduleShiftId,
+                    'emp_id' => $employeeId,
+                    'source' => $requestId ? 'MATCHED_REQUEST' : 'MANUALLY_ADJUSTED',
+                    'notes' => $assignmentNotes
+                ]);
+            }
+
+            // If request ID provided, optionally auto-approve it
+            if ($requestId) {
+                $user = current_user();
+                ShiftRequest::updateStatus($requestId, 'APPROVED', (int) $user['employee_id']);
+            }
+
+            return 'Shift assigned successfully.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    }
 }
