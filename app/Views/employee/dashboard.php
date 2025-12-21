@@ -296,84 +296,158 @@ declare(strict_types=1);
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Navigation handling
-    const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('.dashboard-section');
-    const sidebar = document.getElementById('dashboard-sidebar');
-    const sidebarToggle = document.getElementById('sidebar-toggle');
+(function() {
+    'use strict';
     
-    // Handle navigation clicks
-    navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetSection = this.getAttribute('data-section');
-            
-            // Update active nav item
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show target section, hide others
-            sections.forEach(section => {
-                if (section.getAttribute('data-section') === targetSection) {
-                    section.classList.add('active');
-                } else {
-                    section.classList.remove('active');
+    // Navigation state management
+    let currentSection = 'overview';
+    
+    function showSection(sectionName) {
+        // Hide all sections
+        const allSections = document.querySelectorAll('.dashboard-section');
+        allSections.forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show target section
+        const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            currentSection = sectionName;
+        } else {
+            console.warn('Section not found:', sectionName);
+        }
+    }
+    
+    function setActiveNavItem(sectionName) {
+        // Remove active from all nav items
+        const allNavItems = document.querySelectorAll('.nav-item');
+        allNavItems.forEach(nav => nav.classList.remove('active'));
+        
+        // Add active to target nav item
+        const targetNav = document.querySelector(`.nav-item[data-section="${sectionName}"]`);
+        if (targetNav) {
+            targetNav.classList.add('active');
+        }
+    }
+    
+    function navigateToSection(sectionName) {
+        if (!sectionName) return;
+        
+        setActiveNavItem(sectionName);
+        showSection(sectionName);
+        
+        // Update URL hash without triggering scroll
+        if (window.location.hash !== '#' + sectionName) {
+            history.replaceState(null, null, '#' + sectionName);
+        }
+    }
+    
+    // Initialize navigation when DOM is ready
+    function initNavigation() {
+        const navItems = document.querySelectorAll('.nav-item');
+        const sidebar = document.getElementById('dashboard-sidebar');
+        
+        if (navItems.length === 0) {
+            console.warn('No navigation items found');
+            return;
+        }
+        
+        // Handle navigation clicks
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetSection = this.getAttribute('data-section');
+                if (targetSection) {
+                    navigateToSection(targetSection);
+                    
+                    // Close sidebar on mobile after selection
+                    if (window.innerWidth < 768 && sidebar) {
+                        sidebar.classList.remove('open');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (overlay) {
+                            overlay.classList.remove('active');
+                        }
+                    }
                 }
             });
-            
-            // Update URL hash
-            window.location.hash = targetSection;
-            
-            // Close sidebar on mobile after selection
-            if (window.innerWidth < 768) {
-                sidebar.classList.remove('open');
+        });
+        
+        // Handle hash on page load
+        const hash = window.location.hash.substring(1);
+        if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
+            navigateToSection(hash);
+        } else {
+            // Default to overview
+            navigateToSection('overview');
+        }
+        
+        // Handle browser back/forward
+        window.addEventListener('popstate', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
+                navigateToSection(hash);
+            } else {
+                navigateToSection('overview');
             }
         });
-    });
-    
-    // Handle hash on page load
-    const hash = window.location.hash.substring(1);
-    if (hash) {
-        const targetNav = document.querySelector(`.nav-item[data-section="${hash}"]`);
-        if (targetNav) {
-            targetNav.click();
-        }
     }
     
     // Sidebar toggle for mobile
-    const overlay = document.getElementById('sidebar-overlay');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    
-    function toggleSidebar() {
-        sidebar.classList.toggle('open');
-        if (overlay) {
-            overlay.classList.toggle('active');
-        }
-    }
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
-    }
-    
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', toggleSidebar);
-    }
-    
-    if (overlay) {
-        overlay.addEventListener('click', toggleSidebar);
-    }
-    
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && 
-                !sidebarToggle.contains(e.target) && 
-                !mobileMenuBtn?.contains(e.target)) {
-                toggleSidebar();
+    function initSidebarToggle() {
+        const sidebar = document.getElementById('dashboard-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        
+        if (!sidebar) return;
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            if (overlay) {
+                overlay.classList.toggle('active');
             }
         }
-    });
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && 
+                    sidebarToggle && !sidebarToggle.contains(e.target) && 
+                    mobileMenuBtn && !mobileMenuBtn.contains(e.target)) {
+                    toggleSidebar();
+                }
+            }
+        });
+    }
+    
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initNavigation();
+        initSidebarToggle();
     
     // Day selector - update hidden date field
     const daySelect = document.getElementById('request_day');
@@ -412,5 +486,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+    });
+})();
 </script>
