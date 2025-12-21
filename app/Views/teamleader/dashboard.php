@@ -387,6 +387,11 @@ for ($i = 0; $i < 7; $i++) {
                 <?php endforeach; ?>
             </select>
         </label>
+        <label>
+            Seniority Level
+            <input type="number" name="seniority_level" min="0" value="0">
+            <small class="muted">Higher values place employees earlier in coverage sorting.</small>
+        </label>
         <div class="form-actions">
             <button type="submit" class="btn">Create Employee</button>
         </div>

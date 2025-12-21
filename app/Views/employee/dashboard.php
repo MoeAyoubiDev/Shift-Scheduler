@@ -130,13 +130,12 @@ declare(strict_types=1);
                     <form method="post" action="/index.php" class="grid" id="request-form">
                         <input type="hidden" name="action" value="submit_request">
                         <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="request_date" id="request_date" required>
                         <label>
                             Day (Next Week: <?= e($nextWeekStart->format('M j')) ?> - <?= e($nextWeekEnd->format('M j')) ?>)
-                            <select name="request_day" id="request_day" required>
+                            <select name="request_date" id="request_date" required>
                                 <option value="">Select a day</option>
                                 <?php foreach ($daysOfWeek as $day): ?>
-                                    <option value="<?= e($day['date']) ?>" data-date="<?= e($day['date']) ?>">
+                                    <option value="<?= e($day['date']) ?>">
                                         <?= e($day['display']) ?>
                                     </option>
                                 <?php endforeach; ?>
