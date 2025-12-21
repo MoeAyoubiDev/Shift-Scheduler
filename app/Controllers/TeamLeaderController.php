@@ -227,21 +227,23 @@ class TeamLeaderController
         require_role(['Team Leader']);
         require_csrf($payload);
 
+        // Get employee_id from select dropdown (not hidden field)
         $employeeId = (int) ($payload['employee_id'] ?? 0);
         $date = trim($payload['date'] ?? '');
         $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
         $customStartTime = trim($payload['custom_start_time'] ?? '');
         $customEndTime = trim($payload['custom_end_time'] ?? '');
         $notes = trim($payload['notes'] ?? '');
-        $requestId = isset($payload['request_id']) ? (int) $payload['request_id'] : null;
+        $requestId = !empty($payload['request_id']) ? (int) $payload['request_id'] : null;
 
         if ($employeeId <= 0 || $date === '' || $shiftDefinitionId <= 0) {
-            return 'Invalid assignment data.';
+            return 'Invalid assignment data. Please fill all required fields.';
         }
 
         try {
-            // Get or create schedule for this week
             require_once __DIR__ . '/../Core/config.php';
+            
+            // Get or create schedule for this week
             $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND section_id = :section_id');
             $stmt->execute(['week_id' => $weekId, 'section_id' => $sectionId]);
             $schedule = $stmt->fetch();
@@ -282,7 +284,7 @@ class TeamLeaderController
                 $scheduleShiftId = (int) $scheduleShift['id'];
             }
 
-            // Check if assignment already exists
+            // Check if assignment already exists for this employee on this shift
             $stmt = db()->prepare('SELECT id FROM schedule_assignments WHERE schedule_shift_id = :shift_id AND employee_id = :emp_id');
             $stmt->execute(['shift_id' => $scheduleShiftId, 'emp_id' => $employeeId]);
             $existing = $stmt->fetch();
@@ -315,15 +317,15 @@ class TeamLeaderController
                 ]);
             }
 
-            // If request ID provided, optionally auto-approve it
-            if ($requestId) {
+            // If request ID provided, auto-approve it
+            if ($requestId && $requestId > 0) {
                 $user = current_user();
                 ShiftRequest::updateStatus($requestId, 'APPROVED', (int) $user['employee_id']);
             }
 
             return 'Shift assigned successfully.';
         } catch (Exception $e) {
-            return 'Error: ' . $e->getMessage();
+            return 'Error assigning shift: ' . $e->getMessage();
         }
     }
 }

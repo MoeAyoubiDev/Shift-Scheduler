@@ -23,7 +23,8 @@ require_once __DIR__ . '/../app/Models/Performance.php';
 require_once __DIR__ . '/../app/Models/Break.php';
 require_once __DIR__ . '/../app/Models/Role.php';
 
-$message = '';
+// Get message from URL if present (for redirects after form submissions)
+$message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
 $today = new DateTimeImmutable();
 $weekStart = $today->modify('monday this week')->format('Y-m-d');
 $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
@@ -78,7 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = TeamLeaderController::handleDeleteEmployee($_POST) ?? $message;
             break;
         case 'assign_shift':
-            $message = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId) ?? $message;
+            $sectionId = current_section_id();
+            if ($sectionId) {
+                $message = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId) ?? $message;
+                // Redirect to prevent form resubmission
+                header('Location: /index.php?message=' . urlencode($message));
+                exit;
+            }
             break;
         case 'create_leader':
             $message = DirectorController::handleCreateLeader($_POST) ?? $message;

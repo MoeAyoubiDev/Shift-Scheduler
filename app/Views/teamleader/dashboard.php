@@ -721,7 +721,6 @@ for ($i = 0; $i < 7; $i++) {
                             <input type="hidden" name="action" value="assign_shift">
                             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                             <input type="hidden" name="date" id="assign-date">
-                            <input type="hidden" name="employee_id" id="assign-employee-id">
                             <input type="hidden" name="request_id" id="assign-request-id">
                             
                             <div class="form-group">

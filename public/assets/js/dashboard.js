@@ -147,16 +147,24 @@ if (typeof window !== 'undefined') {
         if (!modal) return;
         
         document.getElementById('assign-date').value = date;
-        document.getElementById('assign-employee-id').value = employeeId;
-        document.getElementById('assign-employee-select').value = employeeId;
+        document.getElementById('assign-employee-select').value = employeeId || '';
         if (requestId) {
             document.getElementById('assign-request-id').value = requestId;
+        } else {
+            document.getElementById('assign-request-id').value = '';
         }
         if (shiftDefId) {
             document.getElementById('assign-shift-def').value = shiftDefId;
             // Trigger change to auto-fill times
             document.getElementById('assign-shift-def').dispatchEvent(new Event('change'));
+        } else {
+            document.getElementById('assign-shift-def').value = '';
         }
+        
+        // Clear custom times and notes
+        document.getElementById('assign-start-time').value = '';
+        document.getElementById('assign-end-time').value = '';
+        document.getElementById('assign-notes').value = '';
         
         modal.style.display = 'flex';
     }
@@ -166,6 +174,38 @@ if (typeof window !== 'undefined') {
         if (modal) {
             modal.style.display = 'none';
         }
+    }
+    
+    // Handle assign shift form submission
+    const assignForm = document.getElementById('assign-shift-form');
+    if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+            // Validate required fields
+            const employeeSelect = document.getElementById('assign-employee-select');
+            const shiftDef = document.getElementById('assign-shift-def');
+            const date = document.getElementById('assign-date');
+            
+            if (!employeeSelect || !employeeSelect.value) {
+                e.preventDefault();
+                alert('Please select an employee.');
+                return false;
+            }
+            
+            if (!shiftDef || !shiftDef.value) {
+                e.preventDefault();
+                alert('Please select a shift type.');
+                return false;
+            }
+            
+            if (!date || !date.value) {
+                e.preventDefault();
+                alert('Date is missing.');
+                return false;
+            }
+            
+            // Form will submit normally - PHP will handle redirect with success message
+            // The page will refresh and show the success message
+        });
     }
     
     // Initialize when DOM is ready
