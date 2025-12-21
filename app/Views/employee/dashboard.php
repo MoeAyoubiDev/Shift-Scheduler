@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . '/../partials/header.php';
 ?>
 <div class="dashboard-container">
     <!-- Modern Navigation Cards -->
@@ -317,3 +318,6 @@ declare(strict_types=1);
         </section>
     </main>
 </div>
+<?php
+require __DIR__ . '/../partials/footer.php';
+?>
