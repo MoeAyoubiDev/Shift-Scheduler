@@ -81,37 +81,33 @@ SET @default_password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheW
 -- =====================================================
 
 -- 2 Team Leaders for App After-Sales (Section 1)
-SET @tl_app_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('tl_app_001', @default_password, 'tl_app_001@test.com'),
 ('tl_app_002', @default_password, 'tl_app_002@test.com');
 
-SET @tl_app_001_user = @tl_app_start;
-SET @tl_app_002_user = @tl_app_start + 1;
+SET @tl_app_001_user = (SELECT id FROM users WHERE username = 'tl_app_001' LIMIT 1);
+SET @tl_app_002_user = (SELECT id FROM users WHERE username = 'tl_app_002' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@tl_app_001_user, 2, 1), -- Team Leader role_id = 2
 (@tl_app_002_user, 2, 1);
 
 -- 1 Supervisor for App After-Sales
-SET @sv_app_001_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('sv_app_001', @default_password, 'sv_app_001@test.com');
+
+SET @sv_app_001_user = (SELECT id FROM users WHERE username = 'sv_app_001' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sv_app_001_user, 3, 1); -- Supervisor role_id = 3
 
 -- 2 Seniors for App After-Sales
-SET @sr_app_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('sr_app_001', @default_password, 'sr_app_001@test.com'),
 ('sr_app_002', @default_password, 'sr_app_002@test.com');
 
-SET @sr_app_001_user = @sr_app_start;
-SET @sr_app_002_user = @sr_app_start + 1;
+SET @sr_app_001_user = (SELECT id FROM users WHERE username = 'sr_app_001' LIMIT 1);
+SET @sr_app_002_user = (SELECT id FROM users WHERE username = 'sr_app_002' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sr_app_001_user, 4, 1), -- Senior role_id = 4
@@ -125,8 +121,6 @@ INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior,
 (@sr_app_002_role, 'SR-APP-002', 'Senior App Two', 'sr_app_002@test.com', 1, 5);
 
 -- 20 Employees for App After-Sales
-SET @emp_app_start_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('emp_app_001', @default_password, 'emp_app_001@test.com'),
 ('emp_app_002', @default_password, 'emp_app_002@test.com'),
@@ -150,7 +144,9 @@ INSERT INTO users (username, password_hash, email) VALUES
 ('emp_app_020', @default_password, 'emp_app_020@test.com');
 
 INSERT INTO user_roles (user_id, role_id, section_id)
-SELECT id, 5, 1 FROM users WHERE id >= @emp_app_start_user ORDER BY id LIMIT 20;
+SELECT id, 5, 1 FROM users 
+WHERE username LIKE 'emp_app_%' 
+ORDER BY username LIMIT 20;
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 ((SELECT id FROM user_roles WHERE section_id = 1 AND role_id = 5 ORDER BY id LIMIT 1 OFFSET 0), 'EMP-APP-001', 'Employee App One', 'emp_app_001@test.com', 0, 1),
@@ -179,37 +175,33 @@ INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior,
 -- =====================================================
 
 -- 2 Team Leaders for Agent After-Sales (Section 2)
-SET @tl_agent_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('tl_agent_001', @default_password, 'tl_agent_001@test.com'),
 ('tl_agent_002', @default_password, 'tl_agent_002@test.com');
 
-SET @tl_agent_001_user = @tl_agent_start;
-SET @tl_agent_002_user = @tl_agent_start + 1;
+SET @tl_agent_001_user = (SELECT id FROM users WHERE username = 'tl_agent_001' LIMIT 1);
+SET @tl_agent_002_user = (SELECT id FROM users WHERE username = 'tl_agent_002' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@tl_agent_001_user, 2, 2),
 (@tl_agent_002_user, 2, 2);
 
 -- 1 Supervisor for Agent After-Sales
-SET @sv_agent_001_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('sv_agent_001', @default_password, 'sv_agent_001@test.com');
+
+SET @sv_agent_001_user = (SELECT id FROM users WHERE username = 'sv_agent_001' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sv_agent_001_user, 3, 2);
 
 -- 2 Seniors for Agent After-Sales
-SET @sr_agent_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('sr_agent_001', @default_password, 'sr_agent_001@test.com'),
 ('sr_agent_002', @default_password, 'sr_agent_002@test.com');
 
-SET @sr_agent_001_user = @sr_agent_start;
-SET @sr_agent_002_user = @sr_agent_start + 1;
+SET @sr_agent_001_user = (SELECT id FROM users WHERE username = 'sr_agent_001' LIMIT 1);
+SET @sr_agent_002_user = (SELECT id FROM users WHERE username = 'sr_agent_002' LIMIT 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sr_agent_001_user, 4, 2),
@@ -223,8 +215,6 @@ INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior,
 (@sr_agent_002_role, 'SR-AGT-002', 'Senior Agent Two', 'sr_agent_002@test.com', 1, 5);
 
 -- 20 Employees for Agent After-Sales
-SET @emp_agent_start_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
-
 INSERT INTO users (username, password_hash, email) VALUES
 ('emp_agent_001', @default_password, 'emp_agent_001@test.com'),
 ('emp_agent_002', @default_password, 'emp_agent_002@test.com'),
@@ -248,7 +238,9 @@ INSERT INTO users (username, password_hash, email) VALUES
 ('emp_agent_020', @default_password, 'emp_agent_020@test.com');
 
 INSERT INTO user_roles (user_id, role_id, section_id)
-SELECT id, 5, 2 FROM users WHERE id >= @emp_agent_start_user ORDER BY id LIMIT 20;
+SELECT id, 5, 2 FROM users 
+WHERE username LIKE 'emp_agent_%' 
+ORDER BY username LIMIT 20;
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 ((SELECT id FROM user_roles WHERE section_id = 2 AND role_id = 5 ORDER BY id LIMIT 1 OFFSET 0), 'EMP-AGT-001', 'Employee Agent One', 'emp_agent_001@test.com', 0, 1),
