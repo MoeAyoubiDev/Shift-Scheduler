@@ -113,9 +113,9 @@ declare(strict_types=1);
                           && $today->format('Y-m-d') <= $currentWeekStart->modify('+6 days')->format('Y-m-d')
                           && $todayDayOfWeek !== 7; // Cannot submit on Sunday
                 
-                // Days of week for next week (Monday to Sunday - all 7 days)
+                // Days of week for next week (Monday to Saturday only)
                 $daysOfWeek = [];
-                for ($i = 0; $i < 7; $i++) { // Monday to Sunday
+                for ($i = 0; $i < 6; $i++) { // Monday to Saturday
                     $dayDate = $nextWeekStart->modify("+{$i} days");
                     $dayName = $dayDate->format('l'); // Monday, Tuesday, etc.
                     $dayDateStr = $dayDate->format('Y-m-d');
@@ -165,8 +165,9 @@ declare(strict_types=1);
                         Importance
                         <select name="importance_level">
                             <option value="LOW">Low</option>
-                            <option value="NORMAL" selected>Normal</option>
+                            <option value="MEDIUM" selected>Medium</option>
                             <option value="HIGH">High</option>
+                            <option value="EMERGENCY">Emergency</option>
                         </select>
                     </label>
                         <label>

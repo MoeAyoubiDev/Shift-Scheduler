@@ -21,8 +21,8 @@ return [
         'Sunday',
         'N/A',
     ],
-    'shift_types' => ['AM', 'PM', 'MID'],
-    'editable_shift_types' => ['AM', 'PM', 'MID', 'OFF', 'UNASSIGNED'],
+    'shift_types' => ['AM', 'PM', 'MID', 'NIGHT'],
+    'editable_shift_types' => ['AM', 'PM', 'MID', 'NIGHT', 'OFF', 'UNASSIGNED'],
     'schedule_options' => [
         '5x2' => 'Work 5 days / 2 off (9 hours)',
         '6x1' => 'Work 6 days / 1 off (7.5 hours)',
@@ -31,5 +31,6 @@ return [
         'low' => 'Low',
         'medium' => 'Medium',
         'high' => 'High',
+        'emergency' => 'Emergency',
     ],
 ];

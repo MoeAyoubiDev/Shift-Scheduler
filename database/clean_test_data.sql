@@ -231,7 +231,7 @@ SELECT e.id, @next_week_id,
        @pattern_5x2,
        CASE MOD(e.id, 3)
            WHEN 0 THEN 'LOW'
-           WHEN 1 THEN 'NORMAL'
+           WHEN 1 THEN 'MEDIUM'
            ELSE 'HIGH'
        END,
        'PENDING'
@@ -252,7 +252,7 @@ SELECT e.id, @next_week_id,
        @pattern_5x2,
        CASE MOD(e.id, 3)
            WHEN 0 THEN 'LOW'
-           WHEN 1 THEN 'NORMAL'
+           WHEN 1 THEN 'MEDIUM'
            ELSE 'HIGH'
        END,
        'PENDING'
@@ -324,4 +324,3 @@ FROM (
 ) AS reqs;
 
 SELECT 'Test data inserted successfully!' AS message;
-

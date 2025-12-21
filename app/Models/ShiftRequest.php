@@ -18,7 +18,7 @@ class ShiftRequest extends BaseModel
             'p_is_day_off' => $payload['is_day_off'] ?? 0,
             'p_schedule_pattern_id' => $payload['schedule_pattern_id'],
             'p_reason' => $payload['reason'] ?? null,
-            'p_importance_level' => $payload['importance_level'] ?? 'NORMAL',
+            'p_importance_level' => $payload['importance_level'] ?? 'MEDIUM',
         ]);
 
         return (int) ($rows[0]['request_id'] ?? 0);

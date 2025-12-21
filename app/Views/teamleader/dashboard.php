@@ -598,7 +598,7 @@ for ($i = 0; $i < 7; $i++) {
                                                     <div class="request-date-shift">
                                                         <span class="request-date"><?= e((new DateTimeImmutable($date))->format('D, M j')) ?></span>
                                                         <span class="request-shift"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
-                                                        <?php if (!empty($request['importance_level']) && $request['importance_level'] !== 'NORMAL'): ?>
+                                                        <?php if (!empty($request['importance_level']) && $request['importance_level'] !== 'MEDIUM'): ?>
                                                             <span class="pill importance-<?= strtolower($request['importance_level']) ?>"><?= e($request['importance_level']) ?></span>
                                                         <?php endif; ?>
                                                     </div>

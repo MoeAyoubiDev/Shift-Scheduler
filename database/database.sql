@@ -156,7 +156,7 @@ CREATE TABLE shift_requests (
     is_day_off TINYINT(1) DEFAULT 0,
     schedule_pattern_id INT NOT NULL,
     reason TEXT NULL,
-    importance_level VARCHAR(10) NOT NULL DEFAULT 'NORMAL' CHECK (importance_level IN ('LOW','NORMAL','HIGH')),
+    importance_level VARCHAR(10) NOT NULL DEFAULT 'MEDIUM' CHECK (importance_level IN ('LOW','MEDIUM','HIGH','EMERGENCY')),
     status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','DECLINED')),
     submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     reviewed_by_admin_id INT NULL,

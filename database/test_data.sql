@@ -306,7 +306,7 @@ SELECT
     DATE_ADD(@monday_current, INTERVAL 7 + FLOOR(RAND() * 7) DAY),
     1 + FLOOR(RAND() * 5), -- shift_definition_id: 1-5
     1 + FLOOR(RAND() * 2), -- schedule_pattern_id: 1-2 (only 2 patterns exist)
-    ELT(1 + FLOOR(RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
+    ELT(1 + FLOOR(RAND() * 4), 'LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'),
     ELT(1 + FLOOR(RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
     CONCAT('Test request for ', e.full_name),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 7) DAY)
@@ -323,7 +323,7 @@ SELECT
     DATE_ADD(@monday_current, INTERVAL 7 + FLOOR(RAND() * 7) DAY),
     1 + FLOOR(RAND() * 5), -- shift_definition_id: 1-5
     1 + FLOOR(RAND() * 2), -- schedule_pattern_id: 1-2 (only 2 patterns exist)
-    ELT(1 + FLOOR(RAND() * 3), 'LOW', 'NORMAL', 'HIGH'),
+    ELT(1 + FLOOR(RAND() * 4), 'LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'),
     ELT(1 + FLOOR(RAND() * 3), 'PENDING', 'APPROVED', 'DECLINED'),
     CONCAT('Test request for ', e.full_name),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 7) DAY)
@@ -474,4 +474,3 @@ LIMIT 20;
 -- - 70 Shift Requirements
 -- - 20 Notifications
 -- =====================================================
-

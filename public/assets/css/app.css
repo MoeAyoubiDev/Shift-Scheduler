@@ -2010,6 +2010,15 @@ button.btn.secondary:active {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+.pill.emergency,
+.pill.EMERGENCY {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(153, 27, 27, 0.15);
+}
+
 .notice {
     padding: 16px 20px;
     border-radius: 12px;
