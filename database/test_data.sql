@@ -8,6 +8,70 @@
 
 USE ShiftSchedulerDB;
 
+-- =====================================================
+-- CLEANUP: Remove existing test data if present
+-- =====================================================
+
+-- Delete test notifications
+DELETE FROM notifications WHERE user_id IN (
+    SELECT id FROM users WHERE username LIKE 'tl_%' OR username LIKE 'sv_%' OR username LIKE 'sr_%' OR username LIKE 'emp_%'
+);
+
+-- Delete test employee breaks
+DELETE FROM employee_breaks WHERE employee_id IN (
+    SELECT e.id FROM employees e 
+    INNER JOIN user_roles ur ON ur.id = e.user_role_id
+    WHERE e.employee_code LIKE 'EMP-%' OR e.employee_code LIKE 'SR-%'
+);
+
+-- Delete test schedule assignments
+DELETE FROM schedule_assignments WHERE schedule_shift_id IN (
+    SELECT ss.id FROM schedule_shifts ss
+    INNER JOIN schedules s ON s.id = ss.schedule_id
+    WHERE s.notes LIKE '%Test%' OR s.generated_by_admin_id IN (
+        SELECT e.id FROM employees e 
+        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        WHERE e.employee_code LIKE 'EMP-%' OR e.employee_code LIKE 'SR-%'
+    )
+);
+
+-- Delete test schedule shifts
+DELETE FROM schedule_shifts WHERE schedule_id IN (
+    SELECT id FROM schedules WHERE notes LIKE '%Test%' OR generated_by_admin_id IN (
+        SELECT e.id FROM employees e 
+        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        WHERE e.employee_code LIKE 'EMP-%' OR e.employee_code LIKE 'SR-%'
+    )
+);
+
+-- Delete test schedules
+DELETE FROM schedules WHERE notes LIKE '%Test%' OR generated_by_admin_id IN (
+    SELECT e.id FROM employees e 
+    INNER JOIN user_roles ur ON ur.id = e.user_role_id
+    WHERE e.employee_code LIKE 'EMP-%' OR e.employee_code LIKE 'SR-%'
+);
+
+-- Delete test shift requests
+DELETE FROM shift_requests WHERE reason LIKE '%Test%' OR employee_id IN (
+    SELECT e.id FROM employees e 
+    INNER JOIN user_roles ur ON ur.id = e.user_role_id
+    WHERE e.employee_code LIKE 'EMP-%' OR e.employee_code LIKE 'SR-%'
+);
+
+-- Delete test shift requirements (optional - can keep if needed)
+-- DELETE FROM shift_requirements;
+
+-- Delete test employees
+DELETE FROM employees WHERE employee_code LIKE 'EMP-%' OR employee_code LIKE 'SR-%';
+
+-- Delete test user roles
+DELETE FROM user_roles WHERE user_id IN (
+    SELECT id FROM users WHERE username LIKE 'tl_%' OR username LIKE 'sv_%' OR username LIKE 'sr_%' OR username LIKE 'emp_%'
+);
+
+-- Delete test users
+DELETE FROM users WHERE username LIKE 'tl_%' OR username LIKE 'sv_%' OR username LIKE 'sr_%' OR username LIKE 'emp_%';
+
 -- Default password hash for all test users: "password123"
 -- Generated with: password_hash('password123', PASSWORD_BCRYPT)
 SET @default_password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
