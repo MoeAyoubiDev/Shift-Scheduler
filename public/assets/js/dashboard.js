@@ -114,7 +114,7 @@ function initDashboardNavigation() {
                 if (!clickedCard) return;
                 
                 const sectionName = clickedCard.getAttribute('data-section');
-                console.log('Nav card clicked via delegation:', sectionName, clickedCard);
+                console.log('Nav card clicked:', sectionName);
                 
                 e.preventDefault();
                 e.stopPropagation();
@@ -137,12 +137,11 @@ function initDashboardNavigation() {
             console.log(`Attaching direct click listener to nav card ${index}:`, sectionName);
             
             card.addEventListener('click', function(e) {
-                console.log('Nav card clicked (direct):', sectionName, this);
+                const targetSection = this.getAttribute('data-section');
+                console.log('Nav card clicked:', targetSection);
+                
                 e.preventDefault();
                 e.stopPropagation();
-                
-                const targetSection = this.getAttribute('data-section');
-                console.log('Target section from click:', targetSection);
                 
                 if (targetSection) {
                     window.navigateToSection(targetSection);
@@ -243,14 +242,14 @@ function initDashboardNavigation() {
 function initializeDashboard() {
     console.log('Attempting to initialize dashboard, readyState:', document.readyState);
     
-    const tabs = document.querySelectorAll('.tab-item');
-    if (tabs.length === 0) {
-        console.warn('Tabs not found yet, will retry...');
+    const navCards = document.querySelectorAll('.nav-card');
+    if (navCards.length === 0) {
+        console.warn('Nav cards not found yet, will retry...');
         setTimeout(initializeDashboard, 100);
         return;
     }
     
-    console.log('Tabs found, initializing navigation');
+    console.log('Nav cards found, initializing navigation');
     initDashboardNavigation();
 }
 
