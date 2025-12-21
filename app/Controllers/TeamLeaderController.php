@@ -498,4 +498,214 @@ class TeamLeaderController
             return 'Error swapping shifts: ' . $e->getMessage();
         }
     }
+
+    /**
+     * Get command center widget data for overview dashboard
+     */
+    public static function getCommandCenterData(int $weekId, int $sectionId, string $today): array
+    {
+        require_once __DIR__ . '/../Core/config.php';
+        
+        // Pending shift requests with urgency
+        $requests = ShiftRequest::listByWeek($weekId, $sectionId);
+        $pendingRequests = array_filter($requests, fn($r) => strtoupper($r['status'] ?? '') === 'PENDING');
+        $highPriorityRequests = array_filter($pendingRequests, fn($r) => strtoupper($r['importance_level'] ?? '') === 'HIGH');
+        
+        // Coverage gaps (required vs assigned per day/shift)
+        $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
+        $requirements = Schedule::getShiftRequirements($weekId, $sectionId);
+        $coverageGaps = self::calculateCoverageGaps($requirements, $schedule);
+        
+        // Employees currently on break
+        $breaks = BreakModel::currentBreaks($sectionId, $today);
+        $onBreak = array_filter($breaks, fn($b) => !empty($b['break_start']) && empty($b['break_end']));
+        
+        // Employees without assignments this week
+        $employees = Employee::listBySection($sectionId);
+        $assignedEmployeeIds = array_unique(array_map(fn($s) => (int) ($s['employee_id'] ?? 0), $schedule));
+        $unassignedEmployees = array_filter($employees, fn($e) => !in_array((int) $e['id'], $assignedEmployeeIds));
+        
+        // SLA alerts (late breaks, overtime risks)
+        $slaAlerts = self::calculateSLAAlerts($breaks, $schedule, $employees);
+        
+        return [
+            'pending_requests' => [
+                'total' => count($pendingRequests),
+                'high_priority' => count($highPriorityRequests),
+                'requests' => array_slice($pendingRequests, 0, 5), // Top 5
+            ],
+            'coverage_gaps' => $coverageGaps,
+            'on_break' => [
+                'count' => count($onBreak),
+                'employees' => array_slice($onBreak, 0, 5),
+            ],
+            'unassigned' => [
+                'count' => count($unassignedEmployees),
+                'employees' => array_slice($unassignedEmployees, 0, 5),
+            ],
+            'sla_alerts' => $slaAlerts,
+        ];
+    }
+
+    /**
+     * Calculate coverage gaps (required vs assigned)
+     */
+    private static function calculateCoverageGaps(array $requirements, array $schedule): array
+    {
+        $gaps = [];
+        
+        // Group requirements by date and shift
+        $reqByDateShift = [];
+        foreach ($requirements as $req) {
+            $date = $req['date'] ?? '';
+            $shiftId = (int) ($req['shift_type_id'] ?? 0);
+            if ($date && $shiftId) {
+                $key = $date . '_' . $shiftId;
+                if (!isset($reqByDateShift[$key])) {
+                    $reqByDateShift[$key] = [
+                        'date' => $date,
+                        'shift_id' => $shiftId,
+                        'shift_name' => $req['shift_name'] ?? '',
+                        'required' => 0,
+                        'assigned' => 0,
+                    ];
+                }
+                $reqByDateShift[$key]['required'] += (int) ($req['required_count'] ?? 0);
+            }
+        }
+        
+        // Count assigned per date/shift
+        foreach ($schedule as $entry) {
+            $date = $entry['shift_date'] ?? '';
+            $shiftId = (int) ($entry['shift_definition_id'] ?? 0);
+            if ($date && $shiftId) {
+                $key = $date . '_' . $shiftId;
+                if (isset($reqByDateShift[$key])) {
+                    $reqByDateShift[$key]['assigned']++;
+                }
+            }
+        }
+        
+        // Find gaps
+        foreach ($reqByDateShift as $gap) {
+            if ($gap['assigned'] < $gap['required']) {
+                $gaps[] = $gap;
+            }
+        }
+        
+        return $gaps;
+    }
+
+    /**
+     * Calculate SLA alerts (late breaks, overtime risks)
+     */
+    private static function calculateSLAAlerts(array $breaks, array $schedule, array $employees): array
+    {
+        $alerts = [];
+        $today = date('Y-m-d');
+        
+        // Late breaks (break started > 30 min after expected)
+        foreach ($breaks as $break) {
+            if (!empty($break['break_start']) && empty($break['break_end'])) {
+                $delay = (int) ($break['delay_minutes'] ?? 0);
+                if ($delay > 30) {
+                    $alerts[] = [
+                        'type' => 'late_break',
+                        'severity' => $delay > 60 ? 'high' : 'medium',
+                        'message' => $break['employee_name'] . ' started break ' . $delay . ' minutes late',
+                        'employee_id' => (int) ($break['employee_id'] ?? 0),
+                    ];
+                }
+            }
+        }
+        
+        // Overtime risks (employees approaching 40+ hours)
+        $employeeHours = [];
+        foreach ($schedule as $entry) {
+            $empId = (int) ($entry['employee_id'] ?? 0);
+            if ($empId) {
+                if (!isset($employeeHours[$empId])) {
+                    $employeeHours[$empId] = 0;
+                }
+                $employeeHours[$empId] += (float) ($entry['duration_hours'] ?? 8.0);
+            }
+        }
+        
+        foreach ($employeeHours as $empId => $hours) {
+            if ($hours >= 38) {
+                $emp = array_filter($employees, fn($e) => (int) $e['id'] === $empId);
+                $empName = !empty($emp) ? reset($emp)['full_name'] : 'Employee #' . $empId;
+                $alerts[] = [
+                    'type' => 'overtime_risk',
+                    'severity' => $hours >= 40 ? 'high' : 'medium',
+                    'message' => $empName . ' has ' . number_format($hours, 1) . ' hours this week',
+                    'employee_id' => $empId,
+                ];
+            }
+        }
+        
+        return $alerts;
+    }
+
+    /**
+     * Get employee workload intelligence data
+     */
+    public static function getWorkloadData(int $weekId, int $sectionId, array $employees, array $schedule, array $breaks): array
+    {
+        $workload = [];
+        
+        // Calculate hours per employee
+        $employeeHours = [];
+        foreach ($schedule as $entry) {
+            $empId = (int) ($entry['employee_id'] ?? 0);
+            if ($empId) {
+                if (!isset($employeeHours[$empId])) {
+                    $employeeHours[$empId] = 0;
+                }
+                $employeeHours[$empId] += (float) ($entry['duration_hours'] ?? 8.0);
+            }
+        }
+        
+        // Calculate break compliance (last 7 days)
+        $breakCompliance = [];
+        $today = new DateTimeImmutable();
+        for ($i = 0; $i < 7; $i++) {
+            $date = $today->modify('-' . $i . ' days')->format('Y-m-d');
+            $dayBreaks = BreakModel::currentBreaks($sectionId, $date);
+            foreach ($dayBreaks as $break) {
+                $empId = (int) ($break['employee_id'] ?? 0);
+                if ($empId) {
+                    if (!isset($breakCompliance[$empId])) {
+                        $breakCompliance[$empId] = ['total' => 0, 'compliant' => 0];
+                    }
+                    $breakCompliance[$empId]['total']++;
+                    if (empty($break['break_start']) || (int) ($break['delay_minutes'] ?? 0) <= 15) {
+                        $breakCompliance[$empId]['compliant']++;
+                    }
+                }
+            }
+        }
+        
+        // Build workload data
+        foreach ($employees as $emp) {
+            $empId = (int) $emp['id'];
+            $hours = $employeeHours[$empId] ?? 0;
+            $compliance = $breakCompliance[$empId] ?? ['total' => 0, 'compliant' => 0];
+            $complianceScore = $compliance['total'] > 0 
+                ? ($compliance['compliant'] / $compliance['total']) * 100 
+                : 100;
+            
+            $workload[] = [
+                'employee_id' => $empId,
+                'employee_name' => $emp['full_name'],
+                'employee_code' => $emp['employee_code'],
+                'weekly_hours' => $hours,
+                'overtime_risk' => $hours >= 40 ? 'high' : ($hours >= 38 ? 'medium' : 'low'),
+                'break_compliance' => round($complianceScore, 1),
+                'fatigue_flag' => $hours > 45 || $complianceScore < 70,
+            ];
+        }
+        
+        return $workload;
+    }
 }

@@ -310,6 +310,10 @@ if ($role === 'Director') {
     $patterns = Schedule::getSchedulePatterns();
     $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
     $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
+    
+    // Command center data for enterprise dashboard
+    $commandCenter = $sectionId ? TeamLeaderController::getCommandCenterData($weekId, $sectionId, $today->format('Y-m-d')) : [];
+    $workload = $sectionId ? TeamLeaderController::getWorkloadData($weekId, $sectionId, $employees, $schedule, $breaks) : [];
 
     render_view('teamleader/dashboard', [
         'user' => $user,
@@ -326,6 +330,8 @@ if ($role === 'Director') {
         'patterns' => $patterns,
         'performance' => $performance,
         'breaks' => $breaks,
+        'commandCenter' => $commandCenter,
+        'workload' => $workload,
     ]);
 } elseif ($role === 'Supervisor') {
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];

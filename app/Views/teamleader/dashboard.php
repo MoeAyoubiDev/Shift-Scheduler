@@ -123,21 +123,234 @@ for ($i = 0; $i < 7; $i++) {
 
     <!-- Main Content Area -->
     <main class="dashboard-content">
-        <!-- Overview Section -->
+        <!-- Command Center Overview Section -->
         <section class="dashboard-section active" data-section="overview">
-            <div class="card">
-    <div class="hero-row">
-        <div>
-            <h2>Team Leader Control Center</h2>
-            <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
-        </div>
-        <div class="meta-row">
-            <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
-            <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
+            <div class="command-center-header">
+                <div>
+                    <h1>Command Center</h1>
+                    <p class="subtitle"><?= e($user['section_name'] ?? 'Your Section') ?> • Week of <?= e((new DateTimeImmutable($weekStart))->format('M j')) ?></p>
+                </div>
+                <div class="header-actions">
+                    <a href="/index.php?download=schedule&week_start=<?= e($weekStart) ?>&week_end=<?= e($weekEnd) ?>" class="btn secondary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M14 10.667V14C14 14.3536 13.8595 14.6928 13.6095 14.9428C13.3594 15.1929 13.0203 15.3333 12.6667 15.3333H3.33333C2.97971 15.3333 2.64057 15.1929 2.39052 14.9428C2.14048 14.6928 2 14.3536 2 14V10.667M11.3333 6.667L8 3.333M8 3.333L4.66667 6.667M8 3.333V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Export CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Command Center Widgets -->
+            <div class="widgets-grid">
+                <!-- Pending Shift Requests Widget -->
+                <div class="widget widget-requests" data-widget="requests" onclick="window.dashboard?.navigateToSection('shift-requests')">
+                    <div class="widget-header">
+                        <div class="widget-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2V18M2 10H18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="widget-title-group">
+                            <h3>Pending Requests</h3>
+                            <span class="widget-subtitle">Requires attention</span>
+                        </div>
                     </div>
-        </div>
-    </div>
-</section>
+                    <div class="widget-content">
+                        <div class="widget-metric">
+                            <span class="metric-value"><?= e($commandCenter['pending_requests']['total'] ?? 0) ?></span>
+                            <span class="metric-label">Total</span>
+                        </div>
+                        <?php if (!empty($commandCenter['pending_requests']['high_priority'])): ?>
+                        <div class="widget-alert">
+                            <span class="alert-badge high"><?= e($commandCenter['pending_requests']['high_priority']) ?> High Priority</span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($commandCenter['pending_requests']['requests'])): ?>
+                        <div class="widget-list">
+                            <?php foreach (array_slice($commandCenter['pending_requests']['requests'], 0, 3) as $req): ?>
+                            <div class="widget-list-item">
+                                <span class="item-name"><?= e($req['employee_name'] ?? 'Unknown') ?></span>
+                                <span class="item-meta"><?= e($req['shift_name'] ?? '') ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="widget-footer">
+                        <a href="#shift-requests" class="widget-link">View all requests →</a>
+                    </div>
+                </div>
+
+                <!-- Coverage Gaps Widget -->
+                <div class="widget widget-coverage" data-widget="coverage" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                    <div class="widget-header">
+                        <div class="widget-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="white" stroke-width="2"/>
+                                <path d="M10 6V10L13 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="widget-title-group">
+                            <h3>Coverage Gaps</h3>
+                            <span class="widget-subtitle">Understaffed shifts</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="widget-metric">
+                            <span class="metric-value"><?= e(count($commandCenter['coverage_gaps'] ?? [])) ?></span>
+                            <span class="metric-label">Gaps this week</span>
+                        </div>
+                        <?php if (!empty($commandCenter['coverage_gaps'])): ?>
+                        <div class="widget-list">
+                            <?php foreach (array_slice($commandCenter['coverage_gaps'], 0, 3) as $gap): ?>
+                            <div class="widget-list-item">
+                                <span class="item-name"><?= e((new DateTimeImmutable($gap['date']))->format('D, M j')) ?></span>
+                                <span class="item-meta"><?= e($gap['shift_name']) ?>: <?= e($gap['assigned']) ?>/<?= e($gap['required']) ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="widget-footer">
+                        <a href="#weekly-schedule" class="widget-link">Fix coverage →</a>
+                    </div>
+                </div>
+
+                <!-- Employees on Break Widget -->
+                <div class="widget widget-breaks" data-widget="breaks" onclick="window.dashboard?.navigateToSection('break-monitoring')">
+                    <div class="widget-header">
+                        <div class="widget-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <circle cx="10" cy="10" r="8" stroke="white" stroke-width="2"/>
+                                <path d="M10 6V10L13 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="widget-title-group">
+                            <h3>On Break</h3>
+                            <span class="widget-subtitle">Currently away</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="widget-metric">
+                            <span class="metric-value"><?= e($commandCenter['on_break']['count'] ?? 0) ?></span>
+                            <span class="metric-label">Active breaks</span>
+                        </div>
+                        <?php if (!empty($commandCenter['on_break']['employees'])): ?>
+                        <div class="widget-list">
+                            <?php foreach (array_slice($commandCenter['on_break']['employees'], 0, 3) as $break): ?>
+                            <div class="widget-list-item">
+                                <span class="item-name"><?= e($break['employee_name'] ?? 'Unknown') ?></span>
+                                <span class="item-meta">Started <?= e($break['break_start'] ?? '') ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="widget-footer">
+                        <a href="#break-monitoring" class="widget-link">Monitor breaks →</a>
+                    </div>
+                </div>
+
+                <!-- Unassigned Employees Widget -->
+                <div class="widget widget-unassigned" data-widget="unassigned" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                    <div class="widget-header">
+                        <div class="widget-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2V18M2 10H18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="widget-title-group">
+                            <h3>Unassigned</h3>
+                            <span class="widget-subtitle">No shifts this week</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="widget-metric">
+                            <span class="metric-value"><?= e($commandCenter['unassigned']['count'] ?? 0) ?></span>
+                            <span class="metric-label">Employees</span>
+                        </div>
+                        <?php if (!empty($commandCenter['unassigned']['employees'])): ?>
+                        <div class="widget-list">
+                            <?php foreach (array_slice($commandCenter['unassigned']['employees'], 0, 3) as $emp): ?>
+                            <div class="widget-list-item">
+                                <span class="item-name"><?= e($emp['full_name'] ?? 'Unknown') ?></span>
+                                <span class="item-meta"><?= e($emp['employee_code'] ?? '') ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="widget-footer">
+                        <a href="#weekly-schedule" class="widget-link">Assign shifts →</a>
+                    </div>
+                </div>
+
+                <!-- SLA Alerts Widget -->
+                <?php if (!empty($commandCenter['sla_alerts'])): ?>
+                <div class="widget widget-alerts" data-widget="alerts">
+                    <div class="widget-header">
+                        <div class="widget-icon" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L2 18H18L10 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 12V8M10 14H10.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="widget-title-group">
+                            <h3>SLA Alerts</h3>
+                            <span class="widget-subtitle">Requires action</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="widget-metric">
+                            <span class="metric-value"><?= e(count($commandCenter['sla_alerts'])) ?></span>
+                            <span class="metric-label">Active alerts</span>
+                        </div>
+                        <div class="widget-list">
+                            <?php foreach (array_slice($commandCenter['sla_alerts'], 0, 3) as $alert): ?>
+                            <div class="widget-list-item alert-item" data-severity="<?= e($alert['severity']) ?>">
+                                <span class="item-name"><?= e($alert['message']) ?></span>
+                                <span class="item-badge severity-<?= e($alert['severity']) ?>"><?= e(ucfirst($alert['severity'])) ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions-section">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions-grid">
+                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('shift-requests')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Review Requests</span>
+                    </button>
+                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Manage Schedule</span>
+                    </button>
+                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('manage-employees')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>View Team</span>
+                    </button>
+                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('performance')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>View Analytics</span>
+                    </button>
+                </div>
+            </div>
+        </section>
 
         <!-- Create Employee Section -->
         <section class="dashboard-section" data-section="create-employee">
@@ -187,59 +400,102 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </section>
 
-        <!-- Manage Employees Section -->
+        <!-- Employee Workload Intelligence Section -->
         <section class="dashboard-section" data-section="manage-employees">
-            <div class="card">
-                <div class="section-title">
-                    <h3>Manage Employees</h3>
-                    <span><?= e(count($employees ?? [])) ?> employees in this section</span>
+            <div class="workload-header">
+                <div>
+                    <h2>Employee Workload & Risk Intelligence</h2>
+                    <p class="subtitle">Monitor hours, overtime risks, break compliance, and fatigue indicators</p>
                 </div>
-                <?php if (!empty($employees)): ?>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Employee Code</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($employees as $employee): ?>
-                            <tr>
-                                <td><?= e($employee['full_name']) ?></td>
-                                <td><?= e($employee['employee_code']) ?></td>
-                                <td><?= e($employee['username']) ?></td>
-                                <td><?= e($employee['email'] ?? '-') ?></td>
-                                <td><span class="pill"><?= e($employee['role_name']) ?></span></td>
-                                <td class="table-actions">
-                                    <form method="post" action="/index.php" class="inline" style="display: inline-block;">
-                                        <input type="hidden" name="action" value="update_employee">
-                                        <input type="hidden" name="employee_id" value="<?= e((string) $employee['id']) ?>">
-                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                        <button type="submit" class="btn secondary small">Update</button>
-                                    </form>
-                                    <form method="post" action="/index.php" class="inline" style="display: inline-block; margin-left: 0.5rem;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
-                                        <input type="hidden" name="action" value="delete_employee">
-                                        <input type="hidden" name="employee_id" value="<?= e((string) $employee['id']) ?>">
-                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                        <button type="submit" class="btn secondary small" style="background: var(--danger);">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <div class="empty-state-title">No employees found</div>
-                        <p class="empty-state-text">Create your first employee using the "Create Employee" section above.</p>
-                    </div>
-                <?php endif; ?>
+                <div class="workload-filters">
+                    <select id="workload-sort" class="form-select">
+                        <option value="hours">Sort by Hours</option>
+                        <option value="risk">Sort by Risk</option>
+                        <option value="compliance">Sort by Compliance</option>
+                        <option value="name">Sort by Name</option>
+                    </select>
+                </div>
             </div>
-</section>
+
+            <?php if (!empty($workload)): ?>
+                <div class="workload-grid">
+                    <?php foreach ($workload as $emp): ?>
+                        <div class="workload-card <?= $emp['fatigue_flag'] ? 'fatigue-flag' : '' ?>" data-employee-id="<?= e((string) $emp['employee_id']) ?>">
+                            <div class="workload-card-header">
+                                <div class="workload-employee-info">
+                                    <div class="employee-avatar-medium">
+                                        <?= strtoupper(substr($emp['employee_name'], 0, 1)) ?>
+                                    </div>
+                                    <div>
+                                        <div class="workload-employee-name"><?= e($emp['employee_name']) ?></div>
+                                        <div class="workload-employee-code"><?= e($emp['employee_code']) ?></div>
+                                    </div>
+                                </div>
+                                <?php if ($emp['fatigue_flag']): ?>
+                                    <span class="fatigue-badge">⚠️ Fatigue Risk</span>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <div class="workload-metrics">
+                                <div class="workload-metric">
+                                    <div class="metric-header">
+                                        <span class="metric-label">Weekly Hours</span>
+                                        <span class="metric-value"><?= e(number_format($emp['weekly_hours'], 1)) ?>h</span>
+                                    </div>
+                                    <div class="metric-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: <?= e(min(100, ($emp['weekly_hours'] / 40) * 100)) ?>%; background: <?= $emp['weekly_hours'] >= 40 ? '#dc2626' : ($emp['weekly_hours'] >= 38 ? '#f59e0b' : '#10b981') ?>;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="workload-metric">
+                                    <div class="metric-header">
+                                        <span class="metric-label">Overtime Risk</span>
+                                        <span class="risk-badge risk-<?= e($emp['overtime_risk']) ?>"><?= e(ucfirst($emp['overtime_risk'])) ?></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="workload-metric">
+                                    <div class="metric-header">
+                                        <span class="metric-label">Break Compliance</span>
+                                        <span class="metric-value"><?= e(number_format($emp['break_compliance'], 1)) ?>%</span>
+                                    </div>
+                                    <div class="metric-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: <?= e($emp['break_compliance']) ?>%; background: <?= $emp['break_compliance'] >= 90 ? '#10b981' : ($emp['break_compliance'] >= 70 ? '#f59e0b' : '#dc2626') ?>;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="workload-actions">
+                                <button type="button" class="btn secondary btn-sm" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                                    View Schedule
+                                </button>
+                                <button type="button" class="btn secondary btn-sm" onclick="window.dashboard?.navigateToSection('break-monitoring')">
+                                    View Breaks
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                            <path d="M32 8C18.745 8 8 18.745 8 32C8 45.255 18.745 56 32 56C45.255 56 56 45.255 56 32C56 18.745 45.255 8 32 8Z" stroke="#cbd5e1" stroke-width="2"/>
+                            <path d="M32 20V32L40 36" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="empty-state-title">No Workload Data</div>
+                    <p class="empty-state-text">Workload intelligence will appear here once employees have schedule assignments.</p>
+                    <button type="button" class="btn btn-primary" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                        Assign Shifts
+                    </button>
+                </div>
+            <?php endif; ?>
+        </section>
 
         <!-- Shift Requirements Section -->
         <section class="dashboard-section" data-section="shift-requirements">
@@ -291,56 +547,253 @@ for ($i = 0; $i < 7; $i++) {
             </div>
 </section>
 
-        <!-- Shift Requests Section -->
+        <!-- Smart Shift Requests Inbox -->
         <section class="dashboard-section" data-section="shift-requests">
-            <div class="card">
-    <div class="section-title">
-        <h3>Shift Requests</h3>
-        <span><?= e(count($requests)) ?> requests awaiting review</span>
-    </div>
-    <table>
-        <thead>
-        <tr>
-            <th>Employee</th>
-            <th>Date</th>
-            <th>Shift</th>
-            <th>Pattern</th>
-            <th>Importance</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($requests as $request): ?>
-            <tr>
-                <td><?= e($request['employee_name']) ?></td>
-                <td><?= e($request['submit_date']) ?></td>
-                <td><?= e($request['shift_name']) ?></td>
-                <td><?= e($request['pattern_name']) ?></td>
-                <td><?= e($request['importance_level']) ?></td>
-                <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
-                <td>
-                    <form method="post" action="/index.php" class="inline">
-                        <input type="hidden" name="action" value="update_request_status">
-                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                        <input type="hidden" name="status" value="APPROVED">
-                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                        <button type="submit" class="btn small">Approve</button>
-                    </form>
-                    <form method="post" action="/index.php" class="inline">
-                        <input type="hidden" name="action" value="update_request_status">
-                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                        <input type="hidden" name="status" value="DECLINED">
-                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                        <button type="submit" class="btn danger small">Decline</button>
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+            <div class="inbox-header">
+                <div>
+                    <h2>Shift Requests Inbox</h2>
+                    <p class="subtitle">Review and approve employee shift requests</p>
+                </div>
+                <div class="inbox-actions">
+                    <button type="button" class="btn secondary" id="bulk-approve-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Bulk Approve
+                    </button>
+                    <button type="button" class="btn secondary" id="bulk-reject-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Bulk Reject
+                    </button>
+                    <select id="request-sort" class="form-select">
+                        <option value="priority">Sort by Priority</option>
+                        <option value="date">Sort by Date</option>
+                        <option value="employee">Sort by Employee</option>
+                    </select>
+                </div>
             </div>
-</section>
+
+            <?php
+            // Sort requests by priority (HIGH first)
+            $sortedRequests = $requests;
+            usort($sortedRequests, function($a, $b) {
+                $priorityOrder = ['HIGH' => 3, 'MEDIUM' => 2, 'LOW' => 1, 'NORMAL' => 0];
+                $aPriority = $priorityOrder[strtoupper($a['importance_level'] ?? 'NORMAL')] ?? 0;
+                $bPriority = $priorityOrder[strtoupper($b['importance_level'] ?? 'NORMAL')] ?? 0;
+                return $bPriority <=> $aPriority;
+            });
+            
+            $pendingRequests = array_filter($sortedRequests, fn($r) => strtoupper($r['status'] ?? '') === 'PENDING');
+            $approvedRequests = array_filter($sortedRequests, fn($r) => strtoupper($r['status'] ?? '') === 'APPROVED');
+            $declinedRequests = array_filter($sortedRequests, fn($r) => strtoupper($r['status'] ?? '') === 'DECLINED');
+            ?>
+
+            <div class="inbox-tabs">
+                <button class="inbox-tab active" data-tab="pending">
+                    Pending <span class="tab-badge"><?= e(count($pendingRequests)) ?></span>
+                </button>
+                <button class="inbox-tab" data-tab="approved">
+                    Approved <span class="tab-badge"><?= e(count($approvedRequests)) ?></span>
+                </button>
+                <button class="inbox-tab" data-tab="declined">
+                    Declined <span class="tab-badge"><?= e(count($declinedRequests)) ?></span>
+                </button>
+            </div>
+
+            <!-- Pending Requests -->
+            <div class="inbox-content" data-tab-content="pending">
+                <?php if (!empty($pendingRequests)): ?>
+                    <form id="bulk-request-form" method="post" action="/index.php">
+                        <input type="hidden" name="action" value="bulk_update_requests">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="bulk_status" id="bulk-status-input">
+                        <input type="hidden" name="request_ids" id="bulk-request-ids">
+                        
+                        <div class="request-list">
+                            <?php foreach ($pendingRequests as $request): ?>
+                                <?php
+                                $isHighPriority = strtoupper($request['importance_level'] ?? '') === 'HIGH';
+                                $requestDate = new DateTimeImmutable($request['request_date'] ?? 'now');
+                                $daysUntil = (new DateTimeImmutable())->diff($requestDate)->days;
+                                ?>
+                                <div class="request-card <?= $isHighPriority ? 'priority-high' : '' ?>" data-request-id="<?= e((string) $request['id']) ?>">
+                                    <div class="request-card-header">
+                                        <label class="request-checkbox">
+                                            <input type="checkbox" name="selected_requests[]" value="<?= e((string) $request['id']) ?>" class="request-select">
+                                            <span class="checkmark"></span>
+                                        </label>
+                                        <div class="request-employee-info">
+                                            <div class="employee-avatar-small">
+                                                <?= strtoupper(substr($request['employee_name'] ?? 'U', 0, 1)) ?>
+                                            </div>
+                                            <div>
+                                                <div class="request-employee-name"><?= e($request['employee_name'] ?? 'Unknown') ?></div>
+                                                <div class="request-meta">Submitted <?= e($daysUntil === 0 ? 'today' : ($daysUntil . ' days ago')) ?></div>
+                                            </div>
+                                        </div>
+                                        <div class="request-priority">
+                                            <?php if ($isHighPriority): ?>
+                                                <span class="priority-badge high">HIGH PRIORITY</span>
+                                            <?php elseif (strtoupper($request['importance_level'] ?? '') === 'MEDIUM'): ?>
+                                                <span class="priority-badge medium">MEDIUM</span>
+                                            <?php else: ?>
+                                                <span class="priority-badge low">LOW</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="request-card-body">
+                                        <div class="request-details-grid">
+                                            <div class="request-detail">
+                                                <span class="detail-label">Date</span>
+                                                <span class="detail-value"><?= e($requestDate->format('D, M j, Y')) ?></span>
+                                            </div>
+                                            <div class="request-detail">
+                                                <span class="detail-label">Shift</span>
+                                                <span class="detail-value"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
+                                            </div>
+                                            <div class="request-detail">
+                                                <span class="detail-label">Pattern</span>
+                                                <span class="detail-value"><?= e($request['pattern_name'] ?? 'N/A') ?></span>
+                                            </div>
+                                            <?php if (!empty($request['reason'])): ?>
+                                            <div class="request-detail full-width">
+                                                <span class="detail-label">Reason</span>
+                                                <span class="detail-value"><?= e($request['reason']) ?></span>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        
+                                        <!-- Conflict Detection Preview -->
+                                        <div class="request-conflict-preview" id="conflict-preview-<?= e((string) $request['id']) ?>">
+                                            <!-- Will be populated by JS if conflicts detected -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="request-card-footer">
+                                        <div class="request-actions-inline">
+                                            <button type="button" class="btn btn-success btn-sm request-approve-btn" 
+                                                    data-request-id="<?= e((string) $request['id']) ?>"
+                                                    data-employee-id="<?= e((string) ($request['employee_id'] ?? 0)) ?>"
+                                                    data-date="<?= e($request['request_date'] ?? '') ?>"
+                                                    data-shift-id="<?= e((string) ($request['shift_definition_id'] ?? 0)) ?>">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                    <path d="M11.6667 3.5L5.25 9.91667L2.33333 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Approve & Assign
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-sm request-approve-only-btn" 
+                                                    data-request-id="<?= e((string) $request['id']) ?>">
+                                                Approve Only
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm request-reject-btn" 
+                                                    data-request-id="<?= e((string) $request['id']) ?>">
+                                                Reject
+                                            </button>
+                                            <button type="button" class="btn secondary btn-sm request-comment-btn" 
+                                                    data-request-id="<?= e((string) $request['id']) ?>">
+                                                Comment
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                <path d="M32 8L8 24V40C8 45.5228 11.4772 49 17 49H47C52.5228 49 56 45.5228 56 40V24L32 8Z" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M24 32L28 36L40 24" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title">No Pending Requests</div>
+                        <p class="empty-state-text">All shift requests have been processed. Check back later for new requests.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Approved Requests -->
+            <div class="inbox-content" data-tab-content="approved" style="display: none;">
+                <?php if (!empty($approvedRequests)): ?>
+                    <div class="request-list">
+                        <?php foreach ($approvedRequests as $request): ?>
+                            <div class="request-card status-approved">
+                                <div class="request-card-header">
+                                    <div class="request-employee-info">
+                                        <div class="employee-avatar-small"><?= strtoupper(substr($request['employee_name'] ?? 'U', 0, 1)) ?></div>
+                                        <div>
+                                            <div class="request-employee-name"><?= e($request['employee_name'] ?? 'Unknown') ?></div>
+                                            <div class="request-meta">Approved on <?= e((new DateTimeImmutable($request['submit_date'] ?? 'now'))->format('M j, Y')) ?></div>
+                                        </div>
+                                    </div>
+                                    <span class="status-badge approved">APPROVED</span>
+                                </div>
+                                <div class="request-card-body">
+                                    <div class="request-details-grid">
+                                        <div class="request-detail">
+                                            <span class="detail-label">Date</span>
+                                            <span class="detail-value"><?= e((new DateTimeImmutable($request['request_date'] ?? 'now'))->format('D, M j')) ?></span>
+                                        </div>
+                                        <div class="request-detail">
+                                            <span class="detail-label">Shift</span>
+                                            <span class="detail-value"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-title">No Approved Requests</div>
+                        <p class="empty-state-text">Approved requests will appear here.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Declined Requests -->
+            <div class="inbox-content" data-tab-content="declined" style="display: none;">
+                <?php if (!empty($declinedRequests)): ?>
+                    <div class="request-list">
+                        <?php foreach ($declinedRequests as $request): ?>
+                            <div class="request-card status-declined">
+                                <div class="request-card-header">
+                                    <div class="request-employee-info">
+                                        <div class="employee-avatar-small"><?= strtoupper(substr($request['employee_name'] ?? 'U', 0, 1)) ?></div>
+                                        <div>
+                                            <div class="request-employee-name"><?= e($request['employee_name'] ?? 'Unknown') ?></div>
+                                            <div class="request-meta">Declined on <?= e((new DateTimeImmutable($request['submit_date'] ?? 'now'))->format('M j, Y')) ?></div>
+                                        </div>
+                                    </div>
+                                    <span class="status-badge declined">DECLINED</span>
+                                </div>
+                                <div class="request-card-body">
+                                    <div class="request-details-grid">
+                                        <div class="request-detail">
+                                            <span class="detail-label">Date</span>
+                                            <span class="detail-value"><?= e((new DateTimeImmutable($request['request_date'] ?? 'now'))->format('D, M j')) ?></span>
+                                        </div>
+                                        <div class="request-detail">
+                                            <span class="detail-label">Shift</span>
+                                            <span class="detail-value"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-title">No Declined Requests</div>
+                        <p class="empty-state-text">Declined requests will appear here.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
 
         <!-- Weekly Schedule Section -->
         <section class="dashboard-section" data-section="weekly-schedule">
