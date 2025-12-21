@@ -809,83 +809,156 @@ main {
     background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
 }
 
-/* Tab Navigation Bar - Modern Design */
-.dashboard-tabs {
+/* Modern Navigation Cards - Beautiful Design */
+.dashboard-nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.nav-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 0;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0 24px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    position: sticky;
-    top: 60px;
-    z-index: 10;
-}
-
-.dashboard-tabs::-webkit-scrollbar {
-    display: none;
-}
-
-.tab-item {
-    background: none;
-    border: none;
-    padding: 18px 28px;
-    color: #64748b;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    position: relative;
+    gap: 16px;
     font-family: inherit;
-    letter-spacing: -0.01em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.tab-item::before {
+.nav-card::before {
     content: '';
     position: absolute;
-    bottom: -1px;
+    top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
     transform: scaleX(0);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tab-item:hover {
-    color: #334155;
-    background: linear-gradient(to bottom, rgba(99, 102, 241, 0.04), rgba(99, 102, 241, 0.02));
+.nav-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.tab-item:hover::before {
-    transform: scaleX(0.3);
+.nav-card:hover {
+    transform: translateY(-4px);
+    border-color: #c7d2fe;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15), 0 4px 8px rgba(99, 102, 241, 0.1);
 }
 
-.tab-item.active {
-    color: #6366f1;
-    font-weight: 600;
-    background: linear-gradient(to bottom, rgba(99, 102, 241, 0.06), transparent);
-}
-
-.tab-item.active::before {
+.nav-card:hover::before {
     transform: scaleX(1);
 }
 
-.tab-item:focus {
-    outline: none;
-    background: rgba(99, 102, 241, 0.05);
+.nav-card:hover::after {
+    opacity: 1;
 }
 
-.tab-item:focus-visible {
-    outline: 2px solid #6366f1;
-    outline-offset: -2px;
-    border-radius: 4px 4px 0 0;
+.nav-card.active {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2), 0 2px 4px rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+}
+
+.nav-card.active::before {
+    transform: scaleX(1);
+}
+
+.nav-card.active::after {
+    opacity: 1;
+}
+
+.nav-card:focus {
+    outline: none;
+}
+
+.nav-card:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+}
+
+.nav-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-radius: 12px;
+    color: #6366f1;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-card.active .nav-card-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transform: scale(1.05);
+}
+
+.nav-card:hover .nav-card-icon {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+}
+
+.nav-card.active:hover .nav-card-icon {
+    transform: scale(1.1);
+}
+
+.nav-card-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+}
+
+.nav-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.nav-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+    transition: color 0.3s ease;
+}
+
+.nav-card.active .nav-card-title {
+    color: #6366f1;
+}
+
+.nav-card-subtitle {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-card.active .nav-card-subtitle {
+    color: #8b5cf6;
 }
 
 /* Dashboard Content - Modern Spacing */
@@ -916,16 +989,35 @@ main {
     }
 }
 
-/* Responsive: Tab Navigation - Modern 2025 */
+/* Responsive: Navigation Cards */
 @media (max-width: 768px) {
-    .dashboard-tabs {
-        padding: 0 16px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 16px;
     }
     
-    .tab-item {
-        padding: 16px 20px;
-        font-size: 0.875rem;
+    .nav-card {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .nav-card-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .nav-card-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .nav-card-title {
+        font-size: 0.9375rem;
+    }
+    
+    .nav-card-subtitle {
+        font-size: 0.75rem;
     }
     
     .dashboard-content {
@@ -939,13 +1031,14 @@ main {
 }
 
 @media (max-width: 640px) {
-    .dashboard-tabs {
-        padding: 0 12px;
+    .dashboard-nav-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 12px;
     }
     
-    .tab-item {
-        padding: 14px 16px;
-        font-size: 0.8125rem;
+    .nav-card {
+        padding: 16px;
     }
     
     .dashboard-content {

@@ -45,28 +45,26 @@ function initDashboardNavigation() {
     function setActiveTab(sectionName) {
         console.log('setActiveTab called with:', sectionName);
         
-        // Remove active from all tabs
-        const allTabs = document.querySelectorAll('.tab-item');
-        console.log('Found', allTabs.length, 'tabs');
+        // Remove active from all nav cards
+        const allCards = document.querySelectorAll('.nav-card');
+        console.log('Found', allCards.length, 'nav cards');
         
-        allTabs.forEach(tab => {
-            tab.classList.remove('active');
-            tab.setAttribute('aria-selected', 'false');
+        allCards.forEach(card => {
+            card.classList.remove('active');
         });
         
-        // Add active to target tab
-        const targetTab = document.querySelector(`.tab-item[data-section="${sectionName}"]`);
-        console.log('Target tab element:', targetTab);
+        // Add active to target nav card
+        const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
+        console.log('Target nav card element:', targetCard);
         
-        if (targetTab) {
-            targetTab.classList.add('active');
-            targetTab.setAttribute('aria-selected', 'true');
-            console.log('Tab activated:', sectionName);
+        if (targetCard) {
+            targetCard.classList.add('active');
+            console.log('Nav card activated:', sectionName);
         } else {
-            console.error('Tab not found:', sectionName);
-            // List all available tabs for debugging
-            allTabs.forEach(t => {
-                console.log('Available tab:', t.getAttribute('data-section'));
+            console.error('Nav card not found:', sectionName);
+            // List all available nav cards for debugging
+            allCards.forEach(c => {
+                console.log('Available nav card:', c.getAttribute('data-section'));
             });
         }
     }
@@ -93,30 +91,30 @@ function initDashboardNavigation() {
     function initNavigation() {
         console.log('initNavigation called');
         
-        const tabs = document.querySelectorAll('.tab-item');
+        const navCards = document.querySelectorAll('.nav-card');
         
-        console.log('Tabs found:', tabs.length);
+        console.log('Navigation cards found:', navCards.length);
         
-        if (tabs.length === 0) {
-            console.error('No tabs found!');
+        if (navCards.length === 0) {
+            console.error('No navigation cards found!');
             return;
         }
         
-        // Log all tabs for debugging
-        tabs.forEach((tab, index) => {
-            const section = tab.getAttribute('data-section');
-            console.log(`Tab ${index}:`, section, tab);
+        // Log all nav cards for debugging
+        navCards.forEach((card, index) => {
+            const section = card.getAttribute('data-section');
+            console.log(`Nav card ${index}:`, section, card);
         });
         
-        // Handle tab clicks - use event delegation for reliability
-        const tabContainer = document.querySelector('.dashboard-tabs');
-        if (tabContainer) {
-            tabContainer.addEventListener('click', function(e) {
-                const clickedTab = e.target.closest('.tab-item');
-                if (!clickedTab) return;
+        // Handle nav card clicks - use event delegation for reliability
+        const navContainer = document.querySelector('.dashboard-nav-cards');
+        if (navContainer) {
+            navContainer.addEventListener('click', function(e) {
+                const clickedCard = e.target.closest('.nav-card');
+                if (!clickedCard) return;
                 
-                const sectionName = clickedTab.getAttribute('data-section');
-                console.log('Tab clicked via delegation:', sectionName, clickedTab);
+                const sectionName = clickedCard.getAttribute('data-section');
+                console.log('Nav card clicked via delegation:', sectionName, clickedCard);
                 
                 e.preventDefault();
                 e.stopPropagation();
@@ -124,22 +122,22 @@ function initDashboardNavigation() {
                 if (sectionName) {
                     window.navigateToSection(sectionName);
                 } else {
-                    console.error('No data-section attribute found on clicked tab');
+                    console.error('No data-section attribute found on clicked card');
                 }
             });
             
-            console.log('Event delegation attached to tab container');
+            console.log('Event delegation attached to nav cards container');
         } else {
-            console.error('Tab container not found!');
+            console.error('Nav cards container not found!');
         }
         
         // Also attach direct listeners as backup
-        tabs.forEach((tab, index) => {
-            const sectionName = tab.getAttribute('data-section');
-            console.log(`Attaching direct click listener to tab ${index}:`, sectionName);
+        navCards.forEach((card, index) => {
+            const sectionName = card.getAttribute('data-section');
+            console.log(`Attaching direct click listener to nav card ${index}:`, sectionName);
             
-            tab.addEventListener('click', function(e) {
-                console.log('Tab clicked (direct):', sectionName, this);
+            card.addEventListener('click', function(e) {
+                console.log('Nav card clicked (direct):', sectionName, this);
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -149,7 +147,7 @@ function initDashboardNavigation() {
                 if (targetSection) {
                     window.navigateToSection(targetSection);
                 } else {
-                    console.error('No data-section attribute found on clicked tab');
+                    console.error('No data-section attribute found on clicked card');
                 }
             });
         });
@@ -158,7 +156,7 @@ function initDashboardNavigation() {
         const hash = window.location.hash.substring(1);
         console.log('Initial hash:', hash);
         
-        if (hash && document.querySelector(`.tab-item[data-section="${hash}"]`)) {
+        if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
             console.log('Navigating to hash section:', hash);
             window.navigateToSection(hash);
         } else {
@@ -171,7 +169,7 @@ function initDashboardNavigation() {
         window.addEventListener('popstate', function() {
             const hash = window.location.hash.substring(1);
             console.log('popstate event, hash:', hash);
-            if (hash && document.querySelector(`.tab-item[data-section="${hash}"]`)) {
+            if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
                 window.navigateToSection(hash);
             } else {
                 window.navigateToSection('overview');

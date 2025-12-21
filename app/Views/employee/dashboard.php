@@ -2,24 +2,72 @@
 declare(strict_types=1);
 ?>
 <div class="dashboard-container">
-    <!-- Tab Navigation Bar -->
-    <nav class="dashboard-tabs" role="tablist">
-        <button class="tab-item active" data-section="overview" role="tab" aria-selected="true">
-            Overview
+    <!-- Modern Navigation Cards -->
+    <div class="dashboard-nav-cards">
+        <button class="nav-card active" data-section="overview">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">Overview</div>
+                <div class="nav-card-subtitle">Dashboard summary</div>
+            </div>
         </button>
-        <button class="tab-item" data-section="submit-request" role="tab" aria-selected="false">
-            Submit Request
+        
+        <button class="nav-card" data-section="submit-request">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">Submit Request</div>
+                <div class="nav-card-subtitle">New shift request</div>
+            </div>
         </button>
-        <button class="tab-item" data-section="my-requests" role="tab" aria-selected="false">
-            My Requests
+        
+        <button class="nav-card" data-section="my-requests">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 5C9 4.46957 9.21071 3.96086 9.58579 3.58579C9.96086 3.21071 10.4696 3 11 3H13C13.5304 3 14.0391 3.21071 14.4142 3.58579C14.7893 3.96086 15 4.46957 15 5C15 5.53043 14.7893 6.03914 14.4142 6.41421C14.0391 6.78929 13.5304 7 13 7H11C10.4696 7 9.96086 6.78929 9.58579 6.41421C9.21071 6.03914 9 5.53043 9 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 12H15M9 16H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">My Requests</div>
+                <div class="nav-card-subtitle">View submissions</div>
+            </div>
         </button>
-        <button class="tab-item" data-section="weekly-schedule" role="tab" aria-selected="false">
-            Weekly Schedule
+        
+        <button class="nav-card" data-section="weekly-schedule">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">Weekly Schedule</div>
+                <div class="nav-card-subtitle">This week's shifts</div>
+            </div>
         </button>
-        <button class="tab-item" data-section="break-management" role="tab" aria-selected="false">
-            Break Management
+        
+        <button class="nav-card" data-section="break-management">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">Break Management</div>
+                <div class="nav-card-subtitle">Manage breaks</div>
+            </div>
         </button>
-    </nav>
+    </div>
 
     <!-- Main Content Area -->
     <main class="dashboard-content">
