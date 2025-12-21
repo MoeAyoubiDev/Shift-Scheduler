@@ -165,10 +165,6 @@ for ($i = 0; $i < 7; $i++) {
                             <?php endforeach; ?>
                         </select>
                     </label>
-                    <label>
-                        Seniority Level
-                        <input type="number" name="seniority_level" min="0" value="0">
-                    </label>
                     <label class="checkbox-row">
                         <input type="checkbox" name="is_senior" value="1">
                         Mark as Senior
