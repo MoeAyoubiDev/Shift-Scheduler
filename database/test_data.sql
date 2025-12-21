@@ -17,46 +17,52 @@ SET @default_password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheW
 -- =====================================================
 
 -- 2 Team Leaders for App After-Sales (Section 1)
+SET @tl_app_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('tl_app_001', @default_password, 'tl_app_001@test.com'),
 ('tl_app_002', @default_password, 'tl_app_002@test.com');
 
-SET @tl_app_001_user = LAST_INSERT_ID() - 1;
-SET @tl_app_002_user = LAST_INSERT_ID();
+SET @tl_app_001_user = @tl_app_start;
+SET @tl_app_002_user = @tl_app_start + 1;
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@tl_app_001_user, 2, 1), -- Team Leader role_id = 2
 (@tl_app_002_user, 2, 1);
 
 -- 1 Supervisor for App After-Sales
+SET @sv_app_001_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('sv_app_001', @default_password, 'sv_app_001@test.com');
-
-SET @sv_app_001_user = LAST_INSERT_ID();
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sv_app_001_user, 3, 1); -- Supervisor role_id = 3
 
 -- 2 Seniors for App After-Sales
+SET @sr_app_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('sr_app_001', @default_password, 'sr_app_001@test.com'),
 ('sr_app_002', @default_password, 'sr_app_002@test.com');
 
-SET @sr_app_001_user = LAST_INSERT_ID() - 1;
-SET @sr_app_002_user = LAST_INSERT_ID();
+SET @sr_app_001_user = @sr_app_start;
+SET @sr_app_002_user = @sr_app_start + 1;
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sr_app_001_user, 4, 1), -- Senior role_id = 4
 (@sr_app_002_user, 4, 1);
 
-SET @sr_app_001_role = LAST_INSERT_ID() - 1;
-SET @sr_app_002_role = LAST_INSERT_ID();
+SET @sr_app_001_role = (SELECT id FROM user_roles WHERE user_id = @sr_app_001_user AND role_id = 4 LIMIT 1);
+SET @sr_app_002_role = (SELECT id FROM user_roles WHERE user_id = @sr_app_002_user AND role_id = 4 LIMIT 1);
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 (@sr_app_001_role, 'SR-APP-001', 'Senior App One', 'sr_app_001@test.com', 1, 5),
 (@sr_app_002_role, 'SR-APP-002', 'Senior App Two', 'sr_app_002@test.com', 1, 5);
 
 -- 20 Employees for App After-Sales
+SET @emp_app_start_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('emp_app_001', @default_password, 'emp_app_001@test.com'),
 ('emp_app_002', @default_password, 'emp_app_002@test.com'),
@@ -79,10 +85,8 @@ INSERT INTO users (username, password_hash, email) VALUES
 ('emp_app_019', @default_password, 'emp_app_019@test.com'),
 ('emp_app_020', @default_password, 'emp_app_020@test.com');
 
-SET @emp_app_start_user = LAST_INSERT_ID() - 19;
-
 INSERT INTO user_roles (user_id, role_id, section_id)
-SELECT id, 5, 1 FROM users WHERE id >= @emp_app_start_user AND id <= @emp_app_start_user + 19;
+SELECT id, 5, 1 FROM users WHERE id >= @emp_app_start_user ORDER BY id LIMIT 20;
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 ((SELECT id FROM user_roles WHERE section_id = 1 AND role_id = 5 ORDER BY id LIMIT 1 OFFSET 0), 'EMP-APP-001', 'Employee App One', 'emp_app_001@test.com', 0, 1),
@@ -111,46 +115,52 @@ INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior,
 -- =====================================================
 
 -- 2 Team Leaders for Agent After-Sales (Section 2)
+SET @tl_agent_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('tl_agent_001', @default_password, 'tl_agent_001@test.com'),
 ('tl_agent_002', @default_password, 'tl_agent_002@test.com');
 
-SET @tl_agent_001_user = LAST_INSERT_ID() - 1;
-SET @tl_agent_002_user = LAST_INSERT_ID();
+SET @tl_agent_001_user = @tl_agent_start;
+SET @tl_agent_002_user = @tl_agent_start + 1;
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@tl_agent_001_user, 2, 2),
 (@tl_agent_002_user, 2, 2);
 
 -- 1 Supervisor for Agent After-Sales
+SET @sv_agent_001_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('sv_agent_001', @default_password, 'sv_agent_001@test.com');
-
-SET @sv_agent_001_user = LAST_INSERT_ID();
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sv_agent_001_user, 3, 2);
 
 -- 2 Seniors for Agent After-Sales
+SET @sr_agent_start = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('sr_agent_001', @default_password, 'sr_agent_001@test.com'),
 ('sr_agent_002', @default_password, 'sr_agent_002@test.com');
 
-SET @sr_agent_001_user = LAST_INSERT_ID() - 1;
-SET @sr_agent_002_user = LAST_INSERT_ID();
+SET @sr_agent_001_user = @sr_agent_start;
+SET @sr_agent_002_user = @sr_agent_start + 1;
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
 (@sr_agent_001_user, 4, 2),
 (@sr_agent_002_user, 4, 2);
 
-SET @sr_agent_001_role = LAST_INSERT_ID() - 1;
-SET @sr_agent_002_role = LAST_INSERT_ID();
+SET @sr_agent_001_role = (SELECT id FROM user_roles WHERE user_id = @sr_agent_001_user AND role_id = 4 LIMIT 1);
+SET @sr_agent_002_role = (SELECT id FROM user_roles WHERE user_id = @sr_agent_002_user AND role_id = 4 LIMIT 1);
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 (@sr_agent_001_role, 'SR-AGT-001', 'Senior Agent One', 'sr_agent_001@test.com', 1, 5),
 (@sr_agent_002_role, 'SR-AGT-002', 'Senior Agent Two', 'sr_agent_002@test.com', 1, 5);
 
 -- 20 Employees for Agent After-Sales
+SET @emp_agent_start_user = (SELECT COALESCE(MAX(id), 0) + 1 FROM users);
+
 INSERT INTO users (username, password_hash, email) VALUES
 ('emp_agent_001', @default_password, 'emp_agent_001@test.com'),
 ('emp_agent_002', @default_password, 'emp_agent_002@test.com'),
@@ -173,10 +183,8 @@ INSERT INTO users (username, password_hash, email) VALUES
 ('emp_agent_019', @default_password, 'emp_agent_019@test.com'),
 ('emp_agent_020', @default_password, 'emp_agent_020@test.com');
 
-SET @emp_agent_start_user = LAST_INSERT_ID() - 19;
-
 INSERT INTO user_roles (user_id, role_id, section_id)
-SELECT id, 5, 2 FROM users WHERE id >= @emp_agent_start_user AND id <= @emp_agent_start_user + 19;
+SELECT id, 5, 2 FROM users WHERE id >= @emp_agent_start_user ORDER BY id LIMIT 20;
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level) VALUES
 ((SELECT id FROM user_roles WHERE section_id = 2 AND role_id = 5 ORDER BY id LIMIT 1 OFFSET 0), 'EMP-AGT-001', 'Employee Agent One', 'emp_agent_001@test.com', 0, 1),
@@ -279,8 +287,8 @@ VALUES
 (@current_week_id, 1, (SELECT e.id FROM employees e INNER JOIN user_roles ur ON ur.id = e.user_role_id WHERE ur.section_id = 1 AND ur.role_id = 4 LIMIT 1), NOW(), 'FINAL'),
 (@current_week_id, 2, (SELECT e.id FROM employees e INNER JOIN user_roles ur ON ur.id = e.user_role_id WHERE ur.section_id = 2 AND ur.role_id = 4 LIMIT 1), NOW(), 'FINAL');
 
-SET @schedule_app_id = LAST_INSERT_ID() - 1;
-SET @schedule_agent_id = LAST_INSERT_ID();
+SET @schedule_app_id = (SELECT id FROM schedules WHERE week_id = @current_week_id AND section_id = 1 LIMIT 1);
+SET @schedule_agent_id = (SELECT id FROM schedules WHERE week_id = @current_week_id AND section_id = 2 LIMIT 1);
 
 -- Create schedule shifts for the week (Monday to Sunday)
 INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id)
