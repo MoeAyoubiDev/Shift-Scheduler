@@ -307,6 +307,10 @@ BEGIN
     DECLARE v_user_id INT;
     DECLARE v_user_role_id INT;
     DECLARE v_employee_id INT;
+    DECLARE v_username_exists INT DEFAULT 0;
+    DECLARE v_email_exists INT DEFAULT 0;
+    DECLARE v_employee_code_exists INT DEFAULT 0;
+    DECLARE v_full_name_exists INT DEFAULT 0;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -314,6 +318,44 @@ BEGIN
     END;
 
     START TRANSACTION;
+
+    -- Check if username already exists
+    SELECT COUNT(*) INTO v_username_exists
+    FROM users
+    WHERE username = p_username;
+
+    IF v_username_exists > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username already exists';
+    END IF;
+
+    -- Check if email already exists (if provided)
+    IF p_email IS NOT NULL AND p_email != '' THEN
+        SELECT COUNT(*) INTO v_email_exists
+        FROM users
+        WHERE email = p_email AND email IS NOT NULL AND email != '';
+
+        IF v_email_exists > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already exists';
+        END IF;
+    END IF;
+
+    -- Check if employee_code already exists
+    SELECT COUNT(*) INTO v_employee_code_exists
+    FROM employees
+    WHERE employee_code = p_employee_code;
+
+    IF v_employee_code_exists > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Employee code already exists';
+    END IF;
+
+    -- Check if full_name already exists
+    SELECT COUNT(*) INTO v_full_name_exists
+    FROM employees
+    WHERE full_name = p_full_name;
+
+    IF v_full_name_exists > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Full name already exists';
+    END IF;
 
     INSERT INTO users (username, password_hash, email)
     VALUES (p_username, p_password_hash, p_email);
@@ -381,7 +423,9 @@ BEGIN
     INNER JOIN user_roles ur ON ur.id = e.user_role_id
     INNER JOIN roles r ON r.id = ur.role_id
     INNER JOIN users u ON u.id = ur.user_id
-    WHERE ur.section_id = p_section_id AND e.is_active = 1
+    WHERE ur.section_id = p_section_id 
+      AND e.is_active = 1
+      AND r.role_name IN ('Employee', 'Senior')
     ORDER BY e.seniority_level DESC, e.full_name;
 END$$
 

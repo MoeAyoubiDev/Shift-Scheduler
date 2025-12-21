@@ -25,20 +25,50 @@ class TeamLeaderController
             return 'Password is required.';
         }
 
+        // Validate required fields
+        $username = trim($payload['username'] ?? '');
+        $email = trim($payload['email'] ?? '');
+        $employeeCode = trim($payload['employee_code'] ?? '');
+        $fullName = trim($payload['full_name'] ?? '');
+
+        if ($username === '' || $employeeCode === '' || $fullName === '') {
+            return 'Username, employee code, and full name are required.';
+        }
+
         try {
             $employeeId = User::createEmployee([
-                'username' => trim($payload['username'] ?? ''),
+                'username' => $username,
                 'password_hash' => password_hash($password, PASSWORD_BCRYPT),
-                'email' => trim($payload['email'] ?? ''),
+                'email' => $email,
                 'role_id' => (int) ($payload['role_id'] ?? 0),
                 'section_id' => $sectionId,
-                'employee_code' => trim($payload['employee_code'] ?? ''),
-                'full_name' => trim($payload['full_name'] ?? ''),
+                'employee_code' => $employeeCode,
+                'full_name' => $fullName,
                 'is_senior' => isset($payload['is_senior']) ? 1 : 0,
                 'seniority_level' => (int) ($payload['seniority_level'] ?? 0),
             ]);
 
             return $employeeId > 0 ? 'Employee created successfully.' : 'Unable to create employee.';
+        } catch (PDOException $e) {
+            $errorMessage = $e->getMessage();
+            // Extract user-friendly error from SQLSTATE message
+            if (strpos($errorMessage, 'Username already exists') !== false) {
+                return 'Username already exists. Please choose a different username.';
+            } elseif (strpos($errorMessage, 'Email already exists') !== false) {
+                return 'Email already exists. Please use a different email address.';
+            } elseif (strpos($errorMessage, 'Employee code already exists') !== false) {
+                return 'Employee code already exists. Please use a different employee code.';
+            } elseif (strpos($errorMessage, 'Full name already exists') !== false) {
+                return 'Full name already exists. Please use a different full name.';
+            } elseif (strpos($errorMessage, 'Duplicate entry') !== false) {
+                if (strpos($errorMessage, 'username') !== false) {
+                    return 'Username already exists. Please choose a different username.';
+                } elseif (strpos($errorMessage, 'email') !== false) {
+                    return 'Email already exists. Please use a different email address.';
+                }
+                return 'A record with this information already exists.';
+            }
+            return 'Error creating employee: ' . $errorMessage;
         } catch (Exception $e) {
             return 'Error: ' . $e->getMessage();
         }
