@@ -1,5 +1,9 @@
 <?php
 declare(strict_types=1);
+
+$user = current_user();
+$role = $user['role'] ?? null;
+$isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervisor', 'Senior'], true);
 ?>
 </main>
 <footer class="site-footer">
@@ -13,5 +17,8 @@ declare(strict_types=1);
     </div>
 </footer>
 <script src="/assets/js/app.js"></script>
+<?php if ($isDashboard): ?>
+<script src="/assets/js/dashboard.js"></script>
+<?php endif; ?>
 </body>
 </html>

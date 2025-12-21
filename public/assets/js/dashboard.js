@@ -266,11 +266,11 @@ if (document.readyState === 'loading') {
 
 // Fallback: try again after a short delay
 setTimeout(function() {
-    const tabs = document.querySelectorAll('.tab-item');
-    if (tabs.length > 0) {
-        const hasListeners = tabs[0].onclick !== null || tabs[0].getAttribute('data-initialized') === 'true';
+    const navCards = document.querySelectorAll('.nav-card');
+    if (navCards.length > 0) {
+        const hasListeners = navCards[0].onclick !== null || navCards[0].getAttribute('data-initialized') === 'true';
         if (!hasListeners) {
-            console.warn('Tabs found but listeners not attached, re-initializing...');
+            console.warn('Nav cards found but listeners not attached, re-initializing...');
             initDashboardNavigation();
         }
     }

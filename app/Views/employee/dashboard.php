@@ -317,4 +317,3 @@ declare(strict_types=1);
         </section>
     </main>
 </div>
-<script src="/assets/js/dashboard.js"></script>
