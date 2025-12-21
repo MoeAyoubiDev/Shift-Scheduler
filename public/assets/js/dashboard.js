@@ -435,69 +435,120 @@
             
             const formData = new FormData(assignForm);
             const submitBtn = assignForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Assigning...';
             
-            fetch('/index.php', {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    closeModal();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    showNotification(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                showNotification('An error occurred. Please try again.', 'error');
-                console.error('Error:', error);
-            });
+            // Enhanced loading state
+            if (window.LoadingManager) {
+                window.LoadingManager.button(submitBtn, true);
+            } else {
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Assigning...';
+            }
+            
+            // Use enhanced AJAX handler if available
+            if (window.AjaxHandler) {
+                window.AjaxHandler.request('/index.php', {
+                    method: 'POST',
+                    data: formData,
+                    showLoading: false,
+                    showSuccess: true,
+                    showError: true,
+                    successMessage: 'Shift assigned successfully!',
+                    onSuccess: () => {
+                        if (window.LoadingManager) {
+                            window.LoadingManager.button(submitBtn, false);
+                        }
+                        closeModal();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    },
+                    onError: () => {
+                        if (window.LoadingManager) {
+                            window.LoadingManager.button(submitBtn, false);
+                        }
+                    }
+                }).catch(() => {
+                    if (window.LoadingManager) {
+                        window.LoadingManager.button(submitBtn, false);
+                    }
+                });
+            } else {
+                // Fallback to standard fetch
+                fetch('/index.php', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (window.LoadingManager) {
+                        window.LoadingManager.button(submitBtn, false);
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = submitBtn.dataset.originalText || 'Assign Shift';
+                    }
+                    
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        closeModal();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    if (window.LoadingManager) {
+                        window.LoadingManager.button(submitBtn, false);
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = submitBtn.dataset.originalText || 'Assign Shift';
+                    }
+                    showNotification('An error occurred. Please try again.', 'error');
+                    console.error('Error:', error);
+                });
+            }
             
             return false;
         });
     }
     
     // ============================================
-    // NOTIFICATION SYSTEM
+    // NOTIFICATION SYSTEM (Enhanced)
     // ============================================
     
     function showNotification(message, type = 'info') {
-        const existing = document.querySelector('.ajax-notification');
-        if (existing) {
-            existing.remove();
-        }
-        
-        const notification = document.createElement('div');
-        notification.className = `ajax-notification ajax-notification-${type}`;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
+        // Use enhanced notification system if available
+        if (window.NotificationManager) {
+            window.NotificationManager.show(message, type);
+        } else {
+            // Fallback to simple notification
+            const existing = document.querySelector('.ajax-notification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `ajax-notification ajax-notification-${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
             setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
+                notification.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
     }
     
     // ============================================
