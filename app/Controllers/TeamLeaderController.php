@@ -328,4 +328,174 @@ class TeamLeaderController
             return 'Error assigning shift: ' . $e->getMessage();
         }
     }
+
+    public static function getScheduleData(int $weekId, int $sectionId): array
+    {
+        require_once __DIR__ . '/../Core/config.php';
+        
+        // Get schedule entries
+        $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
+        $employees = Employee::listBySection($sectionId);
+        $shiftDefinitions = Schedule::getShiftDefinitions();
+        
+        // Transform to employee-based format
+        $employeeSchedule = [];
+        $employeeHours = [];
+        
+        foreach ($schedule as $entry) {
+            if (empty($entry['employee_id']) || empty($entry['shift_date'])) {
+                continue;
+            }
+            $empId = (int) $entry['employee_id'];
+            $date = $entry['shift_date'];
+            
+            if (!isset($employeeSchedule[$empId])) {
+                $employeeSchedule[$empId] = [];
+            }
+            if (!isset($employeeSchedule[$empId][$date])) {
+                $employeeSchedule[$empId][$date] = [];
+            }
+            
+            // Get shift definition details
+            $shiftDef = null;
+            foreach ($shiftDefinitions as $def) {
+                if ((int) $def['definition_id'] === (int) ($entry['shift_definition_id'] ?? 0)) {
+                    $shiftDef = $def;
+                    break;
+                }
+            }
+            
+            $employeeSchedule[$empId][$date][] = [
+                'shift_name' => $entry['shift_name'] ?? '',
+                'start_time' => $shiftDef['start_time'] ?? '',
+                'end_time' => $shiftDef['end_time'] ?? '',
+                'category' => $entry['shift_category'] ?? '',
+                'assignment_id' => $entry['assignment_id'] ?? null,
+                'notes' => $entry['notes'] ?? '',
+                'shift_definition_id' => $entry['shift_definition_id'] ?? null,
+            ];
+            
+            // Calculate hours
+            if (!isset($employeeHours[$empId])) {
+                $employeeHours[$empId] = 0;
+            }
+            $duration = $shiftDef['duration_hours'] ?? 8.0;
+            $employeeHours[$empId] += (float) $duration;
+        }
+        
+        // Get unique employees
+        $uniqueEmployees = [];
+        foreach ($schedule as $entry) {
+            if (!empty($entry['employee_id']) && !empty($entry['employee_name'])) {
+                $empId = (int) $entry['employee_id'];
+                if (!isset($uniqueEmployees[$empId])) {
+                    $uniqueEmployees[$empId] = [
+                        'id' => $empId,
+                        'name' => $entry['employee_name'],
+                        'code' => $entry['employee_code'] ?? '',
+                    ];
+                }
+            }
+        }
+        
+        foreach ($employees as $emp) {
+            $empId = (int) $emp['id'];
+            if (!isset($uniqueEmployees[$empId])) {
+                $uniqueEmployees[$empId] = [
+                    'id' => $empId,
+                    'name' => $emp['full_name'],
+                    'code' => $emp['employee_code'],
+                ];
+            }
+        }
+        
+        return [
+            'schedule' => $employeeSchedule,
+            'hours' => $employeeHours,
+            'employees' => $uniqueEmployees,
+        ];
+    }
+
+    public static function handleSwapShifts(array $payload, int $weekId, int $sectionId): string
+    {
+        require_login();
+        require_role(['Team Leader']);
+        require_csrf($payload);
+
+        $employee1Id = (int) ($payload['employee1_id'] ?? 0);
+        $employee2Id = (int) ($payload['employee2_id'] ?? 0);
+        $date = trim($payload['swap_date'] ?? '');
+        $assignment1Id = (int) ($payload['assignment1_id'] ?? 0);
+        $assignment2Id = (int) ($payload['assignment2_id'] ?? 0);
+
+        if ($employee1Id <= 0 || $employee2Id <= 0 || $date === '') {
+            return 'Invalid swap data. Please select both employees and a date.';
+        }
+
+        if ($employee1Id === $employee2Id) {
+            return 'Cannot swap shifts with the same employee.';
+        }
+
+        try {
+            require_once __DIR__ . '/../Core/config.php';
+            
+            // Get schedule for this week
+            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND section_id = :section_id');
+            $stmt->execute(['week_id' => $weekId, 'section_id' => $sectionId]);
+            $schedule = $stmt->fetch();
+            
+            if (!$schedule) {
+                return 'Schedule not found for this week.';
+            }
+            $scheduleId = (int) $schedule['id'];
+
+            // Find assignments for both employees on this date
+            $stmt = db()->prepare('
+                SELECT sa.id, sa.employee_id, sa.schedule_shift_id, ss.shift_definition_id
+                FROM schedule_assignments sa
+                INNER JOIN schedule_shifts ss ON ss.id = sa.schedule_shift_id
+                WHERE ss.schedule_id = :schedule_id 
+                AND ss.shift_date = :date
+                AND sa.employee_id IN (:emp1_id, :emp2_id)
+            ');
+            $stmt->execute([
+                'schedule_id' => $scheduleId,
+                'date' => $date,
+                'emp1_id' => $employee1Id,
+                'emp2_id' => $employee2Id
+            ]);
+            $assignments = $stmt->fetchAll();
+            
+            $emp1Assignment = null;
+            $emp2Assignment = null;
+            
+            foreach ($assignments as $assignment) {
+                if ((int) $assignment['employee_id'] === $employee1Id) {
+                    $emp1Assignment = $assignment;
+                } elseif ((int) $assignment['employee_id'] === $employee2Id) {
+                    $emp2Assignment = $assignment;
+                }
+            }
+            
+            if (!$emp1Assignment || !$emp2Assignment) {
+                return 'Both employees must have shifts assigned on this date to swap.';
+            }
+            
+            // Swap the employees
+            $stmt = db()->prepare('UPDATE schedule_assignments SET employee_id = :new_emp_id WHERE id = :assignment_id');
+            $stmt->execute([
+                'new_emp_id' => $employee2Id,
+                'assignment_id' => (int) $emp1Assignment['id']
+            ]);
+            
+            $stmt->execute([
+                'new_emp_id' => $employee1Id,
+                'assignment_id' => (int) $emp2Assignment['id']
+            ]);
+            
+            return 'Shifts swapped successfully.';
+        } catch (Exception $e) {
+            return 'Error swapping shifts: ' . $e->getMessage();
+        }
+    }
 }

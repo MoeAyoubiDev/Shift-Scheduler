@@ -81,10 +81,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'assign_shift':
             $sectionId = current_section_id();
             if ($sectionId) {
-                $message = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId) ?? $message;
-                // Redirect to prevent form resubmission
-                header('Location: /index.php?message=' . urlencode($message));
-                exit;
+                // Check if this is an AJAX request
+                $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+                
+                $result = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId);
+                
+                if ($isAjax) {
+                    // Return JSON response for AJAX
+                    header('Content-Type: application/json');
+                    $response = [
+                        'success' => strpos($result, 'successfully') !== false || strpos($result, 'success') !== false,
+                        'message' => $result,
+                        'data' => TeamLeaderController::getScheduleData($weekId, $sectionId)
+                    ];
+                    echo json_encode($response);
+                    exit;
+                } else {
+                    // Redirect for normal form submission
+                    $message = $result ?? $message;
+                    header('Location: /index.php?message=' . urlencode($message));
+                    exit;
+                }
             }
             break;
         case 'create_leader':
@@ -102,6 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = SeniorController::handleBreakAction($_POST, 'end');
             } else {
                 $message = EmployeeController::handleBreakAction($_POST, 'end');
+            }
+            break;
+        case 'swap_shifts':
+            $sectionId = current_section_id();
+            if ($sectionId) {
+                $message = TeamLeaderController::handleSwapShifts($_POST, $weekId, $sectionId) ?? $message;
             }
             break;
     }

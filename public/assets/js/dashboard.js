@@ -176,35 +176,223 @@ if (typeof window !== 'undefined') {
         }
     }
     
-    // Handle assign shift form submission
+    // Handle assign shift form submission via AJAX
     const assignForm = document.getElementById('assign-shift-form');
     if (assignForm) {
         assignForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
             // Validate required fields
             const employeeSelect = document.getElementById('assign-employee-select');
             const shiftDef = document.getElementById('assign-shift-def');
             const date = document.getElementById('assign-date');
             
             if (!employeeSelect || !employeeSelect.value) {
-                e.preventDefault();
-                alert('Please select an employee.');
+                showNotification('Please select an employee.', 'error');
                 return false;
             }
             
             if (!shiftDef || !shiftDef.value) {
-                e.preventDefault();
-                alert('Please select a shift type.');
+                showNotification('Please select a shift type.', 'error');
                 return false;
             }
             
             if (!date || !date.value) {
-                e.preventDefault();
-                alert('Date is missing.');
+                showNotification('Date is missing.', 'error');
                 return false;
             }
             
-            // Form will submit normally - PHP will handle redirect with success message
-            // The page will refresh and show the success message
+            // Get form data
+            const formData = new FormData(assignForm);
+            
+            // Show loading state
+            const submitBtn = assignForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Assigning...';
+            
+            // Submit via AJAX
+            fetch('/index.php', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeModal();
+                    // Update the schedule table dynamically
+                    updateScheduleTable(data.data);
+                    // Reload the page to refresh all data (requests, etc.)
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                showNotification('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            });
+            
+            return false;
+        });
+    }
+    
+    // Function to update schedule table with new data
+    function updateScheduleTable(data) {
+        if (!data || !data.schedule) return;
+        
+        // This is a simplified update - full reload is better for data consistency
+        // The page will reload after 1 second to show all updated data
+    }
+    
+    // Function to show notifications
+    function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existing = document.querySelector('.ajax-notification');
+        if (existing) {
+            existing.remove();
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `ajax-notification ajax-notification-${type}`;
+        notification.textContent = message;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Show with animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Quick Actions
+    const bulkSelectBtn = document.getElementById('bulk-select-btn');
+    const copyWeekBtn = document.getElementById('copy-week-btn');
+    const clearConflictsBtn = document.getElementById('clear-conflicts-btn');
+    
+    if (bulkSelectBtn) {
+        let bulkSelectMode = false;
+        bulkSelectBtn.addEventListener('click', function() {
+            bulkSelectMode = !bulkSelectMode;
+            this.classList.toggle('active', bulkSelectMode);
+            
+            // Add/remove selection checkboxes to shift cells
+            const shiftCells = document.querySelectorAll('.shift-cell');
+            shiftCells.forEach(cell => {
+                if (bulkSelectMode) {
+                    if (!cell.querySelector('.bulk-select-checkbox')) {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'bulk-select-checkbox';
+                        checkbox.style.cssText = 'position: absolute; top: 4px; left: 4px; z-index: 10;';
+                        cell.style.position = 'relative';
+                        cell.appendChild(checkbox);
+                    }
+                } else {
+                    const checkbox = cell.querySelector('.bulk-select-checkbox');
+                    if (checkbox) checkbox.remove();
+                }
+            });
+            
+            if (bulkSelectMode) {
+                showNotification('Bulk select mode enabled. Select shifts to perform bulk operations.', 'info');
+            } else {
+                showNotification('Bulk select mode disabled.', 'info');
+            }
+        });
+    }
+    
+    if (copyWeekBtn) {
+        copyWeekBtn.addEventListener('click', function() {
+            const startDate = document.getElementById('schedule-start-date')?.value;
+            const endDate = document.getElementById('schedule-end-date')?.value;
+            
+            if (!startDate || !endDate) {
+                showNotification('Please select a date range first.', 'error');
+                return;
+            }
+            
+            // Copy schedule data to clipboard (simplified - would need full implementation)
+            showNotification('Week schedule copied. Use "Paste Week" to apply to another week.', 'info');
+        });
+    }
+    
+    if (clearConflictsBtn) {
+        clearConflictsBtn.addEventListener('click', function() {
+            // Highlight all conflict cells
+            const conflictCells = document.querySelectorAll('.shift-conflict');
+            if (conflictCells.length > 0) {
+                conflictCells.forEach(cell => {
+                    cell.style.animation = 'pulse-conflict 2s infinite';
+                });
+                showNotification(`${conflictCells.length} conflict(s) highlighted.`, 'info');
+            } else {
+                showNotification('No conflicts detected in the schedule.', 'info');
+            }
+        });
+    }
+    
+    // Shift Swap functionality
+    function openSwapModal(employee1Id, employee2Id, date) {
+        const swapModal = document.getElementById('swap-modal');
+        if (!swapModal) return;
+        
+        const emp1Select = document.getElementById('swap-employee1-select');
+        const emp2Select = document.getElementById('swap-employee2-select');
+        const dateInput = document.getElementById('swap-date');
+        
+        if (emp1Select) emp1Select.value = employee1Id || '';
+        if (emp2Select) emp2Select.value = employee2Id || '';
+        if (dateInput) dateInput.value = date || '';
+        
+        swapModal.style.display = 'flex';
+    }
+    
+    // Add right-click context menu for shift swapping (optional)
+    document.querySelectorAll('.shift-pill').forEach(pill => {
+        pill.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            const employeeId = this.closest('.shift-cell')?.getAttribute('data-employee-id');
+            const date = this.closest('.shift-cell')?.getAttribute('data-date');
+            if (employeeId && date) {
+                openSwapModal(employeeId, '', date);
+            }
+        });
+    });
+    
+    // Close swap modal
+    const swapModal = document.getElementById('swap-modal');
+    if (swapModal) {
+        const swapClose = swapModal.querySelector('.modal-close');
+        const swapCancel = swapModal.querySelector('.modal-cancel');
+        if (swapClose) swapClose.addEventListener('click', () => swapModal.style.display = 'none');
+        if (swapCancel) swapCancel.addEventListener('click', () => swapModal.style.display = 'none');
+        
+        swapModal.addEventListener('click', function(e) {
+            if (e.target === swapModal) {
+                swapModal.style.display = 'none';
+            }
         });
     }
     

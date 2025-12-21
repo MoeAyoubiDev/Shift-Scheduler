@@ -126,64 +126,64 @@ for ($i = 0; $i < 7; $i++) {
         <!-- Overview Section -->
         <section class="dashboard-section active" data-section="overview">
             <div class="card">
-                <div class="hero-row">
-                    <div>
-                        <h2>Team Leader Control Center</h2>
-                        <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
+    <div class="hero-row">
+        <div>
+            <h2>Team Leader Control Center</h2>
+            <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
+        </div>
+        <div class="meta-row">
+            <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+            <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
                     </div>
-                    <div class="meta-row">
-                        <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
-                        <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </div>
+    </div>
+</section>
 
         <!-- Create Employee Section -->
         <section class="dashboard-section" data-section="create-employee">
             <div class="card">
-                <div class="section-title">
-                    <h3>Create Employee</h3>
-                    <span>Add employees to this section</span>
-                </div>
-                <form method="post" action="/index.php" class="grid">
-                    <input type="hidden" name="action" value="create_employee">
-                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                    <input type="hidden" name="section_id" value="<?= e((string) $user['section_id']) ?>">
-                    <label>
-                        Full Name
-                        <input type="text" name="full_name" required>
-                    </label>
-                    <label>
-                        Employee Code
-                        <input type="text" name="employee_code" required>
-                    </label>
-                    <label>
-                        Username
-                        <input type="text" name="username" required>
-                    </label>
-                    <label>
-                        Email
-                        <input type="email" name="email">
-                    </label>
-                    <label>
-                        Password
-                        <input type="password" name="password" required>
-                    </label>
-                    <label>
-                        Role
-                        <select name="role_id" required>
-                            <?php foreach ($roles as $role): ?>
+    <div class="section-title">
+        <h3>Create Employee</h3>
+        <span>Add employees to this section</span>
+    </div>
+    <form method="post" action="/index.php" class="grid">
+        <input type="hidden" name="action" value="create_employee">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <input type="hidden" name="section_id" value="<?= e((string) $user['section_id']) ?>">
+        <label>
+            Full Name
+            <input type="text" name="full_name" required>
+        </label>
+        <label>
+            Employee Code
+            <input type="text" name="employee_code" required>
+        </label>
+        <label>
+            Username
+            <input type="text" name="username" required>
+        </label>
+        <label>
+            Email
+            <input type="email" name="email">
+        </label>
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+        <label>
+            Role
+            <select name="role_id" required>
+                <?php foreach ($roles as $role): ?>
                                 <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
                                     <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <div class="form-actions">
-                        <button type="submit" class="btn">Create Employee</button>
-                    </div>
-                </form>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <div class="form-actions">
+            <button type="submit" class="btn">Create Employee</button>
+        </div>
+    </form>
             </div>
         </section>
 
@@ -239,108 +239,108 @@ for ($i = 0; $i < 7; $i++) {
                     </div>
                 <?php endif; ?>
             </div>
-        </section>
+</section>
 
         <!-- Shift Requirements Section -->
         <section class="dashboard-section" data-section="shift-requirements">
             <div class="card">
-                <div class="section-title">
-                    <h3>Shift Requirements</h3>
-                    <span>Define required coverage per shift</span>
-                </div>
-                <form method="post" action="/index.php">
-                    <input type="hidden" name="action" value="save_requirements">
-                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Date</th>
-                                <?php foreach ($shiftTypes as $shiftType): ?>
-                                    <th><?= e($shiftType['shift_type_name']) ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach ($weekDates as $date): ?>
-                                <tr>
-                                    <td><?= e($date) ?></td>
-                                    <?php foreach ($shiftTypes as $shiftType): ?>
-                                        <?php
-                                            $existing = 0;
-                                            foreach ($requirements as $requirement) {
-                                                if ($requirement['shift_date'] === $date && (int) $requirement['shift_type_id'] === (int) $shiftType['shift_type_id']) {
-                                                    $existing = (int) $requirement['required_count'];
-                                                    break;
-                                                }
-                                            }
-                                        ?>
-                                        <td>
-                                            <input type="number" name="requirements[<?= e((string) $shiftType['shift_type_id']) ?>][<?= e($date) ?>]" min="0" value="<?= e((string) $existing) ?>">
-                                        </td>
-                                    <?php endforeach; ?>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn">Save Requirements</button>
-                    </div>
-                </form>
+    <div class="section-title">
+        <h3>Shift Requirements</h3>
+        <span>Define required coverage per shift</span>
+    </div>
+    <form method="post" action="/index.php">
+        <input type="hidden" name="action" value="save_requirements">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <?php foreach ($shiftTypes as $shiftType): ?>
+                        <th><?= e($shiftType['shift_type_name']) ?></th>
+                    <?php endforeach; ?>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($weekDates as $date): ?>
+                    <tr>
+                        <td><?= e($date) ?></td>
+                        <?php foreach ($shiftTypes as $shiftType): ?>
+                            <?php
+                                $existing = 0;
+                                foreach ($requirements as $requirement) {
+                                    if ($requirement['shift_date'] === $date && (int) $requirement['shift_type_id'] === (int) $shiftType['shift_type_id']) {
+                                        $existing = (int) $requirement['required_count'];
+                                        break;
+                                    }
+                                }
+                            ?>
+                            <td>
+                                <input type="number" name="requirements[<?= e((string) $shiftType['shift_type_id']) ?>][<?= e($date) ?>]" min="0" value="<?= e((string) $existing) ?>">
+                            </td>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Save Requirements</button>
+        </div>
+    </form>
             </div>
-        </section>
+</section>
 
         <!-- Shift Requests Section -->
         <section class="dashboard-section" data-section="shift-requests">
             <div class="card">
-                <div class="section-title">
-                    <h3>Shift Requests</h3>
-                    <span><?= e(count($requests)) ?> requests awaiting review</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>Pattern</th>
-                        <th>Importance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($requests as $request): ?>
-                        <tr>
-                            <td><?= e($request['employee_name']) ?></td>
-                            <td><?= e($request['submit_date']) ?></td>
-                            <td><?= e($request['shift_name']) ?></td>
-                            <td><?= e($request['pattern_name']) ?></td>
-                            <td><?= e($request['importance_level']) ?></td>
-                            <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
-                            <td>
-                                <form method="post" action="/index.php" class="inline">
-                                    <input type="hidden" name="action" value="update_request_status">
-                                    <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                                    <input type="hidden" name="status" value="APPROVED">
-                                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                    <button type="submit" class="btn small">Approve</button>
-                                </form>
-                                <form method="post" action="/index.php" class="inline">
-                                    <input type="hidden" name="action" value="update_request_status">
-                                    <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                                    <input type="hidden" name="status" value="DECLINED">
-                                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                    <button type="submit" class="btn danger small">Decline</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <div class="section-title">
+        <h3>Shift Requests</h3>
+        <span><?= e(count($requests)) ?> requests awaiting review</span>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Pattern</th>
+            <th>Importance</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($requests as $request): ?>
+            <tr>
+                <td><?= e($request['employee_name']) ?></td>
+                <td><?= e($request['submit_date']) ?></td>
+                <td><?= e($request['shift_name']) ?></td>
+                <td><?= e($request['pattern_name']) ?></td>
+                <td><?= e($request['importance_level']) ?></td>
+                <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
+                <td>
+                    <form method="post" action="/index.php" class="inline">
+                        <input type="hidden" name="action" value="update_request_status">
+                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                        <input type="hidden" name="status" value="APPROVED">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <button type="submit" class="btn small">Approve</button>
+                    </form>
+                    <form method="post" action="/index.php" class="inline">
+                        <input type="hidden" name="action" value="update_request_status">
+                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                        <input type="hidden" name="status" value="DECLINED">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <button type="submit" class="btn danger small">Decline</button>
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
             </div>
-        </section>
+</section>
 
         <!-- Weekly Schedule Section -->
         <section class="dashboard-section" data-section="weekly-schedule">
@@ -396,7 +396,7 @@ for ($i = 0; $i < 7; $i++) {
                                                     <div class="request-status">
                                                         <span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span>
                                                     </div>
-                                                </div>
+        </div>
                                                 <div class="request-actions">
                                                     <button type="button" class="btn-assign-request btn-small" 
                                                             data-request-id="<?= e((string) $request['id']) ?>"
@@ -430,12 +430,12 @@ for ($i = 0; $i < 7; $i++) {
                                                     <form method="post" action="/index.php" class="inline request-status-form">
                                                         <input type="hidden" name="action" value="update_request_status">
                                                         <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                                                         <input type="hidden" name="status" value="DECLINED">
                                                         <button type="submit" class="btn-small btn-decline" title="Decline request">
                                                             ✗ Decline
                                                         </button>
-                                                    </form>
+        </form>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -452,6 +452,129 @@ for ($i = 0; $i < 7; $i++) {
                 <?php endif; ?>
             </div>
 
+            <!-- Schedule Analytics -->
+            <?php
+            // Calculate analytics
+            $totalShifts = count($schedule);
+            $totalEmployees = count($uniqueEmployees);
+            $totalHours = array_sum($employeeHours);
+            $avgHoursPerEmployee = $totalEmployees > 0 ? $totalHours / $totalEmployees : 0;
+            $conflicts = []; // Will be populated by conflict detection
+            
+            // Detect conflicts (overlapping shifts for same employee)
+            $employeeShiftsByDate = [];
+            foreach ($schedule as $entry) {
+                if (empty($entry['employee_id']) || empty($entry['shift_date'])) continue;
+                $empId = (int) $entry['employee_id'];
+                $date = $entry['shift_date'];
+                if (!isset($employeeShiftsByDate[$empId])) {
+                    $employeeShiftsByDate[$empId] = [];
+                }
+                if (!isset($employeeShiftsByDate[$empId][$date])) {
+                    $employeeShiftsByDate[$empId][$date] = [];
+                }
+                $employeeShiftsByDate[$empId][$date][] = $entry;
+            }
+            
+            // Check for overlapping shifts
+            foreach ($employeeShiftsByDate as $empId => $dates) {
+                foreach ($dates as $date => $shifts) {
+                    if (count($shifts) > 1) {
+                        // Check if shifts overlap
+                        for ($i = 0; $i < count($shifts); $i++) {
+                            for ($j = $i + 1; $j < count($shifts); $j++) {
+                                $shift1 = $shifts[$i];
+                                $shift2 = $shifts[$j];
+                                $start1 = $shift1['start_time'] ?? '';
+                                $end1 = $shift1['end_time'] ?? '';
+                                $start2 = $shift2['start_time'] ?? '';
+                                $end2 = $shift2['end_time'] ?? '';
+                                
+                                if ($start1 && $end1 && $start2 && $end2) {
+                                    $start1Time = strtotime($start1);
+                                    $end1Time = strtotime($end1);
+                                    $start2Time = strtotime($start2);
+                                    $end2Time = strtotime($end2);
+                                    
+                                    // Check for overlap
+                                    if (($start1Time < $end2Time && $end1Time > $start2Time)) {
+                                        $conflicts[] = [
+                                            'employee_id' => $empId,
+                                            'employee_name' => $shift1['employee_name'] ?? 'Unknown',
+                                            'date' => $date,
+                                            'shift1' => $shift1['shift_name'] ?? '',
+                                            'shift2' => $shift2['shift_name'] ?? '',
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ?>
+            <div class="card">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Total Shifts</div>
+                        <div class="analytics-card-value"><?= e($totalShifts) ?></div>
+                        <div class="analytics-card-change">This week</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Employees Scheduled</div>
+                        <div class="analytics-card-value"><?= e($totalEmployees) ?></div>
+                        <div class="analytics-card-change">of <?= e(count($employees)) ?> total</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Total Hours</div>
+                        <div class="analytics-card-value"><?= e(number_format($totalHours, 1)) ?></div>
+                        <div class="analytics-card-change">This week</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-card-title">Avg Hours/Employee</div>
+                        <div class="analytics-card-value"><?= e(number_format($avgHoursPerEmployee, 1)) ?></div>
+                        <div class="analytics-card-change">Per employee</div>
+                    </div>
+                    <?php if (!empty($conflicts)): ?>
+                    <div class="analytics-card" style="border-color: #ef4444; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                        <div class="analytics-card-title">Conflicts Detected</div>
+                        <div class="analytics-card-value" style="color: #dc2626;"><?= e(count($conflicts)) ?></div>
+                        <div class="analytics-card-change" style="color: #b91c1c;">Needs attention</div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                
+                <?php if (!empty($conflicts)): ?>
+                <div class="card" style="margin-top: 1rem; border-color: #ef4444;">
+                    <div class="section-title">
+                        <h3 style="color: #dc2626;">⚠️ Schedule Conflicts</h3>
+                        <span>Overlapping shifts detected</span>
+    </div>
+    <table>
+        <thead>
+        <tr>
+                                <th>Employee</th>
+            <th>Date</th>
+                                <th>Conflicting Shifts</th>
+        </tr>
+        </thead>
+        <tbody>
+                            <?php foreach ($conflicts as $conflict): ?>
+                            <tr>
+                                <td><?= e($conflict['employee_name']) ?></td>
+                                <td><?= e((new DateTimeImmutable($conflict['date']))->format('D, M j')) ?></td>
+                                <td>
+                                    <span class="pill" style="background: #fee2e2; color: #dc2626;"><?= e($conflict['shift1']) ?></span>
+                                    <span class="pill" style="background: #fee2e2; color: #dc2626;"><?= e($conflict['shift2']) ?></span>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+                </div>
+                <?php endif; ?>
+            </div>
+
             <div class="card">
                 <!-- Schedule Header with Controls -->
                 <div class="schedule-header">
@@ -464,6 +587,26 @@ for ($i = 0; $i < 7; $i++) {
                         <div class="filter-input-wrapper">
                             <input type="text" id="schedule-filter" placeholder="Filter..." class="filter-input">
                         </div>
+                    </div>
+                    <div class="quick-actions-toolbar">
+                        <button type="button" class="quick-action-btn" id="bulk-select-btn" title="Select multiple shifts">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display: inline-block; margin-right: 0.25rem; vertical-align: middle;">
+                                <path d="M2 4L6 8L14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Bulk Select
+                        </button>
+                        <button type="button" class="quick-action-btn" id="copy-week-btn" title="Copy this week's schedule">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display: inline-block; margin-right: 0.25rem; vertical-align: middle;">
+                                <path d="M4 2H12C12.5304 2 13.0391 2.21071 13.4142 2.58579C13.7893 2.96086 14 3.46957 14 4V12C14 12.5304 13.7893 13.0391 13.4142 13.4142C13.0391 13.7893 12.5304 14 12 14H4C3.46957 14 2.96086 13.7893 2.58579 13.4142C2.21071 13.0391 2 12.5304 2 12V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Copy Week
+                        </button>
+                        <button type="button" class="quick-action-btn" id="clear-conflicts-btn" title="Highlight conflicts" style="<?= !empty($conflicts) ? 'background: #fee2e2; color: #dc2626;' : '' ?>">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display: inline-block; margin-right: 0.25rem; vertical-align: middle;">
+                                <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <?= !empty($conflicts) ? count($conflicts) . ' Conflicts' : 'Check Conflicts' ?>
+                        </button>
                     </div>
                     <div class="schedule-actions">
                         <form method="post" action="/index.php" class="inline">
@@ -616,10 +759,19 @@ for ($i = 0; $i < 7; $i++) {
                                             </div>
                                         </td>
                                         <?php foreach ($weekDates as $dayInfo): ?>
-                                            <td class="shift-cell" data-date="<?= e($dayInfo['date']) ?>" data-employee-id="<?= e((string) $empId) ?>">
-                                                <?php
-                                                $dayShifts = $employeeSchedule[$empId][$dayInfo['date']] ?? [];
-                                                if (empty($dayShifts)): ?>
+                                            <?php
+                                            $dayShifts = $employeeSchedule[$empId][$dayInfo['date']] ?? [];
+                                            // Check if this cell has conflicts
+                                            $hasConflict = false;
+                                            foreach ($conflicts as $conflict) {
+                                                if ($conflict['employee_id'] === $empId && $conflict['date'] === $dayInfo['date']) {
+                                                    $hasConflict = true;
+                                                    break;
+                                                }
+                                            }
+                                            ?>
+                                            <td class="shift-cell <?= $hasConflict ? 'shift-conflict' : '' ?>" data-date="<?= e($dayInfo['date']) ?>" data-employee-id="<?= e((string) $empId) ?>">
+                                                <?php if (empty($dayShifts)): ?>
                                                     <div class="shift-empty">
                                                         <button type="button" class="btn-assign-shift" 
                                                                 data-date="<?= e($dayInfo['date']) ?>"
@@ -770,70 +922,116 @@ for ($i = 0; $i < 7; $i++) {
                     </div>
                 </div>
             </div>
+            
+            <!-- Shift Swap Modal -->
+            <div id="swap-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Swap Shifts</h3>
+                        <button type="button" class="modal-close">&times;</button>
+                    </div>
+                    <form id="swap-shift-form" method="post" action="/index.php">
+                        <input type="hidden" name="action" value="swap_shifts">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="assignment1_id" id="swap-assignment1-id">
+                        <input type="hidden" name="assignment2_id" id="swap-assignment2-id">
+                        
+                        <div class="form-group">
+                            <label>Employee 1</label>
+                            <select name="employee1_id" id="swap-employee1-select" required>
+                                <option value="">Select Employee</option>
+                                <?php foreach ($employees as $emp): ?>
+                                    <option value="<?= e((string) $emp['id']) ?>"><?= e($emp['full_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Employee 2</label>
+                            <select name="employee2_id" id="swap-employee2-select" required>
+                                <option value="">Select Employee</option>
+                                <?php foreach ($employees as $emp): ?>
+                                    <option value="<?= e((string) $emp['id']) ?>"><?= e($emp['full_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" name="swap_date" id="swap-date" required>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn secondary modal-cancel">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Swap Shifts</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </section>
 
         <!-- Break Monitoring Section -->
         <section class="dashboard-section" data-section="break-monitoring">
             <div class="card">
-                <div class="section-title">
-                    <h3>Break Monitoring</h3>
-                    <span>Track active breaks and delays</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Shift</th>
-                        <th>Break Start</th>
-                        <th>Break End</th>
-                        <th>Delay (min)</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($breaks as $break): ?>
-                        <tr>
-                            <td><?= e($break['employee_name']) ?></td>
-                            <td><?= e($break['shift_name']) ?></td>
-                            <td><?= e($break['break_start']) ?></td>
-                            <td><?= e($break['break_end']) ?></td>
-                            <td><?= e((string) $break['delay_minutes']) ?></td>
-                            <td><?= e($break['status']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <div class="section-title">
+        <h3>Break Monitoring</h3>
+        <span>Track active breaks and delays</span>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Shift</th>
+            <th>Break Start</th>
+            <th>Break End</th>
+            <th>Delay (min)</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($breaks as $break): ?>
+            <tr>
+                <td><?= e($break['employee_name']) ?></td>
+                <td><?= e($break['shift_name']) ?></td>
+                <td><?= e($break['break_start']) ?></td>
+                <td><?= e($break['break_end']) ?></td>
+                <td><?= e((string) $break['delay_minutes']) ?></td>
+                <td><?= e($break['status']) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
             </div>
-        </section>
+</section>
 
         <!-- Performance Analytics Section -->
         <section class="dashboard-section" data-section="performance">
             <div class="card">
-                <div class="section-title">
-                    <h3>Performance Analytics</h3>
-                    <span>Month-to-date delay summary</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Days Worked</th>
-                        <th>Total Delay (min)</th>
-                        <th>Average Delay</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($performance as $row): ?>
-                        <tr>
-                            <td><?= e($row['employee_name']) ?></td>
-                            <td><?= e((string) $row['days_worked']) ?></td>
-                            <td><?= e((string) $row['total_delay_minutes']) ?></td>
-                            <td><?= e((string) $row['average_delay_minutes']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <div class="section-title">
+        <h3>Performance Analytics</h3>
+        <span>Month-to-date delay summary</span>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Days Worked</th>
+            <th>Total Delay (min)</th>
+            <th>Average Delay</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($performance as $row): ?>
+            <tr>
+                <td><?= e($row['employee_name']) ?></td>
+                <td><?= e((string) $row['days_worked']) ?></td>
+                <td><?= e((string) $row['total_delay_minutes']) ?></td>
+                <td><?= e((string) $row['average_delay_minutes']) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
             </div>
-        </section>
+</section>
     </main>
 </div>
