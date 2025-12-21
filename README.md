@@ -294,37 +294,82 @@ sudo chmod -R 775 /var/www/shift-scheduler/public/assets
 
 ### Default Login Credentials
 
-The following test accounts are created when you import the database schema. **All accounts use the password: `password`**
+The following test accounts are created when you import the test data (`database/test_data.sql`). **All test accounts use the password: `password123`**
+
+#### App After-Sales Section (Section 1)
 
 | Role | Username | Password | Section Access | Notes |
 |------|----------|----------|----------------|-------|
-| **Director** | `director` | `password` | Both sections (App After-Sales & Agent After-Sales) | Read-only access to all sections |
-| **Team Leader** | `teamleader` | `password` | App After-Sales | Full CRUD permissions in assigned section |
-| **Employee** | `employee` | `password` | App After-Sales | Can submit shift requests and view schedules |
+| **Team Leader** | `tl_app_001` | `password123` | App After-Sales | Full CRUD permissions |
+| **Team Leader** | `tl_app_002` | `password123` | App After-Sales | Full CRUD permissions |
+| **Supervisor** | `sv_app_001` | `password123` | App After-Sales | Read-only access |
+| **Senior** | `sr_app_001` | `password123` | App After-Sales | Shift leader operations |
+| **Senior** | `sr_app_002` | `password123` | App After-Sales | Shift leader operations |
+| **Employee** | `emp_app_001` to `emp_app_020` | `password123` | App After-Sales | Can submit requests (20 employees) |
 
-### Additional Roles Available
+#### Agent After-Sales Section (Section 2)
 
-The following roles are defined in the system but require manual account creation:
+| Role | Username | Password | Section Access | Notes |
+|------|----------|----------|----------------|-------|
+| **Team Leader** | `tl_agent_001` | `password123` | Agent After-Sales | Full CRUD permissions |
+| **Team Leader** | `tl_agent_002` | `password123` | Agent After-Sales | Full CRUD permissions |
+| **Supervisor** | `sv_agent_001` | `password123` | Agent After-Sales | Read-only access |
+| **Senior** | `sr_agent_001` | `password123` | Agent After-Sales | Shift leader operations |
+| **Senior** | `sr_agent_002` | `password123` | Agent After-Sales | Shift leader operations |
+| **Employee** | `emp_agent_001` to `emp_agent_020` | `password123` | Agent After-Sales | Can submit requests (20 employees) |
 
-- **Supervisor**: Read-only access for assigned section
-- **Senior**: Shift leader for today's operations (cannot submit shift requests)
+#### Director Account
 
-To create accounts for these roles, use the Team Leader dashboard or insert directly into the database.
+| Role | Username | Password | Section Access | Notes |
+|------|----------|----------|----------------|-------|
+| **Director** | `director` | `password` | Both sections | Read-only access to all sections |
+
+> **Note**: The Director account is created separately in the main database schema. If you need to create a Director account, use the `sp_create_leader` stored procedure or insert directly into the database.
 
 ### Quick Login Reference
 
+**App After-Sales Section:**
 ```
-Director:
-  Username: director
-  Password: password
-
 Team Leader:
-  Username: teamleader
-  Password: password
+  Username: tl_app_001
+  Password: password123
+
+Supervisor:
+  Username: sv_app_001
+  Password: password123
+
+Senior:
+  Username: sr_app_001
+  Password: password123
 
 Employee:
-  Username: employee
-  Password: password
+  Username: emp_app_001 (or emp_app_002 through emp_app_020)
+  Password: password123
+```
+
+**Agent After-Sales Section:**
+```
+Team Leader:
+  Username: tl_agent_001
+  Password: password123
+
+Supervisor:
+  Username: sv_agent_001
+  Password: password123
+
+Senior:
+  Username: sr_agent_001
+  Password: password123
+
+Employee:
+  Username: emp_agent_001 (or emp_agent_002 through emp_agent_020)
+  Password: password123
+```
+
+**Director:**
+```
+Username: director
+Password: password
 ```
 
 **⚠️ Security Warning**: These are default test credentials. **You MUST change all passwords in production!** Never use these credentials on a live/production system.
