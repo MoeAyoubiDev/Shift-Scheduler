@@ -1,4 +1,10 @@
-console.log('Navigation JS loaded');
+console.log('Navigation JS loaded - script executing');
+
+// Test if script is running
+if (typeof window !== 'undefined') {
+    window.dashboardScriptLoaded = true;
+    console.log('Dashboard script loaded flag set');
+}
 
 // Function to initialize dashboard navigation
 function initDashboardNavigation() {
@@ -102,13 +108,38 @@ function initDashboardNavigation() {
             console.log(`Tab ${index}:`, section, tab);
         });
         
-        // Handle tab clicks
+        // Handle tab clicks - use event delegation for reliability
+        const tabContainer = document.querySelector('.dashboard-tabs');
+        if (tabContainer) {
+            tabContainer.addEventListener('click', function(e) {
+                const clickedTab = e.target.closest('.tab-item');
+                if (!clickedTab) return;
+                
+                const sectionName = clickedTab.getAttribute('data-section');
+                console.log('Tab clicked via delegation:', sectionName, clickedTab);
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (sectionName) {
+                    window.navigateToSection(sectionName);
+                } else {
+                    console.error('No data-section attribute found on clicked tab');
+                }
+            });
+            
+            console.log('Event delegation attached to tab container');
+        } else {
+            console.error('Tab container not found!');
+        }
+        
+        // Also attach direct listeners as backup
         tabs.forEach((tab, index) => {
             const sectionName = tab.getAttribute('data-section');
-            console.log(`Attaching click listener to tab ${index}:`, sectionName);
+            console.log(`Attaching direct click listener to tab ${index}:`, sectionName);
             
             tab.addEventListener('click', function(e) {
-                console.log('Tab clicked:', sectionName, this);
+                console.log('Tab clicked (direct):', sectionName, this);
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -210,12 +241,40 @@ function initDashboardNavigation() {
     }, 100);
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    // DOM is still loading, wait for DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', initDashboardNavigation);
-} else {
-    // DOM is already loaded, initialize immediately
+// Initialize when DOM is ready - multiple strategies to ensure it runs
+function initializeDashboard() {
+    console.log('Attempting to initialize dashboard, readyState:', document.readyState);
+    
+    const tabs = document.querySelectorAll('.tab-item');
+    if (tabs.length === 0) {
+        console.warn('Tabs not found yet, will retry...');
+        setTimeout(initializeDashboard, 100);
+        return;
+    }
+    
+    console.log('Tabs found, initializing navigation');
     initDashboardNavigation();
 }
+
+// Try multiple initialization strategies
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDashboard);
+} else if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    // Use setTimeout to ensure DOM is fully parsed
+    setTimeout(initializeDashboard, 0);
+} else {
+    initializeDashboard();
+}
+
+// Fallback: try again after a short delay
+setTimeout(function() {
+    const tabs = document.querySelectorAll('.tab-item');
+    if (tabs.length > 0) {
+        const hasListeners = tabs[0].onclick !== null || tabs[0].getAttribute('data-initialized') === 'true';
+        if (!hasListeners) {
+            console.warn('Tabs found but listeners not attached, re-initializing...');
+            initDashboardNavigation();
+        }
+    }
+}, 500);
 
