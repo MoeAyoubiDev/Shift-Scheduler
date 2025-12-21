@@ -18,6 +18,7 @@ if ($importanceLevels === []) {
         'low' => 'Low',
         'medium' => 'Medium',
         'high' => 'High',
+        'emergency' => 'Emergency',
     ];
 }
 ?>

@@ -44,9 +44,12 @@ class EmployeeController
         $dateObj = new DateTimeImmutable($date);
         $dayOfWeek = (int) $dateObj->format('N'); // 1 = Monday, 7 = Sunday
         
-        // Allow all days of next week (Monday-Sunday, 1-7)
+        // Allow all days of next week (Monday-Saturday, 1-6)
         if ($dayOfWeek < 1 || $dayOfWeek > 7) {
             return 'Invalid day selected.';
+        }
+        if ($dayOfWeek === 7) {
+            return 'Shift requests cannot be submitted for Sunday.';
         }
 
         // Validate that request is for NEXT week only
@@ -64,6 +67,11 @@ class EmployeeController
 
         $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
         $isDayOff = $shiftDefinitionId === 0;
+        $importance = strtoupper(trim($payload['importance_level'] ?? 'MEDIUM'));
+        $allowedImportance = ['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'];
+        if (!in_array($importance, $allowedImportance, true)) {
+            $importance = 'MEDIUM';
+        }
 
         try {
             ShiftRequest::submit([
@@ -74,7 +82,7 @@ class EmployeeController
                 'is_day_off' => $isDayOff ? 1 : 0,
                 'schedule_pattern_id' => (int) ($payload['schedule_pattern_id'] ?? 0),
                 'reason' => trim($payload['reason'] ?? ''),
-                'importance_level' => strtoupper(trim($payload['importance_level'] ?? 'NORMAL')),
+                'importance_level' => $importance,
             ]);
 
             return 'Shift request submitted successfully for next week.';
