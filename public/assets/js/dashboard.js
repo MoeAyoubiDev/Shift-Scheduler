@@ -1,18 +1,141 @@
-console.log('Navigation JS loaded - script executing');
+/**
+ * Dashboard Navigation & Functionality
+ * Universal navigation system for all dashboard roles (Employee, Team Leader, Director, Supervisor, Senior)
+ */
 
-// Test if script is running
-if (typeof window !== 'undefined') {
-    window.dashboardScriptLoaded = true;
-
-// Schedule Table Functionality
 (function() {
     'use strict';
+    
+    // Set global flag
+    window.dashboardScriptLoaded = true;
+    console.log('Dashboard script loaded');
+    
+    // ============================================
+    // NAVIGATION SYSTEM (Universal for all roles)
+    // ============================================
+    
+    let currentSection = 'overview';
+    
+    function showSection(sectionName) {
+        if (!sectionName) {
+            console.warn('showSection called with empty sectionName');
+            return;
+        }
+        
+        // Hide all sections
+        const allSections = document.querySelectorAll('.dashboard-section');
+        allSections.forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show target section
+        const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            currentSection = sectionName;
+        } else {
+            console.error('Section not found:', sectionName);
+        }
+    }
+    
+    function setActiveNavCard(sectionName) {
+        // Remove active from all nav cards
+        const allCards = document.querySelectorAll('.nav-card');
+        allCards.forEach(card => {
+            card.classList.remove('active');
+        });
+        
+        // Add active to target nav card
+        const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
+        if (targetCard) {
+            targetCard.classList.add('active');
+        }
+    }
+    
+    // Expose navigateToSection globally
+    window.navigateToSection = function(sectionName) {
+        if (!sectionName) {
+            console.warn('navigateToSection called with empty sectionName');
+            return;
+        }
+        
+        setActiveNavCard(sectionName);
+        showSection(sectionName);
+        
+        // Update URL hash
+        if (window.location.hash !== '#' + sectionName) {
+            history.replaceState(null, null, '#' + sectionName);
+        }
+    };
+    
+    function initNavigation() {
+        const navContainer = document.querySelector('.dashboard-nav-cards');
+        const navCards = document.querySelectorAll('.nav-card');
+        
+        if (!navContainer || navCards.length === 0) {
+            console.warn('Navigation elements not found');
+            return false;
+        }
+        
+        // Event delegation on container (most reliable)
+        navContainer.addEventListener('click', function(e) {
+            const clickedCard = e.target.closest('.nav-card');
+            if (!clickedCard) return;
+            
+            const sectionName = clickedCard.getAttribute('data-section');
+            if (sectionName) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.navigateToSection(sectionName);
+            }
+        });
+        
+        // Also attach direct listeners as backup
+        navCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const sectionName = this.getAttribute('data-section');
+                if (sectionName) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.navigateToSection(sectionName);
+                }
+            });
+        });
+        
+        // Handle initial hash
+        const hash = window.location.hash.substring(1);
+        if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
+            window.navigateToSection(hash);
+        } else {
+            // Ensure overview is active by default
+            const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
+            if (overviewSection && !overviewSection.classList.contains('active')) {
+                window.navigateToSection('overview');
+            }
+        }
+        
+        // Handle browser back/forward
+        window.addEventListener('popstate', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
+                window.navigateToSection(hash);
+            } else {
+                window.navigateToSection('overview');
+            }
+        });
+        
+        console.log('Navigation initialized successfully');
+        return true;
+    }
+    
+    // ============================================
+    // SCHEDULE TABLE FUNCTIONALITY (Team Leader)
+    // ============================================
     
     function initScheduleTable() {
         const filterInput = document.getElementById('schedule-filter');
         const startDateInput = document.getElementById('schedule-start-date');
         const endDateInput = document.getElementById('schedule-end-date');
-        const assignBtn = document.getElementById('assign-shifts-btn');
         
         // Filter functionality
         if (filterInput) {
@@ -38,7 +161,6 @@ if (typeof window !== 'undefined') {
                     const startDate = startDateInput.value;
                     const endDate = endDateInput.value;
                     if (startDate && endDate) {
-                        // Reload page with new date range
                         const url = new URL(window.location.href);
                         url.searchParams.set('week_start', startDate);
                         url.searchParams.set('week_end', endDate);
@@ -47,124 +169,32 @@ if (typeof window !== 'undefined') {
                 });
             });
         }
-        
-        // Assign Shifts button
-        if (assignBtn) {
-            assignBtn.addEventListener('click', function() {
-                // For now, scroll to generate schedule button or show a message
-                // This can be enhanced with a modal for assigning shifts
-                alert('Assign Shifts functionality: Click on any shift cell to assign or modify shifts. Use the "Generate Schedule" button to auto-generate based on requirements.');
-            });
-        }
-        
-        // Make shift cells clickable for editing
-        const shiftCells = document.querySelectorAll('.shift-cell');
-        shiftCells.forEach(cell => {
-            cell.addEventListener('click', function(e) {
-                if (e.target.closest('.shift-editable') || e.target.closest('.shift-edit-btn')) {
-                    const shiftPill = e.target.closest('.shift-editable');
-                    if (shiftPill) {
-                        openAssignModal(
-                            shiftPill.getAttribute('data-date'),
-                            shiftPill.getAttribute('data-employee-id'),
-                            shiftPill.getAttribute('data-assignment-id'),
-                            shiftPill.getAttribute('data-shift-def-id')
-                        );
-                    }
-                }
-            });
-        });
-        
-        // Assign shift from empty cell
-        document.querySelectorAll('.btn-assign-shift').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const cell = this.closest('.shift-cell');
-                openAssignModal(
-                    cell.getAttribute('data-date'),
-                    cell.getAttribute('data-employee-id')
-                );
-            });
-        });
-        
-        // Assign from request
-        document.querySelectorAll('.btn-assign-request').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openAssignModal(
-                    this.getAttribute('data-date'),
-                    this.getAttribute('data-employee-id'),
-                    null,
-                    this.getAttribute('data-shift-id'),
-                    this.getAttribute('data-request-id')
-                );
-            });
-        });
-        
-        // Modal functionality
-        const modal = document.getElementById('assign-modal');
-        const modalClose = document.querySelector('.modal-close');
-        const modalCancel = document.querySelector('.modal-cancel');
-        
-        if (modalClose) {
-            modalClose.addEventListener('click', closeModal);
-        }
-        if (modalCancel) {
-            modalCancel.addEventListener('click', closeModal);
-        }
-        
-        // Close modal on outside click
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-        }
-        
-        // Auto-fill shift times when shift definition changes
-        const shiftDefSelect = document.getElementById('assign-shift-def');
-        if (shiftDefSelect) {
-            shiftDefSelect.addEventListener('change', function() {
-                const option = this.options[this.selectedIndex];
-                const startTime = option.getAttribute('data-start');
-                const endTime = option.getAttribute('data-end');
-                const startInput = document.getElementById('assign-start-time');
-                const endInput = document.getElementById('assign-end-time');
-                
-                if (startTime && startInput && !startInput.value) {
-                    startInput.value = startTime.substring(0, 5); // Convert HH:MM:SS to HH:MM
-                }
-                if (endTime && endInput && !endInput.value) {
-                    endInput.value = endTime.substring(0, 5);
-                }
-            });
-        }
     }
     
     function openAssignModal(date, employeeId, assignmentId = null, shiftDefId = null, requestId = null) {
         const modal = document.getElementById('assign-modal');
         if (!modal) return;
         
-        document.getElementById('assign-date').value = date;
-        document.getElementById('assign-employee-select').value = employeeId || '';
-        if (requestId) {
-            document.getElementById('assign-request-id').value = requestId;
-        } else {
-            document.getElementById('assign-request-id').value = '';
-        }
-        if (shiftDefId) {
-            document.getElementById('assign-shift-def').value = shiftDefId;
-            // Trigger change to auto-fill times
-            document.getElementById('assign-shift-def').dispatchEvent(new Event('change'));
-        } else {
-            document.getElementById('assign-shift-def').value = '';
-        }
+        const dateInput = document.getElementById('assign-date');
+        const employeeSelect = document.getElementById('assign-employee-select');
+        const requestIdInput = document.getElementById('assign-request-id');
+        const shiftDefSelect = document.getElementById('assign-shift-def');
+        const startTimeInput = document.getElementById('assign-start-time');
+        const endTimeInput = document.getElementById('assign-end-time');
+        const notesInput = document.getElementById('assign-notes');
         
-        // Clear custom times and notes
-        document.getElementById('assign-start-time').value = '';
-        document.getElementById('assign-end-time').value = '';
-        document.getElementById('assign-notes').value = '';
+        if (dateInput) dateInput.value = date || '';
+        if (employeeSelect) employeeSelect.value = employeeId || '';
+        if (requestIdInput) requestIdInput.value = requestId || '';
+        if (shiftDefSelect) {
+            shiftDefSelect.value = shiftDefId || '';
+            if (shiftDefId) {
+                shiftDefSelect.dispatchEvent(new Event('change'));
+            }
+        }
+        if (startTimeInput) startTimeInput.value = '';
+        if (endTimeInput) endTimeInput.value = '';
+        if (notesInput) notesInput.value = '';
         
         modal.style.display = 'flex';
     }
@@ -176,13 +206,82 @@ if (typeof window !== 'undefined') {
         }
     }
     
+    // Make openAssignModal available globally
+    window.openAssignModal = openAssignModal;
+    
+    // Assign shift from empty cell
+    document.querySelectorAll('.btn-assign-shift').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const cell = this.closest('.shift-cell');
+            if (cell) {
+                openAssignModal(
+                    cell.getAttribute('data-date'),
+                    cell.getAttribute('data-employee-id')
+                );
+            }
+        });
+    });
+    
+    // Assign from request
+    document.querySelectorAll('.btn-assign-request').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openAssignModal(
+                this.getAttribute('data-date'),
+                this.getAttribute('data-employee-id'),
+                null,
+                this.getAttribute('data-shift-id'),
+                this.getAttribute('data-request-id')
+            );
+        });
+    });
+    
+    // Modal close handlers
+    const modal = document.getElementById('assign-modal');
+    if (modal) {
+        const modalClose = modal.querySelector('.modal-close');
+        const modalCancel = modal.querySelector('.modal-cancel');
+        
+        if (modalClose) {
+            modalClose.addEventListener('click', closeModal);
+        }
+        if (modalCancel) {
+            modalCancel.addEventListener('click', closeModal);
+        }
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Auto-fill shift times when shift definition changes
+    const shiftDefSelect = document.getElementById('assign-shift-def');
+    if (shiftDefSelect) {
+        shiftDefSelect.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            const startTime = option.getAttribute('data-start');
+            const endTime = option.getAttribute('data-end');
+            const startInput = document.getElementById('assign-start-time');
+            const endInput = document.getElementById('assign-end-time');
+            
+            if (startTime && startInput && !startInput.value) {
+                startInput.value = startTime.substring(0, 5);
+            }
+            if (endTime && endInput && !endInput.value) {
+                endInput.value = endTime.substring(0, 5);
+            }
+        });
+    }
+    
     // Handle assign shift form submission via AJAX
     const assignForm = document.getElementById('assign-shift-form');
     if (assignForm) {
         assignForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate required fields
             const employeeSelect = document.getElementById('assign-employee-select');
             const shiftDef = document.getElementById('assign-shift-def');
             const date = document.getElementById('assign-date');
@@ -202,20 +301,16 @@ if (typeof window !== 'undefined') {
                 return false;
             }
             
-            // Get form data
             const formData = new FormData(assignForm);
-            
-            // Show loading state
             const submitBtn = assignForm.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Assigning...';
             
-            // Submit via AJAX
             fetch('/index.php', {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-Width': 'XMLHttpRequest'
                 },
                 body: formData
             })
@@ -227,9 +322,6 @@ if (typeof window !== 'undefined') {
                 if (data.success) {
                     showNotification(data.message, 'success');
                     closeModal();
-                    // Update the schedule table dynamically
-                    updateScheduleTable(data.data);
-                    // Reload the page to refresh all data (requests, etc.)
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
@@ -248,36 +340,23 @@ if (typeof window !== 'undefined') {
         });
     }
     
-    // Function to update schedule table with new data
-    function updateScheduleTable(data) {
-        if (!data || !data.schedule) return;
-        
-        // This is a simplified update - full reload is better for data consistency
-        // The page will reload after 1 second to show all updated data
-    }
-    
     // Function to show notifications
     function showNotification(message, type = 'info') {
-        // Remove existing notifications
         const existing = document.querySelector('.ajax-notification');
         if (existing) {
             existing.remove();
         }
         
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = `ajax-notification ajax-notification-${type}`;
         notification.textContent = message;
         
-        // Add to page
         document.body.appendChild(notification);
         
-        // Show with animation
         setTimeout(() => {
             notification.classList.add('show');
         }, 10);
         
-        // Remove after 3 seconds
         setTimeout(() => {
             notification.classList.remove('show');
             setTimeout(() => {
@@ -286,392 +365,83 @@ if (typeof window !== 'undefined') {
         }, 3000);
     }
     
-    // Quick Actions
-    const bulkSelectBtn = document.getElementById('bulk-select-btn');
-    const copyWeekBtn = document.getElementById('copy-week-btn');
-    const clearConflictsBtn = document.getElementById('clear-conflicts-btn');
+    // ============================================
+    // EMPLOYEE FORM FUNCTIONALITY
+    // ============================================
     
-    if (bulkSelectBtn) {
-        let bulkSelectMode = false;
-        bulkSelectBtn.addEventListener('click', function() {
-            bulkSelectMode = !bulkSelectMode;
-            this.classList.toggle('active', bulkSelectMode);
-            
-            // Add/remove selection checkboxes to shift cells
-            const shiftCells = document.querySelectorAll('.shift-cell');
-            shiftCells.forEach(cell => {
-                if (bulkSelectMode) {
-                    if (!cell.querySelector('.bulk-select-checkbox')) {
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.className = 'bulk-select-checkbox';
-                        checkbox.style.cssText = 'position: absolute; top: 4px; left: 4px; z-index: 10;';
-                        cell.style.position = 'relative';
-                        cell.appendChild(checkbox);
-                    }
-                } else {
-                    const checkbox = cell.querySelector('.bulk-select-checkbox');
-                    if (checkbox) checkbox.remove();
-                }
-            });
-            
-            if (bulkSelectMode) {
-                showNotification('Bulk select mode enabled. Select shifts to perform bulk operations.', 'info');
+    // Day selector - update hidden date field
+    const daySelect = document.getElementById('request_day');
+    const dateInput = document.getElementById('request_date');
+    
+    if (daySelect && dateInput) {
+        daySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const dateValue = selectedOption.getAttribute('data-date');
+            if (dateValue) {
+                dateInput.value = dateValue;
             } else {
-                showNotification('Bulk select mode disabled.', 'info');
+                dateInput.value = '';
             }
         });
     }
     
-    if (copyWeekBtn) {
-        copyWeekBtn.addEventListener('click', function() {
-            const startDate = document.getElementById('schedule-start-date')?.value;
-            const endDate = document.getElementById('schedule-end-date')?.value;
+    // Form validation
+    const requestForm = document.getElementById('request-form');
+    if (requestForm) {
+        requestForm.addEventListener('submit', function(e) {
+            const daySelect = document.getElementById('request_day');
+            const dateInput = document.getElementById('request_date');
             
-            if (!startDate || !endDate) {
-                showNotification('Please select a date range first.', 'error');
-                return;
-            }
-            
-            // Copy schedule data to clipboard (simplified - would need full implementation)
-            showNotification('Week schedule copied. Use "Paste Week" to apply to another week.', 'info');
-        });
-    }
-    
-    if (clearConflictsBtn) {
-        clearConflictsBtn.addEventListener('click', function() {
-            // Highlight all conflict cells
-            const conflictCells = document.querySelectorAll('.shift-conflict');
-            if (conflictCells.length > 0) {
-                conflictCells.forEach(cell => {
-                    cell.style.animation = 'pulse-conflict 2s infinite';
-                });
-                showNotification(`${conflictCells.length} conflict(s) highlighted.`, 'info');
-            } else {
-                showNotification('No conflicts detected in the schedule.', 'info');
+            if (!daySelect || !daySelect.value || !dateInput || !dateInput.value) {
+                e.preventDefault();
+                alert('Please select a day for your shift request.');
+                return false;
             }
         });
     }
     
-    // Shift Swap functionality
-    function openSwapModal(employee1Id, employee2Id, date) {
-        const swapModal = document.getElementById('swap-modal');
-        if (!swapModal) return;
-        
-        const emp1Select = document.getElementById('swap-employee1-select');
-        const emp2Select = document.getElementById('swap-employee2-select');
-        const dateInput = document.getElementById('swap-date');
-        
-        if (emp1Select) emp1Select.value = employee1Id || '';
-        if (emp2Select) emp2Select.value = employee2Id || '';
-        if (dateInput) dateInput.value = date || '';
-        
-        swapModal.style.display = 'flex';
-    }
+    // ============================================
+    // INITIALIZATION
+    // ============================================
     
-    // Add right-click context menu for shift swapping (optional)
-    document.querySelectorAll('.shift-pill').forEach(pill => {
-        pill.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            const employeeId = this.closest('.shift-cell')?.getAttribute('data-employee-id');
-            const date = this.closest('.shift-cell')?.getAttribute('data-date');
-            if (employeeId && date) {
-                openSwapModal(employeeId, '', date);
-            }
-        });
-    });
-    
-    // Close swap modal
-    const swapModal = document.getElementById('swap-modal');
-    if (swapModal) {
-        const swapClose = swapModal.querySelector('.modal-close');
-        const swapCancel = swapModal.querySelector('.modal-cancel');
-        if (swapClose) swapClose.addEventListener('click', () => swapModal.style.display = 'none');
-        if (swapCancel) swapCancel.addEventListener('click', () => swapModal.style.display = 'none');
+    function initialize() {
+        // Initialize navigation first
+        const navInitialized = initNavigation();
         
-        swapModal.addEventListener('click', function(e) {
-            if (e.target === swapModal) {
-                swapModal.style.display = 'none';
-            }
-        });
+        // Initialize schedule table if elements exist
+        const scheduleTable = document.querySelector('.schedule-table');
+        if (scheduleTable) {
+            initScheduleTable();
+        }
+        
+        // Verify initialization
+        if (navInitialized) {
+            window.dashboardReady = true;
+            console.log('Dashboard fully initialized');
+        } else {
+            console.warn('Navigation initialization failed, will retry...');
+            setTimeout(initialize, 200);
+        }
     }
     
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initScheduleTable);
+        document.addEventListener('DOMContentLoaded', initialize);
     } else {
-        initScheduleTable();
-    }
-})();
-    console.log('Dashboard script loaded flag set');
-}
-
-// Function to initialize dashboard navigation
-function initDashboardNavigation() {
-    console.log('initDashboardNavigation called, document.readyState:', document.readyState);
-    
-    // Navigation state management
-    let currentSection = 'overview';
-    
-    function showSection(sectionName) {
-        console.log('showSection called with:', sectionName);
-        
-        // Hide all sections
-        const allSections = document.querySelectorAll('.dashboard-section');
-        console.log('Found', allSections.length, 'sections');
-        
-        allSections.forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Show target section
-        const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
-        console.log('Target section element:', targetSection);
-        
-        if (targetSection) {
-            targetSection.classList.add('active');
-            currentSection = sectionName;
-            console.log('Section activated:', sectionName);
-        } else {
-            console.error('Section not found:', sectionName);
-            // List all available sections for debugging
-            const allSectionsList = document.querySelectorAll('.dashboard-section');
-            allSectionsList.forEach(s => {
-                console.log('Available section:', s.getAttribute('data-section'));
-            });
-        }
+        // DOM already ready, initialize immediately
+        setTimeout(initialize, 0);
     }
     
-    function setActiveTab(sectionName) {
-        console.log('setActiveTab called with:', sectionName);
-        
-        // Remove active from all nav cards
-        const allCards = document.querySelectorAll('.nav-card');
-        console.log('Found', allCards.length, 'nav cards');
-        
-        allCards.forEach(card => {
-            card.classList.remove('active');
-        });
-        
-        // Add active to target nav card
-        const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
-        console.log('Target nav card element:', targetCard);
-        
-        if (targetCard) {
-            targetCard.classList.add('active');
-            console.log('Nav card activated:', sectionName);
-        } else {
-            console.error('Nav card not found:', sectionName);
-            // List all available nav cards for debugging
-            allCards.forEach(c => {
-                console.log('Available nav card:', c.getAttribute('data-section'));
-            });
-        }
-    }
-    
-    // Expose navigateToSection on window for debugging
-    window.navigateToSection = function(sectionName) {
-        if (!sectionName) {
-            console.warn('navigateToSection called with empty sectionName');
-            return;
-        }
-        
-        console.log('navigateToSection called with:', sectionName);
-        setActiveTab(sectionName);
-        showSection(sectionName);
-        
-        // Update URL hash without triggering scroll
-        if (window.location.hash !== '#' + sectionName) {
-            history.replaceState(null, null, '#' + sectionName);
-            console.log('URL hash updated to:', sectionName);
-        }
-    };
-    
-    // Initialize tab navigation
-    function initNavigation() {
-        console.log('initNavigation called');
-        
-        const navCards = document.querySelectorAll('.nav-card');
-        
-        console.log('Navigation cards found:', navCards.length);
-        
-        if (navCards.length === 0) {
-            console.error('No navigation cards found!');
-            return;
-        }
-        
-        // Log all nav cards for debugging
-        navCards.forEach((card, index) => {
-            const section = card.getAttribute('data-section');
-            console.log(`Nav card ${index}:`, section, card);
-        });
-        
-        // Handle nav card clicks - use event delegation for reliability
-        const navContainer = document.querySelector('.dashboard-nav-cards');
-        if (navContainer) {
-            navContainer.addEventListener('click', function(e) {
-                const clickedCard = e.target.closest('.nav-card');
-                if (!clickedCard) return;
-                
-                const sectionName = clickedCard.getAttribute('data-section');
-                console.log('Nav card clicked:', sectionName);
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (sectionName) {
-                    window.navigateToSection(sectionName);
-                } else {
-                    console.error('No data-section attribute found on clicked card');
-                }
-            });
-            
-            console.log('Event delegation attached to nav cards container');
-        } else {
-            console.error('Nav cards container not found!');
-        }
-        
-        // Also attach direct listeners as backup
-        navCards.forEach((card, index) => {
-            const sectionName = card.getAttribute('data-section');
-            console.log(`Attaching direct click listener to nav card ${index}:`, sectionName);
-            
-            card.addEventListener('click', function(e) {
-                const targetSection = this.getAttribute('data-section');
-                console.log('Nav card clicked:', targetSection);
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (targetSection) {
-                    window.navigateToSection(targetSection);
-                } else {
-                    console.error('No data-section attribute found on clicked card');
-                }
-            });
-        });
-        
-        // Handle hash on page load
-        const hash = window.location.hash.substring(1);
-        console.log('Initial hash:', hash);
-        
-        if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
-            console.log('Navigating to hash section:', hash);
-            window.navigateToSection(hash);
-        } else {
-            // Default to overview
-            console.log('No hash or invalid hash, defaulting to overview');
-            window.navigateToSection('overview');
-        }
-        
-        // Handle browser back/forward
-        window.addEventListener('popstate', function() {
-            const hash = window.location.hash.substring(1);
-            console.log('popstate event, hash:', hash);
-            if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
-                window.navigateToSection(hash);
-            } else {
-                window.navigateToSection('overview');
-            }
-        });
-    }
-    
-    // Day selector - update hidden date field
-    function initDaySelector() {
-        const daySelect = document.getElementById('request_day');
-        const dateInput = document.getElementById('request_date');
-        
-        if (daySelect && dateInput) {
-            daySelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const dateValue = selectedOption.getAttribute('data-date');
-                if (dateValue) {
-                    dateInput.value = dateValue;
-                } else {
-                    dateInput.value = '';
-                }
-            });
-        }
-    }
-    
-    // Form validation
-    function initFormValidation() {
-        const requestForm = document.getElementById('request-form');
-        if (requestForm) {
-            requestForm.addEventListener('submit', function(e) {
-                const daySelect = document.getElementById('request_day');
-                const dateInput = document.getElementById('request_date');
-                
-                if (!daySelect || !daySelect.value || !dateInput || !dateInput.value) {
-                    e.preventDefault();
-                    alert('Please select a day for your shift request.');
-                    return false;
-                }
-                
-                // Additional validation: ensure date is set
-                if (!dateInput.value) {
-                    e.preventDefault();
-                    alert('Invalid date selection. Please try again.');
-                    return false;
-                }
-            });
-        }
-    }
-    
-    // Initialize everything
-    console.log('Initializing tab navigation...');
-    initNavigation();
-    initDaySelector();
-    initFormValidation();
-    console.log('Tab navigation initialization complete');
-    
-    // Fallback: verify at least one section is visible
+    // Fallback: retry initialization after a delay
     setTimeout(function() {
-        const activeSection = document.querySelector('.dashboard-section.active');
-        if (!activeSection) {
-            console.warn('No active section found after initialization, activating overview');
-            const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
-            if (overviewSection) {
-                overviewSection.classList.add('active');
+        const navCards = document.querySelectorAll('.nav-card');
+        if (navCards.length > 0) {
+            const hasActive = document.querySelector('.dashboard-section.active');
+            if (!hasActive) {
+                console.warn('No active section found, re-initializing...');
+                initialize();
             }
         }
-    }, 100);
-}
-
-// Initialize when DOM is ready - multiple strategies to ensure it runs
-function initializeDashboard() {
-    console.log('Attempting to initialize dashboard, readyState:', document.readyState);
+    }, 500);
     
-    const navCards = document.querySelectorAll('.nav-card');
-    if (navCards.length === 0) {
-        console.warn('Nav cards not found yet, will retry...');
-        setTimeout(initializeDashboard, 100);
-        return;
-    }
-    
-    console.log('Nav cards found, initializing navigation');
-    initDashboardNavigation();
-}
-
-// Try multiple initialization strategies
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeDashboard);
-} else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    // Use setTimeout to ensure DOM is fully parsed
-    setTimeout(initializeDashboard, 0);
-} else {
-    initializeDashboard();
-}
-
-// Fallback: try again after a short delay
-setTimeout(function() {
-    const navCards = document.querySelectorAll('.nav-card');
-    if (navCards.length > 0) {
-        const hasListeners = navCards[0].onclick !== null || navCards[0].getAttribute('data-initialized') === 'true';
-        if (!hasListeners) {
-            console.warn('Nav cards found but listeners not attached, re-initializing...');
-            initDashboardNavigation();
-        }
-    }
-}, 500);
-
+})();
