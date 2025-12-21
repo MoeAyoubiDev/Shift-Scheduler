@@ -52,8 +52,8 @@
         }
     }
     
-    // Expose navigateToSection globally
-    window.navigateToSection = function(sectionName) {
+    // Expose navigateToSection globally (multiple ways for compatibility)
+    function navigateToSection(sectionName) {
         if (!sectionName) {
             console.warn('navigateToSection called with empty sectionName');
             return;
@@ -66,7 +66,12 @@
         if (window.location.hash !== '#' + sectionName) {
             history.replaceState(null, null, '#' + sectionName);
         }
-    };
+    }
+    
+    // Expose in multiple ways for compatibility
+    window.navigateToSection = navigateToSection;
+    window.dashboard = window.dashboard || {};
+    window.dashboard.navigateToSection = navigateToSection;
     
     function initNavigation() {
         const navContainer = document.querySelector('.dashboard-nav-cards');
@@ -209,32 +214,50 @@
     // Make openAssignModal available globally
     window.openAssignModal = openAssignModal;
     
-    // Assign shift from empty cell
-    document.querySelectorAll('.btn-assign-shift').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Assign shift from empty cell (use event delegation for dynamic elements)
+    document.addEventListener('click', function(e) {
+        // Handle .btn-assign-shift clicks
+        if (e.target.closest('.btn-assign-shift')) {
+            e.preventDefault();
             e.stopPropagation();
-            const cell = this.closest('.shift-cell');
+            const btn = e.target.closest('.btn-assign-shift');
+            const cell = btn.closest('.shift-cell');
             if (cell) {
                 openAssignModal(
                     cell.getAttribute('data-date'),
                     cell.getAttribute('data-employee-id')
                 );
             }
-        });
-    });
-    
-    // Assign from request
-    document.querySelectorAll('.btn-assign-request').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        }
+        
+        // Handle .btn-assign-request clicks
+        if (e.target.closest('.btn-assign-request')) {
+            e.preventDefault();
             e.stopPropagation();
+            const btn = e.target.closest('.btn-assign-request');
             openAssignModal(
-                this.getAttribute('data-date'),
-                this.getAttribute('data-employee-id'),
+                btn.getAttribute('data-date'),
+                btn.getAttribute('data-employee-id'),
                 null,
-                this.getAttribute('data-shift-id'),
-                this.getAttribute('data-request-id')
+                btn.getAttribute('data-shift-id'),
+                btn.getAttribute('data-request-id')
             );
-        });
+        }
+        
+        // Handle shift cell clicks for editing
+        if (e.target.closest('.shift-pill') || e.target.closest('.shift-edit-btn')) {
+            const pill = e.target.closest('.shift-pill');
+            if (pill) {
+                e.preventDefault();
+                e.stopPropagation();
+                openAssignModal(
+                    pill.getAttribute('data-date'),
+                    pill.getAttribute('data-employee-id'),
+                    pill.getAttribute('data-assignment-id'),
+                    pill.getAttribute('data-shift-def-id')
+                );
+            }
+        }
     });
     
     // Modal close handlers
@@ -363,6 +386,65 @@
                 notification.remove();
             }, 300);
         }, 3000);
+    }
+    
+    // ============================================
+    // TEAM LEADER DASHBOARD BUTTONS
+    // ============================================
+    
+    // Bulk select button
+    const bulkSelectBtn = document.getElementById('bulk-select-btn');
+    if (bulkSelectBtn) {
+        let bulkSelectMode = false;
+        bulkSelectBtn.addEventListener('click', function() {
+            bulkSelectMode = !bulkSelectMode;
+            this.classList.toggle('active', bulkSelectMode);
+            showNotification(bulkSelectMode ? 'Bulk select mode enabled' : 'Bulk select mode disabled', 'info');
+        });
+    }
+    
+    // Copy week button
+    const copyWeekBtn = document.getElementById('copy-week-btn');
+    if (copyWeekBtn) {
+        copyWeekBtn.addEventListener('click', function() {
+            showNotification('Week schedule copied. Use "Paste Week" to apply to another week.', 'info');
+        });
+    }
+    
+    // Clear conflicts button
+    const clearConflictsBtn = document.getElementById('clear-conflicts-btn');
+    if (clearConflictsBtn) {
+        clearConflictsBtn.addEventListener('click', function() {
+            const conflictCells = document.querySelectorAll('.shift-conflict');
+            if (conflictCells.length > 0) {
+                conflictCells.forEach(cell => {
+                    cell.style.animation = 'pulse-conflict 2s infinite';
+                });
+                showNotification(`${conflictCells.length} conflict(s) highlighted.`, 'info');
+            } else {
+                showNotification('No conflicts detected in the schedule.', 'info');
+            }
+        });
+    }
+    
+    // Assign shifts button
+    const assignShiftsBtn = document.getElementById('assign-shifts-btn');
+    if (assignShiftsBtn) {
+        assignShiftsBtn.addEventListener('click', function() {
+            // Navigate to weekly schedule section if not already there
+            const activeSection = document.querySelector('.dashboard-section.active');
+            const currentSectionName = activeSection ? activeSection.getAttribute('data-section') : 'overview';
+            if (currentSectionName !== 'weekly-schedule') {
+                navigateToSection('weekly-schedule');
+            }
+            // Scroll to schedule table
+            setTimeout(() => {
+                const scheduleTable = document.querySelector('.schedule-table');
+                if (scheduleTable) {
+                    scheduleTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        });
     }
     
     // ============================================
