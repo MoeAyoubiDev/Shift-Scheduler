@@ -13,7 +13,7 @@ $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervis
     </div>
     <div class="footer-meta">
         <span class="status-indicator"></span>
-        <span>Last sync <?= e((new DateTimeImmutable())->format('M d, Y H:i')) ?></span>
+        <span id="footer-time">Loading...</span>
     </div>
 </footer>
 <script src="/assets/js/app.js"></script>
