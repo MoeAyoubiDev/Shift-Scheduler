@@ -1,57 +1,25 @@
 <?php
 declare(strict_types=1);
 ?>
-<div class="dashboard-layout">
-    <!-- Sidebar Overlay for Mobile -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    
-    <!-- Sidebar Navigation -->
-    <aside class="dashboard-sidebar" id="dashboard-sidebar">
-        <div class="sidebar-header">
-            <h3>My Schedule</h3>
-            <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#overview" class="nav-item active" data-section="overview">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 4C3 3.44772 3.44772 3 4 3H16C16.5523 3 17 3.44772 17 4V16C17 16.5523 16.5523 17 16 17H4C3.44772 17 3 16.5523 3 16V4Z" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M3 8H17M8 3V17" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
-                <span>Overview</span>
-            </a>
-            <a href="#submit-request" class="nav-item" data-section="submit-request">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 3V17M3 10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Submit Request</span>
-            </a>
-            <a href="#my-requests" class="nav-item" data-section="my-requests">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H16C16.5523 4 17 4.44772 17 5V15C17 15.5523 16.5523 16 16 16H4C3.44772 16 3 15.5523 3 15V5C3 4.44772 3.44772 4 4 4Z" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M7 8H13M7 12H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>My Requests</span>
-            </a>
-            <a href="#weekly-schedule" class="nav-item" data-section="weekly-schedule">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H16C16.5523 4 17 4.44772 17 5V15C17 15.5523 16.5523 16 16 16H4C3.44772 16 3 15.5523 3 15V5C3 4.44772 3.44772 4 4 4Z" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M7 3V7M13 3V7M3 9H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Weekly Schedule</span>
-            </a>
-            <a href="#break-management" class="nav-item" data-section="break-management">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Break Management</span>
-            </a>
-        </nav>
-    </aside>
+<div class="dashboard-container">
+    <!-- Tab Navigation Bar -->
+    <nav class="dashboard-tabs" role="tablist">
+        <button class="tab-item active" data-section="overview" role="tab" aria-selected="true">
+            Overview
+        </button>
+        <button class="tab-item" data-section="submit-request" role="tab" aria-selected="false">
+            Submit Request
+        </button>
+        <button class="tab-item" data-section="my-requests" role="tab" aria-selected="false">
+            My Requests
+        </button>
+        <button class="tab-item" data-section="weekly-schedule" role="tab" aria-selected="false">
+            Weekly Schedule
+        </button>
+        <button class="tab-item" data-section="break-management" role="tab" aria-selected="false">
+            Break Management
+        </button>
+    </nav>
 
     <!-- Main Content Area -->
     <main class="dashboard-content">

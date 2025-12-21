@@ -36,29 +36,31 @@ function initDashboardNavigation() {
         }
     }
     
-    function setActiveNavItem(sectionName) {
-        console.log('setActiveNavItem called with:', sectionName);
+    function setActiveTab(sectionName) {
+        console.log('setActiveTab called with:', sectionName);
         
-        // Remove active from all nav items
-        const allNavItems = document.querySelectorAll('.nav-item');
-        console.log('Found', allNavItems.length, 'nav items');
+        // Remove active from all tabs
+        const allTabs = document.querySelectorAll('.tab-item');
+        console.log('Found', allTabs.length, 'tabs');
         
-        allNavItems.forEach(nav => {
-            nav.classList.remove('active');
+        allTabs.forEach(tab => {
+            tab.classList.remove('active');
+            tab.setAttribute('aria-selected', 'false');
         });
         
-        // Add active to target nav item
-        const targetNav = document.querySelector(`.nav-item[data-section="${sectionName}"]`);
-        console.log('Target nav item element:', targetNav);
+        // Add active to target tab
+        const targetTab = document.querySelector(`.tab-item[data-section="${sectionName}"]`);
+        console.log('Target tab element:', targetTab);
         
-        if (targetNav) {
-            targetNav.classList.add('active');
-            console.log('Nav item activated:', sectionName);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            targetTab.setAttribute('aria-selected', 'true');
+            console.log('Tab activated:', sectionName);
         } else {
-            console.error('Nav item not found:', sectionName);
-            // List all available nav items for debugging
-            allNavItems.forEach(n => {
-                console.log('Available nav item:', n.getAttribute('data-section'));
+            console.error('Tab not found:', sectionName);
+            // List all available tabs for debugging
+            allTabs.forEach(t => {
+                console.log('Available tab:', t.getAttribute('data-section'));
             });
         }
     }
@@ -71,7 +73,7 @@ function initDashboardNavigation() {
         }
         
         console.log('navigateToSection called with:', sectionName);
-        setActiveNavItem(sectionName);
+        setActiveTab(sectionName);
         showSection(sectionName);
         
         // Update URL hash without triggering scroll
@@ -81,33 +83,32 @@ function initDashboardNavigation() {
         }
     };
     
-    // Initialize navigation
+    // Initialize tab navigation
     function initNavigation() {
         console.log('initNavigation called');
         
-        const navItems = document.querySelectorAll('.nav-item');
-        const sidebar = document.getElementById('dashboard-sidebar');
+        const tabs = document.querySelectorAll('.tab-item');
         
-        console.log('Navigation items found:', navItems.length);
+        console.log('Tabs found:', tabs.length);
         
-        if (navItems.length === 0) {
-            console.error('No navigation items found!');
+        if (tabs.length === 0) {
+            console.error('No tabs found!');
             return;
         }
         
-        // Log all nav items for debugging
-        navItems.forEach((item, index) => {
-            const section = item.getAttribute('data-section');
-            console.log(`Nav item ${index}:`, section, item);
+        // Log all tabs for debugging
+        tabs.forEach((tab, index) => {
+            const section = tab.getAttribute('data-section');
+            console.log(`Tab ${index}:`, section, tab);
         });
         
-        // Handle navigation clicks
-        navItems.forEach((item, index) => {
-            const sectionName = item.getAttribute('data-section');
-            console.log(`Attaching click listener to nav item ${index}:`, sectionName);
+        // Handle tab clicks
+        tabs.forEach((tab, index) => {
+            const sectionName = tab.getAttribute('data-section');
+            console.log(`Attaching click listener to tab ${index}:`, sectionName);
             
-            item.addEventListener('click', function(e) {
-                console.log('Nav item clicked:', sectionName, this);
+            tab.addEventListener('click', function(e) {
+                console.log('Tab clicked:', sectionName, this);
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -116,17 +117,8 @@ function initDashboardNavigation() {
                 
                 if (targetSection) {
                     window.navigateToSection(targetSection);
-                    
-                    // Close sidebar on mobile after selection
-                    if (window.innerWidth < 768 && sidebar) {
-                        sidebar.classList.remove('open');
-                        const overlay = document.getElementById('sidebar-overlay');
-                        if (overlay) {
-                            overlay.classList.remove('active');
-                        }
-                    }
                 } else {
-                    console.error('No data-section attribute found on clicked item');
+                    console.error('No data-section attribute found on clicked tab');
                 }
             });
         });
@@ -135,7 +127,7 @@ function initDashboardNavigation() {
         const hash = window.location.hash.substring(1);
         console.log('Initial hash:', hash);
         
-        if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
+        if (hash && document.querySelector(`.tab-item[data-section="${hash}"]`)) {
             console.log('Navigating to hash section:', hash);
             window.navigateToSection(hash);
         } else {
@@ -148,62 +140,10 @@ function initDashboardNavigation() {
         window.addEventListener('popstate', function() {
             const hash = window.location.hash.substring(1);
             console.log('popstate event, hash:', hash);
-            if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
+            if (hash && document.querySelector(`.tab-item[data-section="${hash}"]`)) {
                 window.navigateToSection(hash);
             } else {
                 window.navigateToSection('overview');
-            }
-        });
-    }
-    
-    // Sidebar toggle for mobile
-    function initSidebarToggle() {
-        const sidebar = document.getElementById('dashboard-sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        
-        if (!sidebar) {
-            console.warn('Sidebar not found');
-            return;
-        }
-        
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            if (overlay) {
-                overlay.classList.toggle('active');
-            }
-        }
-        
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-        
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-        
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
-                if (!sidebar.contains(e.target) && 
-                    sidebarToggle && !sidebarToggle.contains(e.target) && 
-                    mobileMenuBtn && !mobileMenuBtn.contains(e.target)) {
-                    toggleSidebar();
-                }
             }
         });
     }
@@ -251,12 +191,11 @@ function initDashboardNavigation() {
     }
     
     // Initialize everything
-    console.log('Initializing navigation and sidebar...');
+    console.log('Initializing tab navigation...');
     initNavigation();
-    initSidebarToggle();
     initDaySelector();
     initFormValidation();
-    console.log('Navigation initialization complete');
+    console.log('Tab navigation initialization complete');
     
     // Fallback: verify at least one section is visible
     setTimeout(function() {
