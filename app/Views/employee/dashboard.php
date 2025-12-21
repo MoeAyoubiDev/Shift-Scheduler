@@ -55,6 +55,13 @@ declare(strict_types=1);
 
     <!-- Main Content Area -->
     <main class="dashboard-content">
+        <!-- 
+            Navigation Contract:
+            Each section must have:
+            - class="dashboard-section"
+            - data-section="<section-name>" matching nav item data-section
+            - Only one section (overview) should have "active" class initially
+        -->
         <!-- Overview Section -->
         <section class="dashboard-section active" id="section-overview" data-section="overview">
             <div class="card">
