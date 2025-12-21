@@ -335,6 +335,37 @@ BEGIN
     SELECT v_employee_id AS employee_id, v_user_id AS user_id;
 END$$
 
+CREATE PROCEDURE sp_create_leader(
+    IN p_username VARCHAR(100),
+    IN p_password_hash VARCHAR(255),
+    IN p_email VARCHAR(150),
+    IN p_role_id INT,
+    IN p_section_id INT,
+    IN p_full_name VARCHAR(150)
+)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO users (username, password_hash, email)
+    VALUES (p_username, p_password_hash, p_email);
+
+    SET v_user_id = LAST_INSERT_ID();
+
+    INSERT INTO user_roles (user_id, role_id, section_id)
+    VALUES (v_user_id, p_role_id, p_section_id);
+
+    COMMIT;
+
+    SELECT v_user_id AS user_id;
+END$$
+
 CREATE PROCEDURE sp_get_employees_by_section(IN p_section_id INT)
 BEGIN
     SELECT e.id,

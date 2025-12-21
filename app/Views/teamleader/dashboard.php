@@ -38,6 +38,21 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
+        <button class="nav-card" data-section="manage-employees">
+            <div class="nav-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="nav-card-content">
+                <div class="nav-card-title">Manage Employees</div>
+                <div class="nav-card-subtitle">View, update, delete</div>
+            </div>
+        </button>
+        
         <button class="nav-card" data-section="shift-requirements">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -159,20 +174,70 @@ for ($i = 0; $i < 7; $i++) {
                         Role
                         <select name="role_id" required>
                             <?php foreach ($roles as $role): ?>
-                                <?php if (in_array($role['role_name'], ['Employee', 'Senior', 'Supervisor'], true)): ?>
+                                <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
                                     <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
                                 <?php endif; ?>
                             <?php endforeach; ?>
                         </select>
                     </label>
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="is_senior" value="1">
-                        Mark as Senior
-                    </label>
                     <div class="form-actions">
                         <button type="submit" class="btn">Create Employee</button>
                     </div>
                 </form>
+            </div>
+        </section>
+
+        <!-- Manage Employees Section -->
+        <section class="dashboard-section" data-section="manage-employees">
+            <div class="card">
+                <div class="section-title">
+                    <h3>Manage Employees</h3>
+                    <span><?= e(count($employees ?? [])) ?> employees in this section</span>
+                </div>
+                <?php if (!empty($employees)): ?>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Employee Code</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($employees as $employee): ?>
+                            <tr>
+                                <td><?= e($employee['full_name']) ?></td>
+                                <td><?= e($employee['employee_code']) ?></td>
+                                <td><?= e($employee['username']) ?></td>
+                                <td><?= e($employee['email'] ?? '-') ?></td>
+                                <td><span class="pill"><?= e($employee['role_name']) ?></span></td>
+                                <td class="table-actions">
+                                    <form method="post" action="/index.php" class="inline" style="display: inline-block;">
+                                        <input type="hidden" name="action" value="update_employee">
+                                        <input type="hidden" name="employee_id" value="<?= e((string) $employee['id']) ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                        <button type="submit" class="btn secondary small">Update</button>
+                                    </form>
+                                    <form method="post" action="/index.php" class="inline" style="display: inline-block; margin-left: 0.5rem;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                                        <input type="hidden" name="action" value="delete_employee">
+                                        <input type="hidden" name="employee_id" value="<?= e((string) $employee['id']) ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                        <button type="submit" class="btn secondary small" style="background: var(--danger);">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-title">No employees found</div>
+                        <p class="empty-state-text">Create your first employee using the "Create Employee" section above.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 

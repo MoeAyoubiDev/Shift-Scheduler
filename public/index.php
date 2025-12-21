@@ -71,6 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete_assignment':
             $message = TeamLeaderController::handleDeleteAssignment($_POST);
             break;
+        case 'update_employee':
+            $message = TeamLeaderController::handleUpdateEmployee($_POST) ?? $message;
+            break;
+        case 'delete_employee':
+            $message = TeamLeaderController::handleDeleteEmployee($_POST) ?? $message;
+            break;
+        case 'create_leader':
+            $message = DirectorController::handleCreateLeader($_POST) ?? $message;
+            break;
         case 'start_break':
             if (current_role() === 'Senior') {
                 $message = SeniorController::handleBreakAction($_POST, 'start');
@@ -144,10 +153,15 @@ if ($role === 'Director') {
             'user' => $user,
         ]);
     } else {
+        require_once __DIR__ . '/../app/Models/Section.php';
+        require_once __DIR__ . '/../app/Models/Role.php';
+        
         $dashboard = Performance::directorDashboard($sectionId, $weekId);
         $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
         $requests = ShiftRequest::listByWeek($weekId, $sectionId);
         $performance = Performance::report($weekStart, $weekEnd, $sectionId, null);
+        $sections = Section::getAll();
+        $roles = Role::listRoles();
 
         render_view('director/dashboard', [
             'user' => $user,
@@ -157,6 +171,8 @@ if ($role === 'Director') {
             'schedule' => $schedule,
             'requests' => $requests,
             'performance' => $performance,
+            'sections' => $sections,
+            'roles' => $roles,
         ]);
     }
 } elseif ($role === 'Team Leader') {

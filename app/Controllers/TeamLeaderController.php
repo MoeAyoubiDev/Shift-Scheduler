@@ -135,4 +135,59 @@ class TeamLeaderController
             return 'Error: ' . $e->getMessage();
         }
     }
+
+    public static function handleUpdateEmployee(array $payload): ?string
+    {
+        require_login();
+        require_role(['Team Leader']);
+        require_csrf($payload);
+
+        $employeeId = (int) ($payload['employee_id'] ?? 0);
+        if ($employeeId <= 0) {
+            return 'Invalid employee ID.';
+        }
+
+        $sectionId = current_section_id();
+        if (!$sectionId) {
+            return 'Section not selected.';
+        }
+
+        // For now, return a message indicating update functionality
+        // This would need a database procedure to implement fully
+        return 'Employee update functionality - to be implemented with database procedure.';
+    }
+
+    public static function handleDeleteEmployee(array $payload): ?string
+    {
+        require_login();
+        require_role(['Team Leader']);
+        require_csrf($payload);
+
+        $employeeId = (int) ($payload['employee_id'] ?? 0);
+        if ($employeeId <= 0) {
+            return 'Invalid employee ID.';
+        }
+
+        $sectionId = current_section_id();
+        if (!$sectionId) {
+            return 'Section not selected.';
+        }
+
+        try {
+            // Deactivate employee by setting is_active = 0
+            require_once __DIR__ . '/../Core/config.php';
+            $stmt = db()->prepare('UPDATE employees e 
+                INNER JOIN user_roles ur ON ur.id = e.user_role_id 
+                SET e.is_active = 0 
+                WHERE e.id = :employee_id AND ur.section_id = :section_id');
+            $stmt->execute([
+                'employee_id' => $employeeId,
+                'section_id' => $sectionId,
+            ]);
+
+            return 'Employee deleted successfully.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    }
 }

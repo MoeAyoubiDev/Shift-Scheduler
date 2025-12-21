@@ -67,4 +67,19 @@ class User extends BaseModel
 
         return (int) ($rows[0]['employee_id'] ?? 0);
     }
+
+    public static function createLeader(array $payload): int
+    {
+        $model = new self();
+        $rows = $model->callProcedure('sp_create_leader', [
+            'p_username' => $payload['username'],
+            'p_password_hash' => $payload['password_hash'],
+            'p_email' => $payload['email'],
+            'p_role_id' => $payload['role_id'],
+            'p_section_id' => $payload['section_id'],
+            'p_full_name' => $payload['full_name'],
+        ]);
+
+        return (int) ($rows[0]['user_id'] ?? 0);
+    }
 }
