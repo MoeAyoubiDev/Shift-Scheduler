@@ -19,9 +19,6 @@ $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervis
 <script src="/assets/js/app.js"></script>
 <?php if ($isDashboard): ?>
 <script src="/assets/js/dashboard.js"></script>
-<?php if ($role === 'Team Leader'): ?>
-<script src="/assets/js/teamleader-dashboard.js"></script>
-<?php endif; ?>
 <?php endif; ?>
 </body>
 </html>
