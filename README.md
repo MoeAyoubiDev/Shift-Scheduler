@@ -294,7 +294,7 @@ sudo chmod -R 775 /var/www/shift-scheduler/public/assets
 
 ### Default Login Credentials
 
-The following test accounts are created when you import the test data (`database/test_data.sql`). **All test accounts use the password: `password123`**
+The following test accounts are created when you import the test data (`database/clean_test_data.sql`). **All test accounts use the password: `password123`** (except Director which uses `password`)
 
 #### App After-Sales Section (Section 1)
 
@@ -324,7 +324,7 @@ The following test accounts are created when you import the test data (`database
 |------|----------|----------|----------------|-------|
 | **Director** | `director` | `password` | Both sections | Read-only access to all sections |
 
-> **Note**: The Director account is created separately in the main database schema. If you need to create a Director account, use the `sp_create_leader` stored procedure or insert directly into the database.
+> **Note**: The Director account is automatically created/updated by `clean_test_data.sql` with password `password`. The Director account has access to both sections.
 
 ### Quick Login Reference
 

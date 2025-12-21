@@ -59,7 +59,22 @@ SET @role_employee = (SELECT id FROM roles WHERE role_name = 'Employee' LIMIT 1)
 SET @section_app = (SELECT id FROM sections WHERE section_name = 'App After-Sales' LIMIT 1);
 SET @section_agent = (SELECT id FROM sections WHERE section_name = 'Agent After-Sales' LIMIT 1);
 
-SET @password_hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; -- password123
+-- Password hashes
+SET @password_hash = '$2y$12$0vDm1eWKGqjOmAtYQ8zjxevMNuAD4tShO/Omzx/j.EId7ALkEagL6'; -- password123
+SET @director_password_hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; -- password
+
+-- Ensure Director account exists with correct password
+INSERT INTO users (username, password_hash, email, is_active) 
+VALUES ('director', @director_password_hash, 'director@company.com', 1)
+ON DUPLICATE KEY UPDATE password_hash = @director_password_hash, is_active = 1;
+
+SET @director_user_id = (SELECT id FROM users WHERE username = 'director');
+
+-- Ensure Director has roles for both sections
+DELETE FROM user_roles WHERE user_id = @director_user_id;
+INSERT INTO user_roles (user_id, role_id, section_id) VALUES
+(@director_user_id, @role_director, @section_app),
+(@director_user_id, @role_director, @section_agent);
 
 -- Insert Team Leaders (2 per section)
 INSERT INTO users (username, password_hash, email) VALUES
