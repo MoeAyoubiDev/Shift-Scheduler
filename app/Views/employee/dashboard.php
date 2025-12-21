@@ -296,70 +296,121 @@ declare(strict_types=1);
 </div>
 
 <script>
-(function() {
-    'use strict';
+console.log('Navigation script loading...');
+
+// Function to initialize navigation (can be called immediately or on DOMContentLoaded)
+function initDashboardNavigation() {
+    console.log('initDashboardNavigation called, document.readyState:', document.readyState);
     
     // Navigation state management
     let currentSection = 'overview';
     
     function showSection(sectionName) {
+        console.log('showSection called with:', sectionName);
+        
         // Hide all sections
         const allSections = document.querySelectorAll('.dashboard-section');
+        console.log('Found', allSections.length, 'sections');
+        
         allSections.forEach(section => {
             section.classList.remove('active');
         });
         
         // Show target section
         const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
+        console.log('Target section element:', targetSection);
+        
         if (targetSection) {
             targetSection.classList.add('active');
             currentSection = sectionName;
+            console.log('Section activated:', sectionName);
         } else {
-            console.warn('Section not found:', sectionName);
+            console.error('Section not found:', sectionName);
+            // List all available sections for debugging
+            const allSectionsList = document.querySelectorAll('.dashboard-section');
+            allSectionsList.forEach(s => {
+                console.log('Available section:', s.getAttribute('data-section'));
+            });
         }
     }
     
     function setActiveNavItem(sectionName) {
+        console.log('setActiveNavItem called with:', sectionName);
+        
         // Remove active from all nav items
         const allNavItems = document.querySelectorAll('.nav-item');
-        allNavItems.forEach(nav => nav.classList.remove('active'));
+        console.log('Found', allNavItems.length, 'nav items');
+        
+        allNavItems.forEach(nav => {
+            nav.classList.remove('active');
+        });
         
         // Add active to target nav item
         const targetNav = document.querySelector(`.nav-item[data-section="${sectionName}"]`);
+        console.log('Target nav item element:', targetNav);
+        
         if (targetNav) {
             targetNav.classList.add('active');
+            console.log('Nav item activated:', sectionName);
+        } else {
+            console.error('Nav item not found:', sectionName);
+            // List all available nav items for debugging
+            allNavItems.forEach(n => {
+                console.log('Available nav item:', n.getAttribute('data-section'));
+            });
         }
     }
     
     function navigateToSection(sectionName) {
-        if (!sectionName) return;
+        if (!sectionName) {
+            console.warn('navigateToSection called with empty sectionName');
+            return;
+        }
         
+        console.log('navigateToSection called with:', sectionName);
         setActiveNavItem(sectionName);
         showSection(sectionName);
         
         // Update URL hash without triggering scroll
         if (window.location.hash !== '#' + sectionName) {
             history.replaceState(null, null, '#' + sectionName);
+            console.log('URL hash updated to:', sectionName);
         }
     }
     
-    // Initialize navigation when DOM is ready
+    // Initialize navigation
     function initNavigation() {
+        console.log('initNavigation called');
+        
         const navItems = document.querySelectorAll('.nav-item');
         const sidebar = document.getElementById('dashboard-sidebar');
         
+        console.log('Navigation items found:', navItems.length);
+        
         if (navItems.length === 0) {
-            console.warn('No navigation items found');
+            console.error('No navigation items found!');
             return;
         }
         
+        // Log all nav items for debugging
+        navItems.forEach((item, index) => {
+            const section = item.getAttribute('data-section');
+            console.log(`Nav item ${index}:`, section, item);
+        });
+        
         // Handle navigation clicks
-        navItems.forEach(item => {
+        navItems.forEach((item, index) => {
+            const sectionName = item.getAttribute('data-section');
+            console.log(`Attaching click listener to nav item ${index}:`, sectionName);
+            
             item.addEventListener('click', function(e) {
+                console.log('Nav item clicked:', sectionName, this);
                 e.preventDefault();
                 e.stopPropagation();
                 
                 const targetSection = this.getAttribute('data-section');
+                console.log('Target section from click:', targetSection);
+                
                 if (targetSection) {
                     navigateToSection(targetSection);
                     
@@ -371,22 +422,29 @@ declare(strict_types=1);
                             overlay.classList.remove('active');
                         }
                     }
+                } else {
+                    console.error('No data-section attribute found on clicked item');
                 }
             });
         });
         
         // Handle hash on page load
         const hash = window.location.hash.substring(1);
+        console.log('Initial hash:', hash);
+        
         if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
+            console.log('Navigating to hash section:', hash);
             navigateToSection(hash);
         } else {
             // Default to overview
+            console.log('No hash or invalid hash, defaulting to overview');
             navigateToSection('overview');
         }
         
         // Handle browser back/forward
         window.addEventListener('popstate', function() {
             const hash = window.location.hash.substring(1);
+            console.log('popstate event, hash:', hash);
             if (hash && document.querySelector(`.nav-item[data-section="${hash}"]`)) {
                 navigateToSection(hash);
             } else {
@@ -402,7 +460,10 @@ declare(strict_types=1);
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         
-        if (!sidebar) return;
+        if (!sidebar) {
+            console.warn('Sidebar not found');
+            return;
+        }
         
         function toggleSidebar() {
             sidebar.classList.toggle('open');
@@ -444,10 +505,11 @@ declare(strict_types=1);
         });
     }
     
-    // Initialize everything when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        initNavigation();
-        initSidebarToggle();
+    // Initialize everything
+    console.log('Initializing navigation and sidebar...');
+    initNavigation();
+    initSidebarToggle();
+    console.log('Navigation initialization complete');
     
     // Day selector - update hidden date field
     const daySelect = document.getElementById('request_day');
@@ -486,6 +548,37 @@ declare(strict_types=1);
             }
         });
     }
+}
+
+// Try to initialize immediately if DOM is ready
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('DOM already ready, initializing immediately');
+    // Use setTimeout to ensure all scripts have loaded
+    setTimeout(initDashboardNavigation, 10);
+} else {
+    console.log('Waiting for DOMContentLoaded');
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initDashboardNavigation, 10);
     });
-})();
+}
+
+// Fallback: try again after a short delay to catch any edge cases
+setTimeout(function() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.dashboard-section');
+    if (navItems.length > 0 && sections.length > 0) {
+        console.log('Fallback check: Found', navItems.length, 'nav items and', sections.length, 'sections');
+        // Verify at least one section is visible
+        const activeSection = document.querySelector('.dashboard-section.active');
+        if (!activeSection) {
+            console.warn('No active section found, activating overview');
+            const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
+            if (overviewSection) {
+                overviewSection.classList.add('active');
+            }
+        }
+    } else {
+        console.error('Fallback check: Navigation elements not found!');
+    }
+}, 500);
 </script>
