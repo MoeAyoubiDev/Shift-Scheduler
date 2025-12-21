@@ -21,18 +21,59 @@
     let currentSection = 'overview';
     
     function showSection(sectionName) {
-        if (!sectionName) return;
+        if (!sectionName) {
+            console.warn('showSection called with empty sectionName');
+            return;
+        }
+        
+        console.log('showSection called with:', sectionName);
         
         // Hide all sections
-        document.querySelectorAll('.dashboard-section').forEach(section => {
+        const allSections = document.querySelectorAll('.dashboard-section');
+        console.log('Found', allSections.length, 'sections total');
+        allSections.forEach(section => {
             section.classList.remove('active');
         });
         
         // Show target section
         const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
+        console.log('Target section element:', targetSection);
+        
         if (targetSection) {
+            // Remove active from all first (in case of race conditions)
+            allSections.forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            });
+            
+            // Add active class and show
             targetSection.classList.add('active');
+            targetSection.style.display = 'block';
             currentSection = sectionName;
+            console.log('Section activated:', sectionName);
+            
+            // Force a reflow to ensure CSS applies
+            void targetSection.offsetHeight;
+            
+            // Double-check it's visible
+            setTimeout(() => {
+                if (!targetSection.classList.contains('active')) {
+                    console.warn('Section lost active class, re-adding...');
+                    targetSection.classList.add('active');
+                    targetSection.style.display = 'block';
+                }
+            }, 50);
+            
+            // Scroll to top of section
+            setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        } else {
+            console.error('Section not found:', sectionName);
+            // List all available sections for debugging
+            allSections.forEach(s => {
+                console.log('Available section:', s.getAttribute('data-section'));
+            });
         }
     }
     
@@ -50,7 +91,12 @@
     }
     
     function navigateToSection(sectionName) {
-        if (!sectionName) return;
+        if (!sectionName) {
+            console.warn('navigateToSection called with empty sectionName');
+            return;
+        }
+        
+        console.log('navigateToSection called with:', sectionName);
         
         setActiveNavCard(sectionName);
         showSection(sectionName);
@@ -58,6 +104,7 @@
         // Update URL hash
         if (window.location.hash !== '#' + sectionName) {
             history.replaceState(null, null, '#' + sectionName);
+            console.log('URL hash updated to:', sectionName);
         }
     }
     
@@ -510,15 +557,60 @@
             
             // Handle initial hash
             const hash = window.location.hash.substring(1);
-            if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
-                navigateToSection(hash);
+            console.log('Initial hash:', hash);
+            if (hash) {
+                const hashCard = document.querySelector(`.nav-card[data-section="${hash}"]`);
+                const hashSection = document.querySelector(`.dashboard-section[data-section="${hash}"]`);
+                console.log('Hash card found:', !!hashCard, 'Hash section found:', !!hashSection);
+                if (hashCard && hashSection) {
+                    console.log('Navigating to hash section:', hash);
+                    navigateToSection(hash);
+                } else {
+                    console.warn('Hash section not found, defaulting to overview');
+                    navigateToSection('overview');
+                }
+            } else {
+                // Ensure overview is active
+                const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
+                if (overviewSection && !overviewSection.classList.contains('active')) {
+                    navigateToSection('overview');
+                }
             }
             
             // Handle browser back/forward
             window.addEventListener('popstate', function() {
                 const hash = window.location.hash.substring(1);
-                if (hash && document.querySelector(`.nav-card[data-section="${hash}"]`)) {
-                    navigateToSection(hash);
+                console.log('popstate event, hash:', hash);
+                if (hash) {
+                    const hashCard = document.querySelector(`.nav-card[data-section="${hash}"]`);
+                    const hashSection = document.querySelector(`.dashboard-section[data-section="${hash}"]`);
+                    if (hashCard && hashSection) {
+                        navigateToSection(hash);
+                    } else {
+                        navigateToSection('overview');
+                    }
+                } else {
+                    navigateToSection('overview');
+                }
+            });
+            
+            // Handle hashchange events (when URL hash changes)
+            window.addEventListener('hashchange', function() {
+                const hash = window.location.hash.substring(1);
+                console.log('hashchange event, hash:', hash);
+                if (hash) {
+                    const hashCard = document.querySelector(`.nav-card[data-section="${hash}"]`);
+                    const hashSection = document.querySelector(`.dashboard-section[data-section="${hash}"]`);
+                    if (hashCard && hashSection) {
+                        // Only navigate if not already on this section
+                        const activeSection = document.querySelector('.dashboard-section.active');
+                        const activeSectionName = activeSection ? activeSection.getAttribute('data-section') : null;
+                        if (activeSectionName !== hash) {
+                            navigateToSection(hash);
+                        }
+                    } else {
+                        console.warn('Hash section not found in hashchange:', hash);
+                    }
                 } else {
                     navigateToSection('overview');
                 }
