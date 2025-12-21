@@ -8,7 +8,11 @@
     
     // Set global flags immediately
     window.dashboardScriptLoaded = true;
-    console.log('Dashboard script loaded');
+    console.log('Dashboard script loaded - version 2.0');
+    
+    // Debug: Log when script executes
+    console.log('Document ready state:', document.readyState);
+    console.log('Nav cards found:', document.querySelectorAll('.nav-card').length);
     
     // ============================================
     // NAVIGATION SYSTEM
@@ -66,51 +70,76 @@
     // UNIVERSAL EVENT DELEGATION (All buttons)
     // ============================================
     
-    // Handle ALL clicks using event delegation
-    document.addEventListener('click', function(e) {
-        const target = e.target;
-        const button = target.closest('button');
-        const link = target.closest('a');
-        
-        // Navigation cards
-        if (button && button.classList.contains('nav-card')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const sectionName = button.getAttribute('data-section');
-            if (sectionName) {
-                navigateToSection(sectionName);
-            }
-            return;
+    // Handle ALL clicks using event delegation - MUST be attached early
+    console.log('Setting up click event delegation...');
+    
+    // CRITICAL: Attach event listener immediately, even before DOM is ready
+    // Use capture phase to catch events early and prevent other handlers
+    (function attachClickHandler() {
+        if (document.body) {
+            // Body exists, attach to document
+            document.addEventListener('click', handleClick, true);
+            console.log('Click handler attached to document');
+        } else {
+            // Body doesn't exist yet, wait for it
+            setTimeout(attachClickHandler, 10);
         }
+    })();
+    
+    function handleClick(e) {
+        try {
+            const target = e.target;
+            const button = target.closest('button');
+            const link = target.closest('a');
+            
+            // Skip if it's a link (like Export CSV) - let it work normally
+            if (link && !button) {
+                return;
+            }
+            
+            // Navigation cards - HIGHEST PRIORITY
+            if (button && button.classList.contains('nav-card')) {
+                console.log('Nav card clicked:', button.getAttribute('data-section'));
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                const sectionName = button.getAttribute('data-section');
+                if (sectionName) {
+                    navigateToSection(sectionName);
+                }
+                return false;
+            }
         
-        // Widget clicks (onclick handlers in HTML)
-        if (target.closest('.widget')) {
-            const widget = target.closest('.widget');
-            const onclick = widget.getAttribute('onclick');
-            if (onclick && onclick.includes('navigateToSection')) {
-                // Extract section name from onclick
-                const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
-                if (match && match[1]) {
-                    e.preventDefault();
-                    navigateToSection(match[1]);
+            // Widget clicks (onclick handlers in HTML)
+            if (target.closest('.widget')) {
+                const widget = target.closest('.widget');
+                const onclick = widget.getAttribute('onclick');
+                if (onclick && onclick.includes('navigateToSection')) {
+                    // Extract section name from onclick
+                    const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
+                    if (match && match[1]) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigateToSection(match[1]);
+                    }
                 }
             }
-        }
-        
-        // Quick action cards
-        if (button && button.classList.contains('quick-action-card')) {
-            const onclick = button.getAttribute('onclick');
-            if (onclick && onclick.includes('navigateToSection')) {
-                const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
-                if (match && match[1]) {
-                    e.preventDefault();
-                    navigateToSection(match[1]);
+            
+            // Quick action cards
+            if (button && button.classList.contains('quick-action-card')) {
+                const onclick = button.getAttribute('onclick');
+                if (onclick && onclick.includes('navigateToSection')) {
+                    const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
+                    if (match && match[1]) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigateToSection(match[1]);
+                    }
                 }
             }
-        }
-        
-        // Assign shift buttons
-        if (target.closest('.btn-assign-shift')) {
+            
+            // Assign shift buttons
+            if (target.closest('.btn-assign-shift')) {
             e.preventDefault();
             e.stopPropagation();
             const btn = target.closest('.btn-assign-shift');
@@ -156,24 +185,30 @@
         }
         
         // Bulk select button
-        if (button && button.id === 'bulk-select-btn') {
+        if (button && (button.id === 'bulk-select-btn' || button.classList.contains('bulk-select-btn'))) {
+            console.log('Bulk select button clicked');
             e.preventDefault();
+            e.stopPropagation();
             const isActive = button.classList.contains('active');
             button.classList.toggle('active', !isActive);
             showNotification(!isActive ? 'Bulk select mode enabled' : 'Bulk select mode disabled', 'info');
-            return;
+            return false;
         }
         
         // Copy week button
-        if (button && button.id === 'copy-week-btn') {
+        if (button && (button.id === 'copy-week-btn' || button.classList.contains('copy-week-btn'))) {
+            console.log('Copy week button clicked');
             e.preventDefault();
+            e.stopPropagation();
             showNotification('Week schedule copied. Use "Paste Week" to apply to another week.', 'info');
-            return;
+            return false;
         }
         
         // Clear conflicts button
-        if (button && button.id === 'clear-conflicts-btn') {
+        if (button && (button.id === 'clear-conflicts-btn' || button.classList.contains('clear-conflicts-btn'))) {
+            console.log('Clear conflicts button clicked');
             e.preventDefault();
+            e.stopPropagation();
             const conflictCells = document.querySelectorAll('.shift-conflict');
             if (conflictCells.length > 0) {
                 conflictCells.forEach(cell => {
@@ -183,12 +218,14 @@
             } else {
                 showNotification('No conflicts detected in the schedule.', 'info');
             }
-            return;
+            return false;
         }
         
         // Assign shifts button
-        if (button && button.id === 'assign-shifts-btn') {
+        if (button && (button.id === 'assign-shifts-btn' || button.classList.contains('assign-shifts-btn'))) {
+            console.log('Assign shifts button clicked');
             e.preventDefault();
+            e.stopPropagation();
             const activeSection = document.querySelector('.dashboard-section.active');
             const currentSectionName = activeSection ? activeSection.getAttribute('data-section') : 'overview';
             if (currentSectionName !== 'weekly-schedule') {
@@ -200,9 +237,17 @@
                     scheduleTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 100);
-            return;
+            return false;
         }
-    });
+        
+        // Debug: Log any button click that wasn't handled
+        if (button && button.type !== 'submit') {
+            console.log('Unhandled button click:', button.id, button.className, button);
+        }
+        } catch (error) {
+            console.error('Error in click handler:', error);
+        }
+    }, true); // Use capture phase
     
     // ============================================
     // SCHEDULE TABLE FUNCTIONALITY
@@ -500,6 +545,7 @@
     // Fallback: retry initialization after a delay
     setTimeout(function() {
         const navCards = document.querySelectorAll('.nav-card');
+        console.log('Fallback check - Nav cards:', navCards.length);
         if (navCards.length > 0) {
             const hasActive = document.querySelector('.dashboard-section.active');
             if (!hasActive) {
@@ -509,4 +555,12 @@
         }
     }, 500);
     
+    // Expose manual initialization
+    window.initDashboard = initialize;
+    
+    console.log('Dashboard script setup complete');
+    
 })();
+
+// Additional global test - verify script loaded
+console.log('dashboard.js file loaded successfully');
