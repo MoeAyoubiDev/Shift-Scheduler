@@ -108,21 +108,112 @@ if (isset($_GET['reset_section']) && $role === 'Director') {
 }
 
 if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $role === 'Team Leader') {
-    $scheduleRows = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
+    $exportWeekStart = $_GET['week_start'] ?? $weekStart;
+    $exportWeekEnd = $_GET['week_end'] ?? $weekEnd;
+    $exportWeekId = Schedule::upsertWeek($exportWeekStart, $exportWeekEnd);
+    $scheduleRows = $sectionId ? Schedule::getWeeklySchedule($exportWeekId, $sectionId) : [];
+    
+    // Get all employees for the section
+    $allEmployees = $sectionId ? Employee::listBySection($sectionId) : [];
+    
+    // Transform to employee-based format
+    $employeeSchedule = [];
+    $employeeHours = [];
+    
+    foreach ($scheduleRows as $entry) {
+        if (empty($entry['employee_id']) || empty($entry['shift_date'])) {
+            continue;
+        }
+        $empId = (int) $entry['employee_id'];
+        $date = $entry['shift_date'];
+        
+        if (!isset($employeeSchedule[$empId])) {
+            $employeeSchedule[$empId] = [];
+        }
+        if (!isset($employeeSchedule[$empId][$date])) {
+            $employeeSchedule[$empId][$date] = [];
+        }
+        
+        $employeeSchedule[$empId][$date][] = [
+            'shift_name' => $entry['shift_name'] ?? '',
+            'start_time' => $entry['start_time'] ?? '',
+            'end_time' => $entry['end_time'] ?? '',
+            'notes' => $entry['notes'] ?? '',
+        ];
+        
+        if (!isset($employeeHours[$empId])) {
+            $employeeHours[$empId] = 0;
+        }
+        $duration = $entry['duration_hours'] ?? 8.0;
+        $employeeHours[$empId] += (float) $duration;
+    }
+    
+    // Generate week dates
+    $weekDates = [];
+    $startDate = new DateTimeImmutable($exportWeekStart);
+    for ($i = 0; $i < 7; $i++) {
+        $date = $startDate->modify('+' . $i . ' day');
+        $weekDates[] = $date->format('Y-m-d');
+    }
+    
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="schedule-' . $weekStart . '.csv"');
+    header('Content-Disposition: attachment; filename="schedule-' . $exportWeekStart . '-to-' . $exportWeekEnd . '.csv"');
 
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Date', 'Shift', 'Employee', 'Assignment Source', 'Notes']);
-    foreach ($scheduleRows as $entry) {
-        fputcsv($out, [
-            $entry['shift_date'],
-            $entry['shift_name'],
-            $entry['employee_name'],
-            $entry['assignment_source'],
-            $entry['notes'],
-        ]);
+    
+    // Header row
+    $header = ['Employee', 'Hours This Week'];
+    foreach ($weekDates as $date) {
+        $dateObj = new DateTimeImmutable($date);
+        $header[] = $dateObj->format('D j M');
     }
+    fputcsv($out, $header);
+    
+    // Employee rows
+    foreach ($allEmployees as $employee) {
+        $empId = (int) $employee['id'];
+        $row = [
+            $employee['full_name'],
+            number_format($employeeHours[$empId] ?? 0, 1),
+        ];
+        
+        foreach ($weekDates as $date) {
+            $dayShifts = $employeeSchedule[$empId][$date] ?? [];
+            if (empty($dayShifts)) {
+                $row[] = '';
+            } else {
+                $shiftStrings = [];
+                foreach ($dayShifts as $shift) {
+                    if (!empty($shift['notes'])) {
+                        $notes = strtolower($shift['notes']);
+                        if (strpos($notes, 'vacation') !== false) {
+                            $shiftStrings[] = 'Vacation';
+                        } elseif (strpos($notes, 'medical') !== false || strpos($notes, 'leave') !== false) {
+                            $shiftStrings[] = 'Medical Leave';
+                        } elseif (strpos($notes, 'moving') !== false) {
+                            $shiftStrings[] = 'Moving';
+                        } else {
+                            $timeStr = '';
+                            if (!empty($shift['start_time']) && !empty($shift['end_time'])) {
+                                $timeStr = date('H:i', strtotime($shift['start_time'])) . '-' . date('H:i', strtotime($shift['end_time']));
+                            }
+                            $shiftStrings[] = $shift['shift_name'] . ($timeStr ? ' (' . $timeStr . ')' : '');
+                        }
+                    } else {
+                        $timeStr = '';
+                        if (!empty($shift['start_time']) && !empty($shift['end_time'])) {
+                            $timeStr = date('H:i', strtotime($shift['start_time'])) . '-' . date('H:i', strtotime($shift['end_time']));
+                        }
+                        $shiftStrings[] = $shift['shift_name'] . ($timeStr ? ' (' . $timeStr . ')' : '');
+                    }
+                }
+                $row[] = implode(' / ', $shiftStrings);
+            }
+        }
+        
+        fputcsv($out, $row);
+    }
+    
     fclose($out);
     exit;
 }

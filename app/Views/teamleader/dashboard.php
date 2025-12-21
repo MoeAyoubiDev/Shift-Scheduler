@@ -345,55 +345,243 @@ for ($i = 0; $i < 7; $i++) {
         <!-- Weekly Schedule Section -->
         <section class="dashboard-section" data-section="weekly-schedule">
             <div class="card">
-                <div class="hero-row">
-                    <div>
-                        <h3>Weekly Schedule</h3>
-                        <p>Generate and manually adjust the weekly schedule.</p>
+                <!-- Schedule Header with Controls -->
+                <div class="schedule-header">
+                    <div class="schedule-controls">
+                        <div class="date-range-selector">
+                            <input type="date" id="schedule-start-date" value="<?= e($weekStart) ?>" class="date-input">
+                            <span class="date-separator">–</span>
+                            <input type="date" id="schedule-end-date" value="<?= e($weekEnd) ?>" class="date-input">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <input type="text" id="schedule-filter" placeholder="Filter..." class="filter-input">
+                        </div>
                     </div>
-                    <form method="post" action="/index.php" class="inline">
-                        <input type="hidden" name="action" value="generate_schedule">
-                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                        <button type="submit" class="btn">Generate Schedule</button>
-                    </form>
+                    <div class="schedule-actions">
+                        <form method="post" action="/index.php" class="inline">
+                            <input type="hidden" name="action" value="generate_schedule">
+                            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                            <button type="submit" class="btn secondary">Generate Schedule</button>
+                        </form>
+                        <button type="button" class="btn btn-primary" id="assign-shifts-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 3V15M3 9H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Assign Shifts
+                        </button>
+                        <a href="/index.php?download=schedule&week_start=<?= e($weekStart) ?>&week_end=<?= e($weekEnd) ?>" class="btn secondary">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15 11.25V15C15 15.3978 14.842 15.7794 14.5607 16.0607C14.2794 16.342 13.8978 16.5 13.5 16.5H4.5C4.10218 16.5 3.72064 16.342 3.43934 16.0607C3.15804 15.7794 3 15.3978 3 15V11.25M12 7.5L9 4.5M9 4.5L6 7.5M9 4.5V11.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Export CSV
+                        </a>
+                    </div>
                 </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>Employee</th>
-                        <th>Source</th>
-                        <th>Notes</th>
-                        <th>Update Shift</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($schedule as $entry): ?>
-                        <tr>
-                            <td><?= e($entry['shift_date']) ?></td>
-                            <td><?= e($entry['shift_name']) ?></td>
-                            <td><?= e($entry['employee_name']) ?></td>
-                            <td><?= e($entry['assignment_source']) ?></td>
-                            <td><?= e($entry['notes']) ?></td>
-                            <td>
-                                <form method="post" action="/index.php" class="inline">
-                                    <input type="hidden" name="action" value="update_assignment">
-                                    <input type="hidden" name="assignment_id" value="<?= e((string) $entry['assignment_id']) ?>">
-                                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                    <select name="shift_definition_id">
-                                        <?php foreach ($shiftDefinitions as $definition): ?>
-                                            <option value="<?= e((string) $definition['definition_id']) ?>" <?= $definition['definition_id'] == $entry['shift_definition_id'] ? 'selected' : '' ?>>
-                                                <?= e($definition['definition_name']) ?> (<?= e($definition['shift_type_name']) ?>)
-                                            </option>
+
+                <!-- Schedule Table -->
+                <?php
+                // Transform schedule data: group by employee and day
+                $employeeSchedule = [];
+                $employeeHours = [];
+                
+                // Get unique employees from schedule
+                $uniqueEmployees = [];
+                foreach ($schedule as $entry) {
+                    if (!empty($entry['employee_id']) && !empty($entry['employee_name'])) {
+                        $empId = (int) $entry['employee_id'];
+                        if (!isset($uniqueEmployees[$empId])) {
+                            $uniqueEmployees[$empId] = [
+                                'id' => $empId,
+                                'name' => $entry['employee_name'],
+                                'code' => $entry['employee_code'] ?? '',
+                            ];
+                        }
+                    }
+                }
+                
+                // Also include all employees from the section
+                foreach ($employees as $emp) {
+                    $empId = (int) $emp['id'];
+                    if (!isset($uniqueEmployees[$empId])) {
+                        $uniqueEmployees[$empId] = [
+                            'id' => $empId,
+                            'name' => $emp['full_name'],
+                            'code' => $emp['employee_code'],
+                        ];
+                    }
+                }
+                
+                // Group schedule entries by employee and date
+                foreach ($schedule as $entry) {
+                    if (empty($entry['employee_id']) || empty($entry['shift_date'])) {
+                        continue;
+                    }
+                    $empId = (int) $entry['employee_id'];
+                    $date = $entry['shift_date'];
+                    
+                    if (!isset($employeeSchedule[$empId])) {
+                        $employeeSchedule[$empId] = [];
+                    }
+                    if (!isset($employeeSchedule[$empId][$date])) {
+                        $employeeSchedule[$empId][$date] = [];
+                    }
+                    
+                    // Get shift definition details for times
+                    $shiftDef = null;
+                    foreach ($shiftDefinitions as $def) {
+                        if ((int) $def['definition_id'] === (int) ($entry['shift_definition_id'] ?? 0)) {
+                            $shiftDef = $def;
+                            break;
+                        }
+                    }
+                    
+                    $employeeSchedule[$empId][$date][] = [
+                        'shift_name' => $entry['shift_name'] ?? '',
+                        'start_time' => $shiftDef['start_time'] ?? '',
+                        'end_time' => $shiftDef['end_time'] ?? '',
+                        'category' => $entry['shift_category'] ?? '',
+                        'assignment_id' => $entry['assignment_id'] ?? null,
+                        'notes' => $entry['notes'] ?? '',
+                        'shift_definition_id' => $entry['shift_definition_id'] ?? null,
+                    ];
+                    
+                    // Calculate hours (use shift definition duration or default to 8)
+                    if (!isset($employeeHours[$empId])) {
+                        $employeeHours[$empId] = 0;
+                    }
+                    $duration = $shiftDef['duration_hours'] ?? 8.0;
+                    $employeeHours[$empId] += (float) $duration;
+                }
+                
+                // Generate week dates
+                $weekDates = [];
+                $startDate = new DateTimeImmutable($weekStart);
+                for ($i = 0; $i < 7; $i++) {
+                    $date = $startDate->modify('+' . $i . ' day');
+                    $weekDates[] = [
+                        'date' => $date->format('Y-m-d'),
+                        'day_name' => $date->format('l'),
+                        'day_number' => $date->format('j'),
+                    ];
+                }
+                ?>
+                
+                <div class="schedule-table-wrapper">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th class="employee-col">Employee</th>
+                                <?php foreach ($weekDates as $dayInfo): ?>
+                                    <th class="day-col">
+                                        <div class="day-header">
+                                            <span class="day-name"><?= e($dayInfo['day_name']) ?></span>
+                                            <span class="day-number"><?= e($dayInfo['day_number']) ?></span>
+                                        </div>
+                                    </th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($uniqueEmployees)): ?>
+                                <tr>
+                                    <td colspan="8" class="empty-schedule">
+                                        <div class="empty-state">
+                                            <div class="empty-state-title">No schedule data</div>
+                                            <p class="empty-state-text">Generate a schedule or assign shifts to employees to see the weekly view.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($uniqueEmployees as $empId => $employee): ?>
+                                    <tr class="employee-row" data-employee-id="<?= e((string) $empId) ?>" data-employee-name="<?= e(strtolower($employee['name'])) ?>">
+                                        <td class="employee-cell">
+                                            <div class="employee-info">
+                                                <div class="employee-avatar">
+                                                    <?= strtoupper(substr($employee['name'], 0, 1)) ?>
+                                                </div>
+                                                <div class="employee-details">
+                                                    <div class="employee-name"><?= e($employee['name']) ?></div>
+                                                    <div class="employee-hours">
+                                                        <?= e(number_format($employeeHours[$empId] ?? 0, 1)) ?> hours this week
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <?php foreach ($weekDates as $dayInfo): ?>
+                                            <td class="shift-cell" data-date="<?= e($dayInfo['date']) ?>" data-employee-id="<?= e((string) $empId) ?>">
+                                                <?php
+                                                $dayShifts = $employeeSchedule[$empId][$dayInfo['date']] ?? [];
+                                                if (empty($dayShifts)): ?>
+                                                    <div class="shift-empty">—</div>
+                                                <?php else: ?>
+                                                    <div class="shift-pills">
+                                                        <?php foreach ($dayShifts as $shift): ?>
+                                                            <?php
+                                                            // Determine shift color based on category or notes
+                                                            $shiftClass = 'shift-pill';
+                                                            $shiftLabel = $shift['shift_name'];
+                                                            
+                                                            // Check for special statuses in notes
+                                                            if (!empty($shift['notes'])) {
+                                                                $notes = strtolower($shift['notes']);
+                                                                if (strpos($notes, 'vacation') !== false) {
+                                                                    $shiftClass .= ' shift-vacation';
+                                                                    $shiftLabel = 'Vacation';
+                                                                } elseif (strpos($notes, 'medical') !== false || strpos($notes, 'leave') !== false) {
+                                                                    $shiftClass .= ' shift-medical';
+                                                                    $shiftLabel = 'Medical Leave';
+                                                                } elseif (strpos($notes, 'moving') !== false) {
+                                                                    $shiftClass .= ' shift-moving';
+                                                                    $shiftLabel = 'Moving';
+                                                                }
+                                                            }
+                                                            
+                                                            // Color based on category
+                                                            if (empty($shift['notes']) || strpos(strtolower($shift['notes'] ?? ''), 'vacation') === false) {
+                                                                switch (strtoupper($shift['category'] ?? '')) {
+                                                                    case 'AM':
+                                                                        $shiftClass .= ' shift-am';
+                                                                        break;
+                                                                    case 'PM':
+                                                                        $shiftClass .= ' shift-pm';
+                                                                        break;
+                                                                    case 'MID':
+                                                                        $shiftClass .= ' shift-mid';
+                                                                        break;
+                                                                    default:
+                                                                        $shiftClass .= ' shift-default';
+                                                                }
+                                                            }
+                                                            
+                                                            // Format time display
+                                                            $timeDisplay = '';
+                                                            if (!empty($shift['start_time']) && !empty($shift['end_time'])) {
+                                                                $startTime = date('H:i', strtotime($shift['start_time']));
+                                                                $endTime = date('H:i', strtotime($shift['end_time']));
+                                                                $timeDisplay = $startTime . ' - ' . $endTime;
+                                                            } elseif (!empty($shift['start_time'])) {
+                                                                $timeDisplay = date('H:i', strtotime($shift['start_time']));
+                                                            }
+                                                            ?>
+                                                            <div class="<?= e($shiftClass) ?>" title="<?= e($shift['notes'] ?? '') ?>">
+                                                                <?php if (!empty($timeDisplay) && strpos($shiftLabel, 'Vacation') === false && strpos($shiftLabel, 'Medical') === false && strpos($shiftLabel, 'Moving') === false): ?>
+                                                                    <span class="shift-time-start"><?= e(explode(' - ', $timeDisplay)[0]) ?></span>
+                                                                    <span class="shift-time-end"><?= e(explode(' - ', $timeDisplay)[1] ?? '') ?></span>
+                                                                <?php else: ?>
+                                                                    <span class="shift-label"><?= e($shiftLabel) ?></span>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </td>
                                         <?php endforeach; ?>
-                                    </select>
-                                    <button type="submit" class="btn small">Update</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 

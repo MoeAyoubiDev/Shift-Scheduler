@@ -3,6 +3,82 @@ console.log('Navigation JS loaded - script executing');
 // Test if script is running
 if (typeof window !== 'undefined') {
     window.dashboardScriptLoaded = true;
+
+// Schedule Table Functionality
+(function() {
+    'use strict';
+    
+    function initScheduleTable() {
+        const filterInput = document.getElementById('schedule-filter');
+        const startDateInput = document.getElementById('schedule-start-date');
+        const endDateInput = document.getElementById('schedule-end-date');
+        const assignBtn = document.getElementById('assign-shifts-btn');
+        
+        // Filter functionality
+        if (filterInput) {
+            filterInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.schedule-table tbody .employee-row');
+                
+                rows.forEach(row => {
+                    const employeeName = row.getAttribute('data-employee-name') || '';
+                    if (searchTerm === '' || employeeName.includes(searchTerm)) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+            });
+        }
+        
+        // Date range change - reload page with new dates
+        if (startDateInput && endDateInput) {
+            [startDateInput, endDateInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+                    if (startDate && endDate) {
+                        // Reload page with new date range
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('week_start', startDate);
+                        url.searchParams.set('week_end', endDate);
+                        window.location.href = url.toString();
+                    }
+                });
+            });
+        }
+        
+        // Assign Shifts button
+        if (assignBtn) {
+            assignBtn.addEventListener('click', function() {
+                // For now, scroll to generate schedule button or show a message
+                // This can be enhanced with a modal for assigning shifts
+                alert('Assign Shifts functionality: Click on any shift cell to assign or modify shifts. Use the "Generate Schedule" button to auto-generate based on requirements.');
+            });
+        }
+        
+        // Make shift cells clickable for editing
+        const shiftCells = document.querySelectorAll('.shift-cell');
+        shiftCells.forEach(cell => {
+            cell.addEventListener('click', function(e) {
+                if (e.target.classList.contains('shift-pill')) {
+                    // Show edit modal or inline editor
+                    console.log('Edit shift:', {
+                        employeeId: cell.getAttribute('data-employee-id'),
+                        date: cell.getAttribute('data-date')
+                    });
+                }
+            });
+        });
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScheduleTable);
+    } else {
+        initScheduleTable();
+    }
+})();
     console.log('Dashboard script loaded flag set');
 }
 
