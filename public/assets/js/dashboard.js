@@ -508,15 +508,11 @@
     const daySelect = document.getElementById('request_day');
     const dateInput = document.getElementById('request_date');
     
-    if (daySelect && dateInput) {
+    if (daySelect && dateInput && daySelect !== dateInput) {
         daySelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const dateValue = selectedOption.getAttribute('data-date');
-            if (dateValue) {
-                dateInput.value = dateValue;
-            } else {
-                dateInput.value = '';
-            }
+            const dateValue = selectedOption.getAttribute('data-date') || selectedOption.value;
+            dateInput.value = dateValue || '';
         });
     }
     
@@ -524,10 +520,10 @@
     const requestForm = document.getElementById('request-form');
     if (requestForm) {
         requestForm.addEventListener('submit', function(e) {
-            const daySelect = document.getElementById('request_day');
-            const dateInput = document.getElementById('request_date');
+            const requestDateField = requestForm.querySelector('[name="request_date"]');
+            const requestDateValue = requestDateField ? requestDateField.value : '';
             
-            if (!daySelect || !daySelect.value || !dateInput || !dateInput.value) {
+            if (!requestDateValue) {
                 e.preventDefault();
                 alert('Please select a day for your shift request.');
                 return false;

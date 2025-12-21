@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../Helpers/helpers.php';
 require_once __DIR__ . '/../Models/User.php';
 require_once __DIR__ . '/../Models/Employee.php';
+require_once __DIR__ . '/../Models/Role.php';
 require_once __DIR__ . '/../Models/Schedule.php';
 require_once __DIR__ . '/../Models/ShiftRequest.php';
 
@@ -30,22 +31,42 @@ class TeamLeaderController
         $email = trim($payload['email'] ?? '');
         $employeeCode = trim($payload['employee_code'] ?? '');
         $fullName = trim($payload['full_name'] ?? '');
+        $roleId = (int) ($payload['role_id'] ?? 0);
+        $seniorityLevel = max(0, (int) ($payload['seniority_level'] ?? 0));
 
         if ($username === '' || $employeeCode === '' || $fullName === '') {
             return 'Username, employee code, and full name are required.';
         }
+
+        if ($roleId <= 0) {
+            return 'Role is required.';
+        }
+
+        $roleName = null;
+        foreach (Role::listRoles() as $role) {
+            if ((int) $role['id'] === $roleId) {
+                $roleName = $role['role_name'];
+                break;
+            }
+        }
+
+        if (!in_array($roleName, ['Employee', 'Senior'], true)) {
+            return 'Invalid role selected.';
+        }
+
+        $isSenior = $roleName === 'Senior';
 
         try {
             $employeeId = User::createEmployee([
                 'username' => $username,
                 'password_hash' => password_hash($password, PASSWORD_BCRYPT),
                 'email' => $email,
-                'role_id' => (int) ($payload['role_id'] ?? 0),
+                'role_id' => $roleId,
                 'section_id' => $sectionId,
                 'employee_code' => $employeeCode,
                 'full_name' => $fullName,
-                'is_senior' => isset($payload['is_senior']) ? 1 : 0,
-                'seniority_level' => (int) ($payload['seniority_level'] ?? 0),
+                'is_senior' => $isSenior ? 1 : 0,
+                'seniority_level' => $seniorityLevel,
             ]);
 
             return $employeeId > 0 ? 'Employee created successfully.' : 'Unable to create employee.';
