@@ -198,15 +198,21 @@ if (isset($_GET['reset_section']) && $role === 'Director') {
     exit;
 }
 
-// Render login page if not authenticated
+// Render landing page or login if not authenticated
 if (!$user) {
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
     header('Expires: 0');
     
-    $title = 'Shift Scheduler Login';
+    // Check if this is a login request
+    if (isset($_GET['login']) || (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/login') !== false)) {
+        header('Location: /login.php');
+        exit;
+    }
+    
+    // Show landing page
     require_once __DIR__ . '/../includes/header.php';
-    render_view('auth/login');
+    render_view('public/landing');
     require_once __DIR__ . '/../includes/footer.php';
     exit;
 }

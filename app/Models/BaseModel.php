@@ -119,4 +119,14 @@ class BaseModel
 
         return array_intersect_key($data, array_flip($this->fillable));
     }
+
+    /**
+     * Execute a raw SQL query with parameters
+     */
+    protected function query(string $sql, array $params = []): array
+    {
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }
