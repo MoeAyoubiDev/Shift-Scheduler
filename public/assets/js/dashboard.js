@@ -17,29 +17,20 @@
     function showSection(sectionName) {
         if (!sectionName) return;
         
-        // Hide all sections with fade out
+        // Hide all sections immediately
         document.querySelectorAll('.dashboard-section').forEach(section => {
-            if (section.classList.contains('active')) {
-                section.style.animation = 'fadeOut 0.2s ease-out forwards';
-                setTimeout(() => {
-                    section.classList.remove('active');
-                    section.style.display = 'none';
-                    section.style.animation = '';
-                }, 200);
-            } else {
-                section.classList.remove('active');
-                section.style.display = 'none';
-            }
+            section.classList.remove('active');
+            section.style.display = 'none';
+            section.style.opacity = '0';
         });
         
-        // Show target section with fade in
+        // Show target section immediately
         const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
         if (targetSection) {
             targetSection.style.display = 'block';
-            setTimeout(() => {
-                targetSection.classList.add('active');
-                targetSection.style.animation = 'fadeInUp 0.4s ease-out forwards';
-            }, 50);
+            targetSection.classList.add('active');
+            targetSection.style.opacity = '1';
+            targetSection.style.animation = 'fadeInUp 0.4s ease-out forwards';
             currentSection = sectionName;
             
             // Scroll to top of page (not the section) to prevent jumping
@@ -537,13 +528,39 @@
     // ============================================
     
     function initialize() {
+        // First, ensure all sections are hidden except the one with 'active' class
+        document.querySelectorAll('.dashboard-section').forEach(section => {
+            const isActive = section.classList.contains('active');
+            if (isActive) {
+                section.style.display = 'block';
+                section.style.opacity = '1';
+            } else {
+                section.style.display = 'none';
+                section.style.opacity = '0';
+            }
+        });
+        
         // Initialize from URL hash
         const hash = window.location.hash.replace('#', '');
-        if (hash) {
+        if (hash && document.querySelector(`.dashboard-section[data-section="${hash}"]`)) {
             navigateToSection(hash);
         } else {
-            // Show overview by default
-            navigateToSection('overview');
+            // Show overview by default - ensure it's visible immediately
+            const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
+            if (overviewSection) {
+                overviewSection.style.display = 'block';
+                overviewSection.style.opacity = '1';
+                overviewSection.classList.add('active');
+                setActiveNavCard('overview');
+                currentSection = 'overview';
+            } else {
+                // Fallback: show first section if overview doesn't exist
+                const firstSection = document.querySelector('.dashboard-section');
+                if (firstSection) {
+                    const sectionName = firstSection.getAttribute('data-section');
+                    navigateToSection(sectionName);
+                }
+            }
         }
         
         // Initialize schedule table
