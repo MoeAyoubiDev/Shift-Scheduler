@@ -6,6 +6,11 @@ declare(strict_types=1);
  * First step in the onboarding process
  */
 
+// Enable error reporting for debugging (remove in production)
+error_reporting(E_ALL);
+ini_set('display_errors', '0'); // Don't display errors, but log them
+ini_set('log_errors', '1');
+
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -17,13 +22,30 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-require_once __DIR__ . '/../app/Core/config.php';
-require_once __DIR__ . '/../app/Helpers/view.php';
-require_once __DIR__ . '/../app/Helpers/helpers.php';
-require_once __DIR__ . '/../app/Models/BaseModel.php';
-require_once __DIR__ . '/../app/Models/Company.php';
+try {
+    require_once __DIR__ . '/../app/Core/config.php';
+    require_once __DIR__ . '/../app/Helpers/view.php';
+    require_once __DIR__ . '/../app/Helpers/helpers.php';
+    require_once __DIR__ . '/../app/Models/BaseModel.php';
+    require_once __DIR__ . '/../app/Models/Company.php';
+    
+    // Check if companies table exists
+    try {
+        $pdo = db();
+        $pdo->query("SELECT 1 FROM companies LIMIT 1");
+        $dbError = false;
+    } catch (PDOException $e) {
+        // Table doesn't exist - show setup message
+        $dbError = true;
+    }
+} catch (Throwable $e) {
+    error_log("Signup page error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    $dbError = true;
+}
 
-$error = '';
+// Initialize variables
+if (!isset($error)) $error = '';
+if (!isset($dbError)) $dbError = false;
 $success = '';
 
 // Handle sign-up form submission
@@ -48,34 +70,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif ($password !== $confirmPassword) {
         $error = 'Passwords do not match.';
     } else {
-        // Check if email already exists
-        $existing = Company::findByEmail($adminEmail);
-        if ($existing) {
-            $error = 'An account with this email already exists.';
-        } else {
-            // Create company
-            $result = Company::create([
-                'company_name' => $companyName,
-                'admin_email' => $adminEmail,
-                'admin_password' => $password,
-                'timezone' => $timezone,
-                'country' => $country,
-                'company_size' => $companySize,
-            ]);
-            
-            if ($result['success']) {
-                // Store company ID in session for email verification
-                $_SESSION['signup_company_id'] = $result['company_id'];
-                $_SESSION['signup_email'] = $adminEmail;
-                
-                // Send verification email (placeholder - implement email service)
-                // EmailService::sendVerificationEmail($adminEmail, $result['verification_token']);
-                
-                header('Location: /verify-email.php?email=' . urlencode($adminEmail));
-                exit;
+        try {
+            // Check if email already exists
+            $existing = Company::findByEmail($adminEmail);
+            if ($existing) {
+                $error = 'An account with this email already exists.';
             } else {
-                $error = $result['message'] ?? 'Failed to create account. Please try again.';
+                // Create company
+                $result = Company::create([
+                    'company_name' => $companyName,
+                    'admin_email' => $adminEmail,
+                    'admin_password' => $password,
+                    'timezone' => $timezone,
+                    'country' => $country,
+                    'company_size' => $companySize,
+                ]);
+                
+                if ($result['success']) {
+                    // Store company ID in session for email verification
+                    $_SESSION['signup_company_id'] = $result['company_id'];
+                    $_SESSION['signup_email'] = $adminEmail;
+                    
+                    // Send verification email (placeholder - implement email service)
+                    // EmailService::sendVerificationEmail($adminEmail, $result['verification_token']);
+                    
+                    header('Location: /verify-email.php?email=' . urlencode($adminEmail));
+                    exit;
+                } else {
+                    $error = $result['message'] ?? 'Failed to create account. Please try again.';
+                    if (strpos($error, 'migrations') !== false) {
+                        $dbError = true;
+                    }
+                }
             }
+        } catch (Throwable $e) {
+            error_log("Signup error: " . $e->getMessage());
+            $error = 'An error occurred. Please check if database migrations have been run. See QUICK_FIX.md for instructions.';
+            $dbError = true;
         }
     }
 }
@@ -97,8 +128,27 @@ require_once __DIR__ . '/../includes/header.php';
             <p class="brand-subtitle">Start managing your workforce today</p>
         </div>
 
-        <?php if ($error): ?>
-            <div class="alert alert-error"><?= e($error) ?></div>
+        <?php if ($dbError && empty($error)): ?>
+            <div class="alert alert-error">
+                <strong>⚠️ Database Setup Required</strong><br><br>
+                The companies table doesn't exist yet. Please run the database migrations first.<br><br>
+                <strong>Quick Fix:</strong><br>
+                <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; margin: 8px 0; font-family: monospace; white-space: pre-wrap;">
+mysql -u root -p ShiftSchedulerDB &lt; database/migrations/001_add_companies_table.sql
+mysql -u root -p ShiftSchedulerDB &lt; database/migrations/002_add_company_id_to_tables.sql
+mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_procedures.sql
+                </code>
+                <small>See <a href="/QUICK_FIX.md" target="_blank" style="color: #93c5fd; text-decoration: underline;">QUICK_FIX.md</a> for detailed instructions.</small>
+            </div>
+        <?php elseif ($error): ?>
+            <div class="alert alert-error">
+                <?= e($error) ?>
+                <?php if ($dbError): ?>
+                    <br><br>
+                    <strong>Database Setup Required:</strong><br>
+                    Please run the database migrations. See <a href="/QUICK_FIX.md" target="_blank" style="color: #93c5fd;">QUICK_FIX.md</a> for instructions.
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($success): ?>

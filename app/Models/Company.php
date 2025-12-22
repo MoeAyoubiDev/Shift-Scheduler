@@ -38,11 +38,16 @@ class Company extends BaseModel
                     // Ensure slug is unique
                     $counter = 0;
                     $originalSlug = $slug;
-                    $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
-                    while (!empty($existing)) {
-                        $counter++;
-                        $slug = $originalSlug . '-' . $counter;
+                    try {
                         $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                        while (!empty($existing)) {
+                            $counter++;
+                            $slug = $originalSlug . '-' . $counter;
+                            $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                        }
+                    } catch (PDOException $e) {
+                        // Table doesn't exist - that's okay, this is the first company
+                        // Just use the original slug
                     }
                     
                     $verificationToken = bin2hex(random_bytes(32));
