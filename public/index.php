@@ -261,6 +261,27 @@ if ($role === 'Director') {
     $patterns = Schedule::getSchedulePatterns();
     $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
     $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
+    
+    // Calculate metrics for overview
+    $pendingRequests = array_filter($requests, fn($r) => $r['status'] === 'PENDING');
+    $highPriorityRequests = array_filter($pendingRequests, fn($r) => ($r['importance_level'] ?? 'MEDIUM') === 'HIGH');
+    $activeBreaks = array_filter($breaks, fn($b) => $b['status'] === 'ON_BREAK');
+    $assignedEmployeeIds = array_unique(array_column($schedule, 'employee_id'));
+    $unassignedEmployees = array_filter($employees, fn($e) => !in_array($e['id'], $assignedEmployeeIds));
+    
+    // Calculate coverage gaps
+    $coverageGaps = [];
+    foreach ($requirements as $req) {
+        $assigned = count(array_filter($schedule, fn($s) => $s['shift_date'] === $req['date'] && $s['shift_name'] === $req['shift_name']));
+        if ($assigned < $req['required_count']) {
+            $coverageGaps[] = [
+                'date' => $req['date'],
+                'shift_name' => $req['shift_name'],
+                'assigned' => $assigned,
+                'required' => $req['required_count'],
+            ];
+        }
+    }
 
     render_view('teamleader/dashboard', [
         'user' => $user,
@@ -277,25 +298,65 @@ if ($role === 'Director') {
         'patterns' => $patterns,
         'performance' => $performance,
         'breaks' => $breaks,
+        'metrics' => [
+            'pending_requests' => count($pendingRequests),
+            'high_priority' => count($highPriorityRequests),
+            'active_breaks' => count($activeBreaks),
+            'unassigned' => count($unassignedEmployees),
+            'coverage_gaps' => count($coverageGaps),
+        ],
+        'pendingRequestsList' => array_slice($pendingRequests, 0, 3),
+        'coverageGapsList' => array_slice($coverageGaps, 0, 3),
+        'activeBreaksList' => array_slice($activeBreaks, 0, 3),
+        'unassignedList' => array_slice($unassignedEmployees, 0, 3),
     ]);
 } elseif ($role === 'Supervisor') {
     require_once __DIR__ . '/../app/Models/Employee.php';
     require_once __DIR__ . '/../app/Models/Performance.php';
     require_once __DIR__ . '/../app/Models/Break.php';
+    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
     
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
     $employees = $sectionId ? Employee::listBySection($sectionId) : [];
     $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
     $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
+    $requests = $sectionId ? ShiftRequest::listByWeek($weekId, $sectionId) : [];
+    $requirements = $sectionId ? Schedule::getShiftRequirements($weekId, $sectionId) : [];
+    
+    // Calculate tracking metrics
+    $totalEmployees = count($employees);
+    $totalShifts = count($schedule);
+    $pendingRequests = count(array_filter($requests, fn($r) => $r['status'] === 'PENDING'));
+    $activeBreaks = count(array_filter($breaks, fn($b) => $b['status'] === 'ON_BREAK'));
+    $totalBreakDelays = array_sum(array_column($breaks, 'delay_minutes'));
+    $avgDelay = count($breaks) > 0 ? round($totalBreakDelays / count($breaks), 1) : 0;
+    $coverageGaps = 0;
+    foreach ($requirements as $req) {
+        $assigned = count(array_filter($schedule, fn($s) => $s['shift_date'] === $req['date'] && $s['shift_name'] === $req['shift_name']));
+        if ($assigned < $req['required_count']) {
+            $coverageGaps += ($req['required_count'] - $assigned);
+        }
+    }
 
     render_view('supervisor/dashboard', [
         'user' => $user,
         'weekStart' => $weekStart,
         'weekEnd' => $weekEnd,
+        'weekId' => $weekId,
         'schedule' => $schedule,
         'employees' => $employees,
         'performance' => $performance,
         'breaks' => $breaks,
+        'requests' => $requests,
+        'requirements' => $requirements,
+        'metrics' => [
+            'total_employees' => $totalEmployees,
+            'total_shifts' => $totalShifts,
+            'pending_requests' => $pendingRequests,
+            'active_breaks' => $activeBreaks,
+            'avg_delay' => $avgDelay,
+            'coverage_gaps' => $coverageGaps,
+        ],
     ]);
 } elseif ($role === 'Senior') {
     require_once __DIR__ . '/../app/Models/Break.php';

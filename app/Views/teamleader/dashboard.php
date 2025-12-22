@@ -141,180 +141,55 @@ for ($i = 0; $i < 7; $i++) {
                     </div>
                 </div>
             </div>
-            <!-- Pending Shift Requests Widget -->
-            <div class="widget widget-requests" data-widget="requests" onclick="window.dashboard?.navigateToSection('shift-requests')">
-                <div class="widget-header">
-                    <div class="widget-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 2V18M2 10H18" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="widget-title-group">
+                <!-- Metrics Grid -->
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-top: var(--space-xl);">
+                    <div class="metric">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
                         <h3>Pending Requests</h3>
-                        <span class="widget-subtitle">Requires attention</span>
+                        <div class="metric-value"><?= e((string) ($metrics['pending_requests'] ?? 0)) ?></div>
+                        <span class="muted"><?= e((string) ($metrics['high_priority'] ?? 0)) ?> high priority</span>
                     </div>
-                </div>
-                <div class="widget-content">
-                    <div class="widget-metric">
-                        <span class="metric-value"><?= e($commandCenter['pending_requests']['total'] ?? 0) ?></span>
-                        <span class="metric-label">Total</span>
-                    </div>
-                    <?php if (!empty($commandCenter['pending_requests']['high_priority'])): ?>
-                    <div class="widget-alert">
-                        <span class="alert-badge high"><?= e($commandCenter['pending_requests']['high_priority']) ?> High Priority</span>
-                    </div>
-                    <?php endif; ?>
-                    <?php if (!empty($commandCenter['pending_requests']['requests'])): ?>
-                    <div class="widget-list">
-                        <?php foreach (array_slice($commandCenter['pending_requests']['requests'], 0, 3) as $req): ?>
-                        <div class="widget-list-item">
-                            <span class="item-name"><?= e($req['employee_name'] ?? 'Unknown') ?></span>
-                            <span class="item-meta"><?= e($req['shift_name'] ?? '') ?></span>
+                    
+                    <div class="metric">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <div class="widget-footer">
-                    <a href="#shift-requests" class="widget-link">View all requests →</a>
-                </div>
-            </div>
-
-            <!-- Coverage Gaps Widget -->
-            <div class="widget widget-coverage" data-widget="coverage" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
-                <div class="widget-header">
-                    <div class="widget-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="white" stroke-width="2"/>
-                            <path d="M10 6V10L13 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="widget-title-group">
                         <h3>Coverage Gaps</h3>
-                        <span class="widget-subtitle">Understaffed shifts</span>
+                        <div class="metric-value"><?= e((string) ($metrics['coverage_gaps'] ?? 0)) ?></div>
+                        <span class="muted">Understaffed shifts</span>
                     </div>
-                </div>
-                <div class="widget-content">
-                    <div class="widget-metric">
-                        <span class="metric-value"><?= e(count($commandCenter['coverage_gaps'] ?? [])) ?></span>
-                        <span class="metric-label">Gaps this week</span>
-                    </div>
-                    <?php if (!empty($commandCenter['coverage_gaps'])): ?>
-                    <div class="widget-list">
-                        <?php foreach (array_slice($commandCenter['coverage_gaps'], 0, 3) as $gap): ?>
-                        <div class="widget-list-item">
-                            <span class="item-name"><?= e((new DateTimeImmutable($gap['date']))->format('D, M j')) ?></span>
-                            <span class="item-meta"><?= e($gap['shift_name']) ?>: <?= e($gap['assigned']) ?>/<?= e($gap['required']) ?></span>
+                    
+                    <div class="metric">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 6V12L16 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <?php endforeach; ?>
+                        <h3>Active Breaks</h3>
+                        <div class="metric-value"><?= e((string) ($metrics['active_breaks'] ?? 0)) ?></div>
+                        <span class="muted">Currently on break</span>
                     </div>
-                    <?php endif; ?>
-                </div>
-                <div class="widget-footer">
-                    <a href="#weekly-schedule" class="widget-link">Fix coverage →</a>
-                </div>
-            </div>
-
-            <!-- Employees on Break Widget -->
-            <div class="widget widget-breaks" data-widget="breaks" onclick="window.dashboard?.navigateToSection('break-monitoring')">
-                <div class="widget-header">
-                    <div class="widget-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <circle cx="10" cy="10" r="8" stroke="white" stroke-width="2"/>
-                            <path d="M10 6V10L13 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="widget-title-group">
-                        <h3>On Break</h3>
-                        <span class="widget-subtitle">Currently away</span>
-                    </div>
-                </div>
-                <div class="widget-content">
-                    <div class="widget-metric">
-                        <span class="metric-value"><?= e($commandCenter['on_break']['count'] ?? 0) ?></span>
-                        <span class="metric-label">Active breaks</span>
-                    </div>
-                    <?php if (!empty($commandCenter['on_break']['employees'])): ?>
-                    <div class="widget-list">
-                        <?php foreach (array_slice($commandCenter['on_break']['employees'], 0, 3) as $break): ?>
-                        <div class="widget-list-item">
-                            <span class="item-name"><?= e($break['employee_name'] ?? 'Unknown') ?></span>
-                            <span class="item-meta">Started <?= e($break['break_start'] ?? '') ?></span>
+                    
+                    <div class="metric">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <div class="widget-footer">
-                    <a href="#break-monitoring" class="widget-link">Monitor breaks →</a>
-                </div>
-            </div>
-
-            <!-- Unassigned Employees Widget -->
-            <div class="widget widget-unassigned" data-widget="unassigned" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
-                <div class="widget-header">
-                    <div class="widget-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 2V18M2 10H18" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="widget-title-group">
                         <h3>Unassigned</h3>
-                        <span class="widget-subtitle">No shifts this week</span>
+                        <div class="metric-value"><?= e((string) ($metrics['unassigned'] ?? 0)) ?></div>
+                        <span class="muted">No shifts this week</span>
                     </div>
                 </div>
-                <div class="widget-content">
-                    <div class="widget-metric">
-                        <span class="metric-value"><?= e($commandCenter['unassigned']['count'] ?? 0) ?></span>
-                        <span class="metric-label">Employees</span>
-                    </div>
-                    <?php if (!empty($commandCenter['unassigned']['employees'])): ?>
-                    <div class="widget-list">
-                        <?php foreach (array_slice($commandCenter['unassigned']['employees'], 0, 3) as $emp): ?>
-                        <div class="widget-list-item">
-                            <span class="item-name"><?= e($emp['full_name'] ?? 'Unknown') ?></span>
-                            <span class="item-meta"><?= e($emp['employee_code'] ?? '') ?></span>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <div class="widget-footer">
-                    <a href="#weekly-schedule" class="widget-link">Assign shifts →</a>
-                </div>
-            </div>
-
-            <!-- SLA Alerts Widget -->
-            <?php if (!empty($commandCenter['sla_alerts'])): ?>
-            <div class="widget widget-alerts" data-widget="alerts">
-                <div class="widget-header">
-                    <div class="widget-icon" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 2L2 18H18L10 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M10 12V8M10 14H10.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="widget-title-group">
-                        <h3>SLA Alerts</h3>
-                        <span class="widget-subtitle">Requires action</span>
-                    </div>
-                </div>
-                <div class="widget-content">
-                    <div class="widget-metric">
-                        <span class="metric-value"><?= e(count($commandCenter['sla_alerts'])) ?></span>
-                        <span class="metric-label">Active alerts</span>
-                    </div>
-                    <div class="widget-list">
-                        <?php foreach (array_slice($commandCenter['sla_alerts'], 0, 3) as $alert): ?>
-                        <div class="widget-list-item alert-item" data-severity="<?= e($alert['severity']) ?>">
-                            <span class="item-name"><?= e($alert['message']) ?></span>
-                            <span class="item-badge severity-<?= e($alert['severity']) ?>"><?= e(ucfirst($alert['severity'])) ?></span>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
 
             <!-- Quick Actions -->
             <div class="quick-actions-section">
