@@ -1,147 +1,84 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Main Application Entry Point
+ * Clean, robust routing and action handling system
+ */
+
 // Clear opcache only in development mode
-// In production, opcache should be managed by PHP-FPM restart
 $appEnv = getenv('APP_ENV') ?: 'production';
 if ($appEnv === 'development' && function_exists('opcache_reset')) {
     opcache_reset();
     clearstatcache(true);
 }
 
-// Load middleware and core functions
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Load core dependencies
 require_once __DIR__ . '/../includes/middleware.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../app/Helpers/helpers.php';
-require_once __DIR__ . '/../app/Controllers/AuthController.php';
-require_once __DIR__ . '/../app/Controllers/DirectorController.php';
-require_once __DIR__ . '/../app/Controllers/TeamLeaderController.php';
-require_once __DIR__ . '/../app/Controllers/SupervisorController.php';
-require_once __DIR__ . '/../app/Controllers/SeniorController.php';
-require_once __DIR__ . '/../app/Controllers/EmployeeController.php';
+require_once __DIR__ . '/../app/Core/Router.php';
+require_once __DIR__ . '/../app/Core/ActionHandler.php';
 require_once __DIR__ . '/../app/Models/Schedule.php';
-require_once __DIR__ . '/../app/Models/Employee.php';
-require_once __DIR__ . '/../app/Models/ShiftRequest.php';
-require_once __DIR__ . '/../app/Models/Performance.php';
-require_once __DIR__ . '/../app/Models/Break.php';
-require_once __DIR__ . '/../app/Models/Role.php';
 
-// Get message from URL if present (for redirects after form submissions)
-$message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
+// Initialize week data
 $today = new DateTimeImmutable();
 $weekStart = $today->modify('monday this week')->format('Y-m-d');
 $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
 $weekId = Schedule::upsertWeek($weekStart, $weekEnd);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+// Initialize action handlers
+ActionHandler::initialize($weekId);
 
-    switch ($action) {
-        case 'login':
-            $username = trim($_POST['username'] ?? '');
-            $password = trim($_POST['password'] ?? '');
-            $message = AuthController::handleLogin($username, $password, $_POST) ?? $message;
-            break;
-        case 'logout':
-            AuthController::handleLogout($_POST);
-            break;
-        case 'select_section':
-            DirectorController::handleSelectSection($_POST);
-            break;
-        case 'create_employee':
-            $message = TeamLeaderController::handleCreateEmployee($_POST) ?? $message;
-            break;
-        case 'submit_request':
-            $message = EmployeeController::handleSubmitRequest($_POST, $weekId);
-            break;
-        case 'update_request_status':
-            $message = TeamLeaderController::handleUpdateRequestStatus($_POST) ?? $message;
-            break;
-        case 'save_requirements':
-            $sectionId = current_section_id();
-            if ($sectionId) {
-                $message = TeamLeaderController::handleSaveRequirements($_POST, $weekId, $sectionId);
-            }
-            break;
-        case 'generate_schedule':
-            $sectionId = current_section_id();
-            if ($sectionId) {
-                $message = TeamLeaderController::handleGenerateSchedule($weekId, $sectionId);
-            }
-            break;
-        case 'update_assignment':
-            $message = TeamLeaderController::handleUpdateAssignment($_POST);
-            break;
-        case 'delete_assignment':
-            $message = TeamLeaderController::handleDeleteAssignment($_POST);
-            break;
-        case 'update_employee':
-            $message = TeamLeaderController::handleUpdateEmployee($_POST) ?? $message;
-            break;
-        case 'delete_employee':
-            $message = TeamLeaderController::handleDeleteEmployee($_POST) ?? $message;
-            break;
-        case 'assign_shift':
-            $sectionId = current_section_id();
-            if ($sectionId) {
-                // Check if this is an AJAX request
-                $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-                
-                $result = TeamLeaderController::handleAssignShift($_POST, $weekId, $sectionId);
-                
-                if ($isAjax) {
-                    // Return JSON response for AJAX
-                    header('Content-Type: application/json');
-                    $response = [
-                        'success' => strpos($result, 'successfully') !== false || strpos($result, 'success') !== false,
-                        'message' => $result,
-                        'data' => TeamLeaderController::getScheduleData($weekId, $sectionId)
-                    ];
-                    echo json_encode($response);
-                    exit;
-                } else {
-                    // Redirect for normal form submission
-                    $message = $result ?? $message;
-                    header('Location: /index.php?message=' . urlencode($message));
-                    exit;
-                }
-            }
-            break;
-        case 'create_leader':
-            $message = DirectorController::handleCreateLeader($_POST) ?? $message;
-            break;
-        case 'start_break':
-            if (current_role() === 'Senior') {
-                $message = SeniorController::handleBreakAction($_POST, 'start');
-            } else {
-                $message = EmployeeController::handleBreakAction($_POST, 'start');
-            }
-            break;
-        case 'end_break':
-            if (current_role() === 'Senior') {
-                $message = SeniorController::handleBreakAction($_POST, 'end');
-            } else {
-                $message = EmployeeController::handleBreakAction($_POST, 'end');
-            }
-            break;
-        case 'swap_shifts':
-            $sectionId = current_section_id();
-            if ($sectionId) {
-                $message = TeamLeaderController::handleSwapShifts($_POST, $weekId, $sectionId) ?? $message;
-            }
-            break;
+// Process POST requests
+$message = '';
+$redirectUrl = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $result = ActionHandler::process($_POST, [
+        'weekId' => $weekId,
+        'weekStart' => $weekStart,
+        'weekEnd' => $weekEnd,
+    ]);
+    
+    // Handle redirects
+    if (!empty($result['redirect'])) {
+        $redirectUrl = $result['redirect'];
+        if (!empty($result['message'])) {
+            $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=' . urlencode($result['message']);
+        }
+        header('Location: ' . $redirectUrl);
+        exit;
     }
+    
+    // Handle AJAX requests
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit;
+    }
+    
+    // Store message for display
+    $message = $result['message'] ?? '';
 }
 
+// Get message from URL if present (for redirects after form submissions)
+if (empty($message) && isset($_GET['message'])) {
+    $message = urldecode($_GET['message']);
+}
+
+// Handle CSV export
 $user = current_user();
 $role = $user['role'] ?? null;
 $sectionId = current_section_id();
-
-if (isset($_GET['reset_section']) && $role === 'Director') {
-    set_current_section(0);
-    header('Location: /index.php');
-    exit;
-}
 
 if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $role === 'Team Leader') {
     $exportWeekStart = $_GET['week_start'] ?? $weekStart;
@@ -149,7 +86,7 @@ if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $ro
     $exportWeekId = Schedule::upsertWeek($exportWeekStart, $exportWeekEnd);
     $scheduleRows = $sectionId ? Schedule::getWeeklySchedule($exportWeekId, $sectionId) : [];
     
-    // Get all employees for the section
+    require_once __DIR__ . '/../app/Models/Employee.php';
     $allEmployees = $sectionId ? Employee::listBySection($sectionId) : [];
     
     // Transform to employee-based format
@@ -254,8 +191,15 @@ if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $ro
     exit;
 }
 
+// Handle section reset for Director
+if (isset($_GET['reset_section']) && $role === 'Director') {
+    set_current_section(0);
+    header('Location: /index.php');
+    exit;
+}
+
+// Render login page if not authenticated
 if (!$user) {
-    // Force no cache for login page
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
     header('Expires: 0');
@@ -267,6 +211,7 @@ if (!$user) {
     exit;
 }
 
+// Render dashboard based on role
 require_once __DIR__ . '/../includes/header.php';
 
 if ($role === 'Director') {
@@ -277,6 +222,8 @@ if ($role === 'Director') {
     } else {
         require_once __DIR__ . '/../app/Models/Section.php';
         require_once __DIR__ . '/../app/Models/Role.php';
+        require_once __DIR__ . '/../app/Models/Performance.php';
+        require_once __DIR__ . '/../app/Models/ShiftRequest.php';
         
         $dashboard = Performance::directorDashboard($sectionId, $weekId);
         $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
@@ -298,6 +245,12 @@ if ($role === 'Director') {
         ]);
     }
 } elseif ($role === 'Team Leader') {
+    require_once __DIR__ . '/../app/Models/Employee.php';
+    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
+    require_once __DIR__ . '/../app/Models/Performance.php';
+    require_once __DIR__ . '/../app/Models/Break.php';
+    require_once __DIR__ . '/../app/Models/Role.php';
+    
     $shiftDefinitions = Schedule::getShiftDefinitions();
     $shiftTypes = Schedule::getShiftTypes();
     $roles = Role::listRoles();
@@ -326,6 +279,10 @@ if ($role === 'Director') {
         'breaks' => $breaks,
     ]);
 } elseif ($role === 'Supervisor') {
+    require_once __DIR__ . '/../app/Models/Employee.php';
+    require_once __DIR__ . '/../app/Models/Performance.php';
+    require_once __DIR__ . '/../app/Models/Break.php';
+    
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
     $employees = $sectionId ? Employee::listBySection($sectionId) : [];
     $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
@@ -341,6 +298,8 @@ if ($role === 'Director') {
         'breaks' => $breaks,
     ]);
 } elseif ($role === 'Senior') {
+    require_once __DIR__ . '/../app/Models/Break.php';
+    
     $todaySchedule = $sectionId ? Schedule::getTodaySchedule($sectionId, $today->format('Y-m-d')) : [];
     $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
     $weekly = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
@@ -354,6 +313,9 @@ if ($role === 'Director') {
     ]);
 } else {
     // Employee role
+    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
+    require_once __DIR__ . '/../app/Models/Break.php';
+    
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
     $patterns = Schedule::getSchedulePatterns();
     $shiftDefinitions = Schedule::getShiftDefinitions();

@@ -126,14 +126,14 @@ for ($i = 0; $i < 7; $i++) {
         <!-- Overview Section -->
         <section class="dashboard-section active" data-section="overview">
             <div class="card">
-                <div class="hero-row">
-                    <div>
-                        <h2>Team Leader Control Center</h2>
-                        <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
-                    </div>
-                    <div class="meta-row">
-                        <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
-                        <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
+    <div class="hero-row">
+        <div>
+            <h2>Team Leader Control Center</h2>
+            <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
+        </div>
+        <div class="meta-row">
+            <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+            <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
                     </div>
                 </div>
             </div>
@@ -342,9 +342,9 @@ for ($i = 0; $i < 7; $i++) {
                         </svg>
                         <span>View Analytics</span>
                     </button>
-                </div>
-            </div>
-        </section>
+        </div>
+    </div>
+</section>
 
         <!-- Create Employee Section -->
         <section class="dashboard-section" data-section="create-employee">
@@ -451,7 +451,7 @@ for ($i = 0; $i < 7; $i++) {
                     </div>
                 <?php endif; ?>
             </div>
-        </section>
+</section>
 
         <!-- Shift Requirements Section -->
         <section class="dashboard-section" data-section="shift-requirements">
@@ -506,53 +506,53 @@ for ($i = 0; $i < 7; $i++) {
         <!-- Shift Requests Section -->
         <section class="dashboard-section" data-section="shift-requests">
             <div class="card">
-                <div class="section-title">
-                    <h3>Shift Requests</h3>
-                    <span><?= e(count($requests)) ?> requests awaiting review</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>Pattern</th>
-                        <th>Importance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($requests as $request): ?>
-                        <tr>
-                            <td><?= e($request['employee_name']) ?></td>
-                            <td><?= e($request['submit_date']) ?></td>
-                            <td><?= e($request['shift_name']) ?></td>
-                            <td><?= e($request['pattern_name']) ?></td>
-                            <td><?= e($request['importance_level']) ?></td>
-                            <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
-                            <td>
-                                <form method="post" action="/index.php" class="inline">
-                                    <input type="hidden" name="action" value="update_request_status">
-                                    <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                                    <input type="hidden" name="status" value="APPROVED">
-                                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                    <button type="submit" class="btn small">Approve</button>
-                                </form>
-                                <form method="post" action="/index.php" class="inline">
-                                    <input type="hidden" name="action" value="update_request_status">
-                                    <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
-                                    <input type="hidden" name="status" value="DECLINED">
-                                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                                    <button type="submit" class="btn danger small">Decline</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <div class="section-title">
+        <h3>Shift Requests</h3>
+        <span><?= e(count($requests)) ?> requests awaiting review</span>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Pattern</th>
+            <th>Importance</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($requests as $request): ?>
+            <tr>
+                <td><?= e($request['employee_name']) ?></td>
+                <td><?= e($request['submit_date']) ?></td>
+                <td><?= e($request['shift_name']) ?></td>
+                <td><?= e($request['pattern_name']) ?></td>
+                <td><?= e($request['importance_level']) ?></td>
+                <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
+                <td>
+                    <form method="post" action="/index.php" class="inline">
+                        <input type="hidden" name="action" value="update_request_status">
+                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                        <input type="hidden" name="status" value="APPROVED">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <button type="submit" class="btn small">Approve</button>
+                    </form>
+                    <form method="post" action="/index.php" class="inline">
+                        <input type="hidden" name="action" value="update_request_status">
+                        <input type="hidden" name="request_id" value="<?= e((string) $request['id']) ?>">
+                        <input type="hidden" name="status" value="DECLINED">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                        <button type="submit" class="btn danger small">Decline</button>
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
             </div>
-        </section>
+</section>
 
         <!-- Weekly Schedule Section -->
         <section class="dashboard-section" data-section="weekly-schedule">
@@ -1081,7 +1081,7 @@ for ($i = 0; $i < 7; $i++) {
                             <h3>Assign Shift</h3>
                             <button type="button" class="modal-close">&times;</button>
                         </div>
-                        <form id="assign-shift-form" method="post" action="/index.php">
+                        <form id="assign-shift-form" method="post" action="/index.php" data-ajax="true">
                             <input type="hidden" name="action" value="assign_shift">
                             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                             <input type="hidden" name="date" id="assign-date">
@@ -1180,7 +1180,7 @@ for ($i = 0; $i < 7; $i++) {
                     </form>
                 </div>
             </div>
-        </section>
+</section>
 
         <!-- Break Monitoring Section -->
         <section class="dashboard-section" data-section="break-monitoring">

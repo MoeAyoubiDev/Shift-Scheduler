@@ -44,13 +44,11 @@ class EmployeeController
         $dateObj = new DateTimeImmutable($date);
         $dayOfWeek = (int) $dateObj->format('N'); // 1 = Monday, 7 = Sunday
         
-        // Allow all days of next week (Monday-Saturday, 1-6)
+        // Allow all days of next week (Monday-Sunday, 1-7)
         if ($dayOfWeek < 1 || $dayOfWeek > 7) {
             return 'Invalid day selected.';
         }
-        if ($dayOfWeek === 7) {
-            return 'Shift requests cannot be submitted for Sunday.';
-        }
+        // Note: Sunday requests are allowed for next week, but submissions are blocked on Sunday
 
         // Validate that request is for NEXT week only
         $nextWeekStart = $currentWeekStart->modify('+7 days');
