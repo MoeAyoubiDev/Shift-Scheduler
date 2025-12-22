@@ -42,9 +42,9 @@
             }, 50);
             currentSection = sectionName;
             
-            // Scroll to top smoothly
+            // Scroll to top of page (not the section) to prevent jumping
             setTimeout(() => {
-                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
         }
     }

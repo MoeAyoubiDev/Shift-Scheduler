@@ -153,6 +153,10 @@ body.login-page {
     overflow: hidden;
 }
 
+body.login-page footer {
+    display: none !important;
+}
+
 body.login-page header {
     display: none !important;
 }
@@ -167,6 +171,10 @@ body.login-page main {
     max-width: 440px;
     position: relative;
     z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 2rem);
 }
 
 .login-card {
@@ -428,14 +436,27 @@ header {
     gap: var(--space-md);
 }
 
-.brand-badge {
-    padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
+.user-name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1.125rem;
     font-weight: 600;
-    color: white;
-    box-shadow: var(--shadow-glow);
+    color: var(--color-text-primary);
+}
+
+.user-name svg {
+    width: 24px;
+    height: 24px;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.user-name-text {
+    background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .header-actions {

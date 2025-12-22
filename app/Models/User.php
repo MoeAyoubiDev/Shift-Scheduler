@@ -46,6 +46,7 @@ class User extends BaseModel
             'is_senior' => (int) ($primary['is_senior'] ?? 0),
             'seniority_level' => (int) ($primary['seniority_level'] ?? 0),
             'employee_code' => $primary['employee_code'] ?? null,
+            'full_name' => $primary['employee_name'] ?? null, // Get full_name from employee_name in stored procedure
             'sections' => $sections,
         ];
     }

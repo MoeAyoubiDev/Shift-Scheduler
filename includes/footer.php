@@ -6,6 +6,7 @@ $role = $user['role'] ?? null;
 $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervisor', 'Senior'], true);
 ?>
 </main>
+<?php if ($user): ?>
 <footer class="site-footer">
     <div>
         <strong><?= e(app_config('name', 'Shift Scheduler')) ?></strong>
@@ -16,6 +17,7 @@ $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervis
         <span>Last sync <?= e((new DateTimeImmutable())->format('M d, Y H:i')) ?></span>
     </div>
 </footer>
+<?php endif; ?>
 <script src="/assets/js/app.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/app.js') ?>"></script>
 <script src="/assets/js/enhanced.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/enhanced.js') ?>"></script>
 <?php if ($isDashboard): ?>
