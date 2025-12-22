@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * RESET + SEED SCRIPT (CORRECT VERSION)
+ * Compatible with MySQL stored procedures
+ * Safe to re-run
+ */
+
 $dbConfig = require __DIR__ . '/../config/database.php';
 
 $pdo = new PDO(
@@ -11,8 +17,6 @@ $pdo = new PDO(
 );
 
 echo "✅ Connected\n";
-
-$pdo->beginTransaction();
 
 /**
  * =====================================================
@@ -41,7 +45,6 @@ foreach ($tables as $t) {
 }
 
 $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
-
 echo "🧹 Data cleared\n";
 
 /**
@@ -61,7 +64,6 @@ for ($i = 0; $i < 10; $i++) {
     $weekStmt->execute([$start->format('Y-m-d'), $end->format('Y-m-d')]);
     $weeks[] = (int)$pdo->lastInsertId();
 }
-
 echo "📅 Weeks seeded\n";
 
 /**
@@ -106,7 +108,6 @@ for ($i = 1; $i <= 10; $i++) {
 
     $employees[] = (int)$pdo->lastInsertId();
 }
-
 echo "👥 Users & employees seeded\n";
 
 /**
@@ -129,12 +130,11 @@ for ($i = 0; $i < 10; $i++) {
         3
     ]);
 }
-
 echo "📊 Shift requirements seeded\n";
 
 /**
  * =====================================================
- * STEP 5: SHIFT REQUESTS (10) — STORED PROCEDURE
+ * STEP 5: SHIFT REQUESTS (STORED PROCEDURE)
  * =====================================================
  */
 $proc = $pdo->prepare("CALL sp_submit_shift_request(?,?,?,?,?,?,?,?)");
@@ -154,7 +154,7 @@ foreach ($employees as $empId) {
             $defs[array_rand($defs)],
             0,
             $patterns[0],
-            'Test request',
+            'Seeded request',
             'MEDIUM'
         ]);
         $count++;
@@ -162,12 +162,11 @@ foreach ($employees as $empId) {
         continue; // Seniors / Sundays skipped
     }
 }
-
 echo "📝 Shift requests seeded\n";
 
 /**
  * =====================================================
- * STEP 6: SCHEDULE + SHIFTS + ASSIGNMENTS (10)
+ * STEP 6: SCHEDULE + SHIFTS + ASSIGNMENTS
  * =====================================================
  */
 $scheduleStmt = $pdo->prepare(
@@ -202,19 +201,17 @@ for ($i = 0; $i < 10; $i++) {
         0
     ]);
 }
-
 echo "📋 Schedule seeded\n";
 
 /**
  * =====================================================
- * STEP 7: BREAKS + NOTIFICATIONS (10)
+ * STEP 7: BREAKS + NOTIFICATIONS
  * =====================================================
  */
 $breakStmt = $pdo->prepare(
     "INSERT INTO employee_breaks (employee_id,worked_date,break_start,break_end)
      VALUES (?,?,?,?)"
 );
-
 $notifStmt = $pdo->prepare(
     "INSERT INTO notifications (user_id,type,title)
      VALUES (?,?,?)"
@@ -235,6 +232,5 @@ for ($i = 0; $i < 10; $i++) {
     ]);
 }
 
-$pdo->commit();
-
-echo "\n✅ RESET + SEED COMPLETED (10 RECORDS PER TABLE)\n";
+echo "☕ Breaks & notifications seeded\n";
+echo "\n✅ RESET + SEED COMPLETED SUCCESSFULLY\n";
