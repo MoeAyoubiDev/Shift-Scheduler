@@ -17,7 +17,10 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
+require_once __DIR__ . '/../app/Core/config.php';
+require_once __DIR__ . '/../app/Helpers/view.php';
 require_once __DIR__ . '/../app/Helpers/helpers.php';
+require_once __DIR__ . '/../app/Models/BaseModel.php';
 require_once __DIR__ . '/../app/Models/Company.php';
 
 $error = '';

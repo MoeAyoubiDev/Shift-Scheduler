@@ -12,20 +12,66 @@ class Company extends BaseModel
      */
     public static function create(array $data): array
     {
-        $model = new self();
+        $model = new Company();
         
         try {
-            $rows = $model->callProcedure('sp_create_company', [
-                'p_company_name' => $data['company_name'],
-                'p_admin_email' => $data['admin_email'],
-                'p_admin_password_hash' => password_hash($data['admin_password'], PASSWORD_BCRYPT),
-                'p_timezone' => $data['timezone'] ?? 'UTC',
-                'p_country' => $data['country'] ?? null,
-                'p_company_size' => $data['company_size'] ?? null,
-                'p_verification_token' => bin2hex(random_bytes(32)),
-            ]);
-            
-            $companyId = (int)($rows[0]['company_id'] ?? 0);
+            // Check if stored procedure exists, if not use direct insert
+            try {
+                $rows = $model->callProcedure('sp_create_company', [
+                    'p_company_name' => $data['company_name'],
+                    'p_admin_email' => $data['admin_email'],
+                    'p_admin_password_hash' => password_hash($data['admin_password'], PASSWORD_BCRYPT),
+                    'p_timezone' => $data['timezone'] ?? 'UTC',
+                    'p_country' => $data['country'] ?? null,
+                    'p_company_size' => $data['company_size'] ?? null,
+                    'p_verification_token' => bin2hex(random_bytes(32)),
+                ]);
+                
+                $companyId = (int)($rows[0]['company_id'] ?? 0);
+            } catch (PDOException $e) {
+                // If stored procedure doesn't exist, use direct insert
+                if (strpos($e->getMessage(), 'does not exist') !== false || strpos($e->getMessage(), 'Unknown procedure') !== false) {
+                    // Generate unique slug
+                    $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $data['company_name']));
+                    $slug = trim($slug, '-');
+                    
+                    // Ensure slug is unique
+                    $counter = 0;
+                    $originalSlug = $slug;
+                    $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                    while (!empty($existing)) {
+                        $counter++;
+                        $slug = $originalSlug . '-' . $counter;
+                        $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                    }
+                    
+                    $verificationToken = bin2hex(random_bytes(32));
+                    $passwordHash = password_hash($data['admin_password'], PASSWORD_BCRYPT);
+                    
+                    $pdo = db();
+                    $stmt = $pdo->prepare("
+                        INSERT INTO companies (
+                            company_name, company_slug, admin_email, admin_password_hash,
+                            timezone, country, company_size, verification_token, status
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_VERIFICATION')
+                    ");
+                    
+                    $stmt->execute([
+                        $data['company_name'],
+                        $slug,
+                        $data['admin_email'],
+                        $passwordHash,
+                        $data['timezone'] ?? 'UTC',
+                        $data['country'] ?? null,
+                        $data['company_size'] ?? null,
+                        $verificationToken,
+                    ]);
+                    
+                    $companyId = (int)$pdo->lastInsertId();
+                } else {
+                    throw $e;
+                }
+            }
             
             if ($companyId > 0) {
                 // Get the verification token
@@ -40,6 +86,15 @@ class Company extends BaseModel
             }
             
             return ['success' => false, 'message' => 'Failed to create company account.'];
+        } catch (PDOException $e) {
+            // Check if companies table exists
+            if (strpos($e->getMessage(), "doesn't exist") !== false || strpos($e->getMessage(), 'Unknown table') !== false) {
+                return [
+                    'success' => false,
+                    'message' => 'Database migrations not run. Please run the migrations first. See docs/MULTI_TENANT_SETUP.md',
+                ];
+            }
+            return ['success' => false, 'message' => 'Database error: ' . $e->getMessage()];
         } catch (Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
@@ -50,9 +105,14 @@ class Company extends BaseModel
      */
     public static function findByEmail(string $email): ?array
     {
-        $model = new self();
-        $rows = $model->query("SELECT * FROM companies WHERE admin_email = ?", [$email]);
-        return $rows[0] ?? null;
+        try {
+            $model = new self();
+            $rows = $model->query("SELECT * FROM companies WHERE admin_email = ?", [$email]);
+            return $rows[0] ?? null;
+        } catch (PDOException $e) {
+            // Table doesn't exist - migrations not run
+            return null;
+        }
     }
 
     /**
@@ -60,9 +120,14 @@ class Company extends BaseModel
      */
     public static function findById(int $id): ?array
     {
-        $model = new self();
-        $rows = $model->query("SELECT * FROM companies WHERE id = ?", [$id]);
-        return $rows[0] ?? null;
+        try {
+            $model = new self();
+            $rows = $model->query("SELECT * FROM companies WHERE id = ?", [$id]);
+            return $rows[0] ?? null;
+        } catch (PDOException $e) {
+            // Table doesn't exist - migrations not run
+            return null;
+        }
     }
 
     /**
