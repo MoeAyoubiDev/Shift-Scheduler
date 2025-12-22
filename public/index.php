@@ -9,6 +9,9 @@ if ($appEnv === 'development' && function_exists('opcache_reset')) {
     clearstatcache(true);
 }
 
+// Load middleware and core functions
+require_once __DIR__ . '/../includes/middleware.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../app/Helpers/helpers.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/DirectorController.php';
@@ -257,19 +260,14 @@ if (!$user) {
     header('Pragma: no-cache');
     header('Expires: 0');
     
-    render_view('partials/header', [
-        'title' => 'Shift Scheduler Login',
-        'message' => $message,
-    ]);
+    $title = 'Shift Scheduler Login';
+    require_once __DIR__ . '/../includes/header.php';
     render_view('auth/login');
-    render_view('partials/footer');
+    require_once __DIR__ . '/../includes/footer.php';
     exit;
 }
 
-render_view('partials/header', [
-    'title' => 'Shift Scheduler',
-    'message' => $message,
-]);
+require_once __DIR__ . '/../includes/header.php';
 
 if ($role === 'Director') {
     if (!$sectionId) {
@@ -380,4 +378,4 @@ if ($role === 'Director') {
     ]);
 }
 
-render_view('partials/footer');
+require_once __DIR__ . '/../includes/footer.php';

@@ -16,10 +16,10 @@ $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervis
         <span>Last sync <?= e((new DateTimeImmutable())->format('M d, Y H:i')) ?></span>
     </div>
 </footer>
-<script src="/assets/js/app.js"></script>
-<script src="/assets/js/enhanced.js"></script>
+<script src="/assets/js/app.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/app.js') ?>"></script>
+<script src="/assets/js/enhanced.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/enhanced.js') ?>"></script>
 <?php if ($isDashboard): ?>
-<script src="/assets/js/dashboard.js"></script>
+<script src="/assets/js/dashboard.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/dashboard.js') ?>"></script>
 <?php endif; ?>
 </body>
 </html>

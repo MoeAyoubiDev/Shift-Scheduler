@@ -70,11 +70,11 @@ function require_role(array $roles): void
     $userRole = current_role();
     if (!$userRole || !in_array($userRole, $roles, true)) {
         http_response_code(403);
-        render_view('partials/header', [
-            'title' => 'Access Denied',
-            'message' => 'You do not have permission to access this page.',
-        ]);
-        render_view('partials/footer');
+        $title = 'Access Denied';
+        $message = 'You do not have permission to access this page.';
+        require_once __DIR__ . '/../../includes/header.php';
+        echo '<div class="card"><h2>Access Denied</h2><p>' . e($message) . '</p></div>';
+        require_once __DIR__ . '/../../includes/footer.php';
         exit;
     }
 }
@@ -97,11 +97,11 @@ function require_csrf(array $payload): void
 {
     if (!verify_csrf($payload['csrf_token'] ?? null)) {
         http_response_code(419);
-        render_view('partials/header', [
-            'title' => 'Invalid Session',
-            'message' => 'Your session expired or the form is invalid. Please try again.',
-        ]);
-        render_view('partials/footer');
+        $title = 'Invalid Session';
+        $message = 'Your session expired or the form is invalid. Please try again.';
+        require_once __DIR__ . '/../../includes/header.php';
+        echo '<div class="card"><h2>Invalid Session</h2><p>' . e($message) . '</p></div>';
+        require_once __DIR__ . '/../../includes/footer.php';
         exit;
     }
 }

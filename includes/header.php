@@ -19,7 +19,7 @@ $currentSectionId = current_section_id();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__ . '/../../../public/assets/css/app.css') ?>">
+    <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__ . '/../public/assets/css/app.css') ?>">
 
 </head>
 <body class="page-shell <?= !$user ? 'login-page' : '' ?>">

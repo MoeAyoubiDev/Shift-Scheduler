@@ -63,3 +63,6 @@ sessions/
 # Uploads (if user-generated content)
 uploads/
 
+
+# Scripts (keep deploy scripts)
+# scripts/*.sh
