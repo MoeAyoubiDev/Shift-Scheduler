@@ -1,6 +1,6 @@
 /**
  * Dashboard Navigation & Functionality
- * Clean, robust implementation - all buttons work correctly
+ * Modern 2026 Design with Smooth Animations
  */
 
 (function() {
@@ -11,26 +11,38 @@
     let currentSection = 'overview';
     
     // ============================================
-    // NAVIGATION SYSTEM
+    // NAVIGATION SYSTEM - Enhanced with Animations
     // ============================================
     
     function showSection(sectionName) {
         if (!sectionName) return;
         
-        // Hide all sections
+        // Hide all sections with fade out
         document.querySelectorAll('.dashboard-section').forEach(section => {
-            section.classList.remove('active');
-            section.style.display = 'none';
+            if (section.classList.contains('active')) {
+                section.style.animation = 'fadeOut 0.2s ease-out forwards';
+                setTimeout(() => {
+                    section.classList.remove('active');
+                    section.style.display = 'none';
+                    section.style.animation = '';
+                }, 200);
+            } else {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            }
         });
         
-        // Show target section
+        // Show target section with fade in
         const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
         if (targetSection) {
-            targetSection.classList.add('active');
             targetSection.style.display = 'block';
+            setTimeout(() => {
+                targetSection.classList.add('active');
+                targetSection.style.animation = 'fadeInUp 0.4s ease-out forwards';
+            }, 50);
             currentSection = sectionName;
             
-            // Scroll to top
+            // Scroll to top smoothly
             setTimeout(() => {
                 targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
@@ -38,18 +50,30 @@
     }
     
     function setActiveNavCard(sectionName) {
+        // Remove active from all nav cards with animation
         document.querySelectorAll('.nav-card').forEach(card => {
+            if (card.classList.contains('active')) {
+                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
             card.classList.remove('active');
         });
         
+        // Add active to target nav card with animation
         const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
         if (targetCard) {
             targetCard.classList.add('active');
+            // Add pulse animation
+            targetCard.style.animation = 'cardPulse 0.5s ease-out';
         }
     }
     
     function navigateToSection(sectionName) {
         if (!sectionName) return;
+        
+        // Add haptic feedback if available
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
         
         setActiveNavCard(sectionName);
         showSection(sectionName);
@@ -66,10 +90,10 @@
     window.dashboard.navigateToSection = navigateToSection;
     
     // ============================================
-    // FORM HANDLING - DO NOT PREVENT DEFAULT
+    // FORM HANDLING - Enhanced with Animations
     // ============================================
     
-    // Handle form submissions - ONLY for AJAX forms, not regular forms
+    // Handle form submissions - ONLY for AJAX forms
     document.addEventListener('submit', function(e) {
         const form = e.target;
         
@@ -78,19 +102,26 @@
             e.preventDefault();
             handleAjaxForm(form);
         }
-        // All other forms submit normally - DO NOT PREVENT
+        // All other forms submit normally
     });
     
     function handleAjaxForm(form) {
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn ? submitBtn.textContent : '';
+        const originalHTML = submitBtn ? submitBtn.innerHTML : '';
         
-        // Show loading state
-        if (window.LoadingManager) {
-            window.LoadingManager.button(submitBtn, true);
-        } else if (submitBtn) {
+        // Show loading state with animation
+        if (submitBtn) {
+            submitBtn.classList.add('loading');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
+            submitBtn.style.transform = 'scale(0.98)';
+            
+            // Add loading spinner
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+            spinner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"/><path d="M12 2C6.477 2 2 6.477 2 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>';
+            submitBtn.innerHTML = '';
+            submitBtn.appendChild(spinner);
         }
         
         const formData = new FormData(form);
@@ -105,14 +136,14 @@
         .then(response => response.json())
         .then(data => {
             // Remove loading state
-            if (window.LoadingManager) {
-                window.LoadingManager.button(submitBtn, false);
-            } else if (submitBtn) {
+            if (submitBtn) {
+                submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                submitBtn.style.transform = '';
+                submitBtn.innerHTML = originalHTML;
             }
             
-            // Show notification
+            // Show notification with animation
             if (window.NotificationManager) {
                 if (data.success) {
                     window.NotificationManager.success(data.message || 'Operation completed successfully.');
@@ -127,22 +158,23 @@
             if (data.redirect) {
                 window.location.href = data.redirect;
             } else if (data.success && form.id === 'assign-shift-form') {
-                // Special handling for assign shift - reload after delay
+                // Close modal and reload page with animation
+                closeModal();
                 setTimeout(() => {
                     window.location.reload();
-                }, 1500);
+                }, 1000);
             }
         })
         .catch(error => {
             // Remove loading state
-            if (window.LoadingManager) {
-                window.LoadingManager.button(submitBtn, false);
-            } else if (submitBtn) {
+            if (submitBtn) {
+                submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                submitBtn.style.transform = '';
+                submitBtn.innerHTML = originalHTML;
             }
             
-            // Show error
+            // Show error with animation
             if (window.NotificationManager) {
                 window.NotificationManager.error('Network error. Please try again.');
             } else {
@@ -154,17 +186,24 @@
     }
     
     // ============================================
-    // NAVIGATION CLICKS - ONLY NAVIGATION
+    // NAVIGATION CLICKS - Enhanced with Haptics
     // ============================================
     
     document.addEventListener('click', function(e) {
         const target = e.target;
         const button = target.closest('button');
         
-        // Navigation cards - ONLY these prevent default
+        // Navigation cards - Enhanced with animations
         if (button && button.classList.contains('nav-card')) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Add click animation
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+            
             const sectionName = button.getAttribute('data-section');
             if (sectionName) {
                 navigateToSection(sectionName);
@@ -179,6 +218,13 @@
             if (onclick && onclick.includes('navigateToSection')) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Add click animation
+                widget.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    widget.style.transform = '';
+                }, 150);
+                
                 const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
                 if (match && match[1]) {
                     navigateToSection(match[1]);
@@ -193,6 +239,13 @@
             if (onclick && onclick.includes('navigateToSection')) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Add click animation
+                button.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    button.style.transform = '';
+                }, 150);
+                
                 const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
                 if (match && match[1]) {
                     navigateToSection(match[1]);
@@ -201,7 +254,7 @@
             }
         }
         
-        // Modal triggers - open assign modal
+        // Modal triggers - Enhanced animations
         if (target.closest('.btn-assign-shift') || target.closest('.shift-empty')) {
             e.preventDefault();
             e.stopPropagation();
@@ -254,13 +307,10 @@
             closeModal();
             return false;
         }
-        
-        // All other clicks (including form buttons) work normally
-        // DO NOT prevent default for form submissions
     }, true); // Use capture phase
     
     // ============================================
-    // MODAL FUNCTIONS
+    // MODAL FUNCTIONS - Enhanced with Animations
     // ============================================
     
     function openAssignModal(date, employeeId, assignmentId, shiftDefId, requestId) {
@@ -280,13 +330,32 @@
             shiftDefSelect.dispatchEvent(new Event('change'));
         }
         
+        // Show modal with animation
         modal.style.display = 'flex';
+        modal.style.animation = 'fadeIn 0.2s ease-out';
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        }
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
     }
     
     function closeModal() {
         const modal = document.getElementById('assign-modal');
         if (modal) {
-            modal.style.display = 'none';
+            // Close with animation
+            modal.style.animation = 'fadeOut 0.2s ease-out';
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.animation = 'modalSlideOut 0.2s ease-out';
+            }
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 200);
         }
     }
     
@@ -303,8 +372,14 @@
             const startInput = document.getElementById('assign-start-time');
             const endInput = document.getElementById('assign-end-time');
             
-            if (startInput && startTime) startInput.value = startTime;
-            if (endInput && endTime) endInput.value = endTime;
+            if (startInput && startTime) {
+                startInput.value = startTime;
+                startInput.style.animation = 'pulse 0.3s ease-out';
+            }
+            if (endInput && endTime) {
+                endInput.value = endTime;
+                endInput.style.animation = 'pulse 0.3s ease-out';
+            }
         });
     }
     
@@ -313,10 +388,15 @@
     // ============================================
     
     function initScheduleTable() {
-        // Date range selector
+        // Date range selector with smooth transitions
         const dateInputs = document.querySelectorAll('.date-input');
         dateInputs.forEach(input => {
             input.addEventListener('change', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+                
                 const weekStart = document.getElementById('week-start')?.value;
                 const weekEnd = document.getElementById('week-end')?.value;
                 if (weekStart && weekEnd) {
@@ -325,30 +405,42 @@
             });
         });
         
-        // Filter input
+        // Filter input with debounce
         const filterInput = document.getElementById('filter-employees');
         if (filterInput) {
+            let filterTimeout;
             filterInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                document.querySelectorAll('.employee-row').forEach(row => {
-                    const name = row.textContent.toLowerCase();
-                    row.style.display = name.includes(query) ? '' : 'none';
-                });
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(() => {
+                    const query = this.value.toLowerCase();
+                    document.querySelectorAll('.employee-row').forEach(row => {
+                        const name = row.textContent.toLowerCase();
+                        if (name.includes(query)) {
+                            row.style.display = '';
+                            row.style.animation = 'fadeIn 0.2s ease-out';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                }, 200);
             });
         }
     }
     
     // ============================================
-    // NOTIFICATION SYSTEM
+    // NOTIFICATION SYSTEM - Enhanced
     // ============================================
     
     function showNotification(message, type = 'info') {
         if (window.NotificationManager) {
             window.NotificationManager.show(message, type);
         } else {
-            // Fallback simple notification
+            // Fallback simple notification with animation
             const existing = document.querySelector('.ajax-notification');
-            if (existing) existing.remove();
+            if (existing) {
+                existing.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => existing.remove(), 300);
+            }
             
             const notification = document.createElement('div');
             notification.className = `ajax-notification ajax-notification-${type}`;
@@ -356,14 +448,89 @@
             document.body.appendChild(notification);
             
             setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Auto remove after 4 seconds
             setTimeout(() => {
-                notification.classList.remove('show');
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
                 setTimeout(() => notification.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
     }
     
     window.showNotification = showNotification;
+    
+    // ============================================
+    // ADDITIONAL ANIMATIONS CSS
+    // ============================================
+    
+    // Inject additional animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-20px); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes cardPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes modalSlideOut {
+            from { opacity: 1; transform: scale(1) translateY(0); }
+            to { opacity: 0; transform: scale(0.9) translateY(20px); }
+        }
+        
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        .loading-spinner {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Smooth transitions for all interactive elements */
+        .nav-card,
+        .btn,
+        .form-input,
+        button {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Hover effects */
+        .nav-card:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Focus effects */
+        .form-input:focus {
+            transform: translateY(-1px);
+        }
+    `;
+    document.head.appendChild(style);
     
     // ============================================
     // INITIALIZATION
@@ -390,7 +557,30 @@
             }
         });
         
-        console.log('Dashboard initialized successfully');
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Add intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.5s ease-out forwards';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe cards for fade-in
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+        
+        console.log('✅ Dashboard initialized with modern 2026 design');
     }
     
     // Initialize when DOM is ready
