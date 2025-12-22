@@ -1432,6 +1432,19 @@ table tr:hover {
     overflow-y: auto;
 }
 
+.calendar-modal-overlay::-webkit-scrollbar {
+    width: 8px;
+}
+
+.calendar-modal-overlay::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-modal-overlay::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+}
+
 .calendar-modal-content {
     background: linear-gradient(135deg, rgba(20, 27, 45, 0.95) 0%, rgba(26, 35, 50, 0.95) 100%);
     backdrop-filter: blur(30px);

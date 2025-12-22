@@ -185,27 +185,13 @@
     }
     
     function positionCalendar(modal, trigger) {
-        const rect = trigger.getBoundingClientRect();
         const calendarContent = modal.querySelector('.calendar-modal-content');
         
-        // Position below the trigger, centered
-        calendarContent.style.position = 'absolute';
-        calendarContent.style.top = (rect.bottom + 10) + 'px';
-        calendarContent.style.left = Math.max(20, rect.left - 200) + 'px';
-        
-        // Adjust if goes off screen
-        setTimeout(() => {
-            const contentRect = calendarContent.getBoundingClientRect();
-            if (contentRect.right > window.innerWidth) {
-                calendarContent.style.left = (window.innerWidth - contentRect.width - 20) + 'px';
-            }
-            if (contentRect.left < 0) {
-                calendarContent.style.left = '20px';
-            }
-            if (contentRect.bottom > window.innerHeight) {
-                calendarContent.style.top = (rect.top - contentRect.height - 10) + 'px';
-            }
-        }, 10);
+        // Center the calendar in the viewport
+        calendarContent.style.position = 'relative';
+        calendarContent.style.top = 'auto';
+        calendarContent.style.left = 'auto';
+        calendarContent.style.margin = 'auto';
     }
     
     function initCalendarFunctionality(modal) {
