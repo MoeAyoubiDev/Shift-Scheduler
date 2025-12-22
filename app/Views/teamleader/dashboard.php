@@ -129,10 +129,14 @@ for ($i = 0; $i < 7; $i++) {
     <div class="hero-row">
         <div>
             <h2>Team Leader Control Center</h2>
-            <p>Full CRUD permissions for <?= e($user['section_name'] ?? 'your section') ?>.</p>
         </div>
         <div class="meta-row">
-            <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+            <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+            </button>
             <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
                     </div>
                 </div>

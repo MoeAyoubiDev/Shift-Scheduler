@@ -22,6 +22,7 @@ $isDashboard = in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervis
 <script src="/assets/js/enhanced.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/enhanced.js') ?>"></script>
 <?php if ($isDashboard): ?>
 <script src="/assets/js/dashboard.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/dashboard.js') ?>"></script>
+<script src="/assets/js/calendar.js?v=<?= filemtime(__DIR__ . '/../public/assets/js/calendar.js') ?>"></script>
 <?php endif; ?>
 </body>
 </html>

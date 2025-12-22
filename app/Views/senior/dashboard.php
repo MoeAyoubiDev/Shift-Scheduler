@@ -64,10 +64,9 @@ declare(strict_types=1);
         <section class="dashboard-section active" data-section="overview">
             <div class="card">
     <div class="hero-row">
-        <div>
-            <h2>Today's Shift Control</h2>
-            <p>Monitor break coverage and active shift teams.</p>
-        </div>
+    <div>
+        <h2>Today's Shift Control</h2>
+    </div>
         <div class="meta-row">
             <span class="pill">Today <?= e($today) ?></span>
                     </div>

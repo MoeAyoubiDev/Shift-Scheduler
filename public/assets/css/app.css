@@ -115,7 +115,7 @@ body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: 
+    background:
         radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
         radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 70%),
@@ -743,6 +743,67 @@ main {
     font-size: 0.875rem;
 }
 
+/* Change Section Button - Professional Design */
+.btn-change-section {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-change-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.btn-change-section:hover::before {
+    opacity: 0.1;
+}
+
+.btn-change-section:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25), var(--shadow-glow);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+}
+
+.btn-change-section:active {
+    transform: translateY(0);
+}
+
+.btn-change-section svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: transform var(--transition-base);
+}
+
+.btn-change-section:hover svg {
+    transform: rotate(5deg) scale(1.1);
+}
+
+.btn-change-section span {
+    position: relative;
+    z-index: 1;
+}
+
 /* ============================================
    FORMS - Modern Input Design
    ============================================ */
@@ -1107,7 +1168,7 @@ table tr:hover {
     }
     
     .hero-row {
-        flex-direction: column;
+    flex-direction: column;
         align-items: flex-start;
     }
     
@@ -1148,6 +1209,131 @@ table tr:hover {
     display: flex;
     gap: var(--space-sm);
     align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Week Selector Pill */
+.week-selector-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.625rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    backdrop-filter: blur(10px);
+    text-decoration: none;
+}
+
+.week-selector-pill:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow), var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.week-selector-pill svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform var(--transition-base);
+}
+
+.week-selector-pill:hover svg {
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* Section Selection Cards */
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-xl);
+}
+
+.section-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.section-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--color-primary) 0%, 
+        var(--color-secondary) 50%, 
+        var(--color-accent) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.section-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow), var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+.section-card:hover::before {
+    opacity: 1;
+}
+
+.section-card-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-md);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-glow);
+    transition: all var(--transition-base);
+}
+
+.section-card:hover .section-card-icon {
+    transform: rotate(5deg) scale(1.1);
+}
+
+.section-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-xs);
+    background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-card-description {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.6;
+}
+
+.section-card-button {
+    width: 100%;
+    margin-top: var(--space-md);
 }
 
 /* ============================================
@@ -1194,6 +1380,38 @@ table tr:hover {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
     background-clip: padding-box;
+}
+
+/* ============================================
+   CALENDAR ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* ============================================

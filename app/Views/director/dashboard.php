@@ -81,11 +81,22 @@ declare(strict_types=1);
                 <div class="hero-row">
                     <div>
                         <h2>Director Overview</h2>
-                        <p>Read-only visibility for <?= e($user['section_name'] ?? 'Selected Section') ?>.</p>
                     </div>
                     <div class="meta-row">
-                        <span class="pill">Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
-                        <a class="btn secondary small" href="/index.php?reset_section=1">Change Section</a>
+                        <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+                        </button>
+                        <a class="btn btn-change-section" href="/index.php?reset_section=1">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 6V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Change Section</span>
+                        </a>
                     </div>
                 </div>
                 <div class="grid">
