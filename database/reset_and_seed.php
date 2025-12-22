@@ -103,10 +103,15 @@ try {
     
     // Get role and section IDs
     $roles = $pdo->query("SELECT id, role_name FROM roles ORDER BY id")->fetchAll(PDO::FETCH_KEY_PAIR);
-    $sections = $pdo->query("SELECT id, section_name FROM sections ORDER BY id")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $sections = $pdo->query("SELECT id, section_name FROM sections ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
     
     $roleIds = array_flip($roles);
-    $sectionIds = array_flip($sections);
+    // Create section map: id => name
+    $sectionMap = [];
+    foreach ($sections as $section) {
+        $sectionMap[$section['id']] = $section['section_name'];
+    }
+    $sectionIds = array_keys($sectionMap); // Array of section IDs for iteration
     
     // Password hashes
     $directorPassword = password_hash('password', PASSWORD_BCRYPT);
@@ -131,8 +136,8 @@ try {
     $employeeCount = 0;
     $seniorCount = 0;
     
-    foreach ($sectionIds as $sectionId => $sectionName) {
-        $sectionPrefix = strtoupper(substr(str_replace([' ', '-'], '', $sectionName), 0, 3));
+    foreach ($sectionMap as $sectionId => $sectionName) {
+        $sectionPrefix = strtoupper(substr(str_replace([' ', '-'], '', (string)$sectionName), 0, 3));
         
         // 2 Team Leaders per section
         for ($i = 1; $i <= 2; $i++) {
@@ -176,8 +181,8 @@ try {
         }
     }
     
-    echo "  ✓ Created " . (2 * count($sectionIds)) . " Team Leaders\n";
-    echo "  ✓ Created " . count($sectionIds) . " Supervisors\n";
+    echo "  ✓ Created " . (2 * count($sectionMap)) . " Team Leaders\n";
+    echo "  ✓ Created " . count($sectionMap) . " Supervisors\n";
     echo "  ✓ Created {$seniorCount} Seniors\n";
     echo "  ✓ Created {$employeeCount} Employees\n";
     
