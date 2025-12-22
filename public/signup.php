@@ -41,6 +41,8 @@ try {
 } catch (Throwable $e) {
     error_log("Signup page error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     $dbError = true;
+    $error = 'Application initialization error. Please check server logs.';
+    // Don't die - show error message instead
 }
 
 // Initialize variables
@@ -112,7 +114,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 $title = 'Sign Up - Shift Scheduler';
-require_once __DIR__ . '/../includes/header.php';
+
+// Only include header if we have the required functions
+try {
+    require_once __DIR__ . '/../includes/header.php';
+} catch (Throwable $e) {
+    error_log("Header error: " . $e->getMessage());
+    // Fallback header
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?= htmlspecialchars($title) ?></title>
+        <link rel="stylesheet" href="/assets/css/app.css">
+    </head>
+    <body class="page-shell login-page">
+    <main>
+    <?php
+}
 ?>
 
 <div class="login-container">
