@@ -115,11 +115,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 $title = 'Sign Up - Shift Scheduler';
 
+// Ensure all required functions are available before including header
+if (!function_exists('e')) {
+    require_once __DIR__ . '/../app/Helpers/view.php';
+}
+if (!function_exists('app_config')) {
+    require_once __DIR__ . '/../app/Core/config.php';
+}
+if (!function_exists('current_user')) {
+    require_once __DIR__ . '/../app/Helpers/helpers.php';
+}
+
 // Only include header if we have the required functions
 try {
     require_once __DIR__ . '/../includes/header.php';
 } catch (Throwable $e) {
-    error_log("Header error: " . $e->getMessage());
+    error_log("Header error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     // Fallback header
     ?>
     <!DOCTYPE html>
@@ -127,7 +138,7 @@ try {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?= htmlspecialchars($title) ?></title>
+        <title><?= htmlspecialchars($title ?? 'Sign Up') ?></title>
         <link rel="stylesheet" href="/assets/css/app.css">
     </head>
     <body class="page-shell login-page">
