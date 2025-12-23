@@ -1243,10 +1243,23 @@ table tr:hover {
     }
     
     .hero-row {
-    flex-direction: column;
+        flex-direction: column;
         align-items: flex-start;
     }
     
+    .dashboard-content {
+        margin-top: var(--space-md);
+    }
+
+    /* Make dashboard tables scrollable on small screens */
+    .dashboard-section .card {
+        overflow-x: auto;
+    }
+
+    .dashboard-section .card table {
+        min-width: 640px;
+    }
+
     header {
         padding: var(--space-md);
     }

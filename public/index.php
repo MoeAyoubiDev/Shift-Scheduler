@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get message from URL if present (for redirects after form submissions)
 if (empty($message) && isset($_GET['message'])) {
     $message = urldecode($_GET['message']);
-}
+            }
 
 // Handle CSV export
 $user = current_user();
