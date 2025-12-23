@@ -10,7 +10,7 @@ class Company extends BaseModel
     /**
      * Create a new company account
      */
-    public static function create(array $data): array
+    public static function createCompany(array $data): array
     {
         $model = new Company();
         

@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $error = 'An account with this email already exists.';
                 } else {
                     // Create company
-                    $result = Company::create([
+                    $result = Company::createCompany([
                         'company_name' => $companyName,
                         'admin_email' => $adminEmail,
                         'admin_password' => $password,
