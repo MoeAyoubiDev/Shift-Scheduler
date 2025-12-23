@@ -52,63 +52,76 @@ $success = '';
 
 // Handle sign-up form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'signup') {
-    require_csrf($_POST);
+    // Ensure require_csrf is available
+    if (!function_exists('require_csrf')) {
+        require_once __DIR__ . '/../app/Helpers/helpers.php';
+    }
     
-    $companyName = trim($_POST['company_name'] ?? '');
-    $adminEmail = trim($_POST['admin_email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    $timezone = $_POST['timezone'] ?? 'UTC';
-    $country = trim($_POST['country'] ?? '');
-    $companySize = $_POST['company_size'] ?? '';
+    try {
+        require_csrf($_POST);
+    } catch (Exception $e) {
+        error_log("CSRF error in signup: " . $e->getMessage());
+        $error = 'Invalid session. Please refresh the page and try again.';
+    }
     
-    // Validation
-    if (empty($companyName) || strlen($companyName) < 2) {
-        $error = 'Company name must be at least 2 characters.';
-    } elseif (empty($adminEmail) || !filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
-    } elseif (empty($password) || strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Passwords do not match.';
-    } else {
-        try {
-            // Check if email already exists
-            $existing = Company::findByEmail($adminEmail);
-            if ($existing) {
-                $error = 'An account with this email already exists.';
-            } else {
-                // Create company
-                $result = Company::create([
-                    'company_name' => $companyName,
-                    'admin_email' => $adminEmail,
-                    'admin_password' => $password,
-                    'timezone' => $timezone,
-                    'country' => $country,
-                    'company_size' => $companySize,
-                ]);
-                
-                if ($result['success']) {
-                    // Store company ID in session for email verification
-                    $_SESSION['signup_company_id'] = $result['company_id'];
-                    $_SESSION['signup_email'] = $adminEmail;
-                    
-                    // Send verification email (placeholder - implement email service)
-                    // EmailService::sendVerificationEmail($adminEmail, $result['verification_token']);
-                    
-                    header('Location: /verify-email.php?email=' . urlencode($adminEmail));
-                    exit;
+    // Only proceed if no CSRF error occurred
+    if (empty($error)) {
+        $companyName = trim($_POST['company_name'] ?? '');
+        $adminEmail = trim($_POST['admin_email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $timezone = $_POST['timezone'] ?? 'UTC';
+        $country = trim($_POST['country'] ?? '');
+        $companySize = $_POST['company_size'] ?? '';
+        
+        // Validation
+        if (empty($companyName) || strlen($companyName) < 2) {
+            $error = 'Company name must be at least 2 characters.';
+        } elseif (empty($adminEmail) || !filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
+        } elseif (empty($password) || strlen($password) < 8) {
+            $error = 'Password must be at least 8 characters.';
+        } elseif ($password !== $confirmPassword) {
+            $error = 'Passwords do not match.';
+        } else {
+            try {
+                // Check if email already exists
+                $existing = Company::findByEmail($adminEmail);
+                if ($existing) {
+                    $error = 'An account with this email already exists.';
                 } else {
-                    $error = $result['message'] ?? 'Failed to create account. Please try again.';
-                    if (strpos($error, 'migrations') !== false) {
-                        $dbError = true;
+                    // Create company
+                    $result = Company::create([
+                        'company_name' => $companyName,
+                        'admin_email' => $adminEmail,
+                        'admin_password' => $password,
+                        'timezone' => $timezone,
+                        'country' => $country,
+                        'company_size' => $companySize,
+                    ]);
+                    
+                    if ($result['success']) {
+                        // Store company ID in session for email verification
+                        $_SESSION['signup_company_id'] = $result['company_id'];
+                        $_SESSION['signup_email'] = $adminEmail;
+                        
+                        // Send verification email (placeholder - implement email service)
+                        // EmailService::sendVerificationEmail($adminEmail, $result['verification_token']);
+                        
+                        header('Location: /verify-email.php?email=' . urlencode($adminEmail));
+                        exit;
+                    } else {
+                        $error = $result['message'] ?? 'Failed to create account. Please try again.';
+                        if (strpos($error, 'migrations') !== false) {
+                            $dbError = true;
+                        }
                     }
                 }
+            } catch (Throwable $e) {
+                error_log("Signup error: " . $e->getMessage());
+                $error = 'An error occurred. Please check if database migrations have been run. See QUICK_FIX.md for instructions.';
+                $dbError = true;
             }
-        } catch (Throwable $e) {
-            error_log("Signup error: " . $e->getMessage());
-            $error = 'An error occurred. Please check if database migrations have been run. See QUICK_FIX.md for instructions.';
-            $dbError = true;
         }
     }
 }
