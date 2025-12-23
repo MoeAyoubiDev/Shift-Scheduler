@@ -170,7 +170,7 @@ try {
                 </svg>
             </div>
             <h1 class="brand-title">Create Your Account</h1>
-            <p class="brand-subtitle">Start managing your workforce today</p>
+            <p class="brand-subtitle">Get started with professional workforce management</p>
         </div>
 
         <?php if ($dbError && empty($error)): ?>
@@ -204,113 +204,133 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             <input type="hidden" name="action" value="signup">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             
-            <div class="form-group">
-                <label for="company_name" class="form-label">Company Name</label>
-                <input 
-                    type="text" 
-                    id="company_name" 
-                    name="company_name" 
-                    class="form-input" 
-                    required 
-                    autocomplete="organization"
-                    placeholder="Your Company Name"
-                    value="<?= e($_POST['company_name'] ?? '') ?>"
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="admin_email" class="form-label">Admin Email</label>
-                <input 
-                    type="email" 
-                    id="admin_email" 
-                    name="admin_email" 
-                    class="form-input" 
-                    required 
-                    autocomplete="email"
-                    placeholder="admin@company.com"
-                    value="<?= e($_POST['admin_email'] ?? '') ?>"
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="password" class="form-label">Password</label>
-                <div class="input-container password-container">
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-input" 
-                        required 
-                        autocomplete="new-password"
-                        placeholder="Minimum 8 characters"
-                        minlength="8"
-                    >
-                    <button type="button" class="password-toggle" id="password-toggle">
-                        <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
-                        </svg>
-                    </button>
+            <!-- Company Information Section -->
+            <div class="signup-form-section">
+                <h3 class="signup-form-section-title">Company Information</h3>
+                <div class="signup-form-grid">
+                    <div class="form-group">
+                        <label for="company_name" class="form-label">Company Name <span class="required">*</span></label>
+                        <input 
+                            type="text" 
+                            id="company_name" 
+                            name="company_name" 
+                            class="form-input" 
+                            required 
+                            autocomplete="organization"
+                            placeholder="Acme Corporation"
+                            value="<?= e($_POST['company_name'] ?? '') ?>"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company_size" class="form-label">Company Size</label>
+                        <select id="company_size" name="company_size" class="form-input">
+                            <option value="">Select size</option>
+                            <option value="1-10">1-10 employees</option>
+                            <option value="11-50">11-50 employees</option>
+                            <option value="51-200">51-200 employees</option>
+                            <option value="201-500">201-500 employees</option>
+                            <option value="500+">500+ employees</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="confirm_password" class="form-label">Confirm Password</label>
-                <div class="input-container password-container">
+            <!-- Account Credentials Section -->
+            <div class="signup-form-section">
+                <h3 class="signup-form-section-title">Account Credentials</h3>
+                <div class="form-group">
+                    <label for="admin_email" class="form-label">Admin Email <span class="required">*</span></label>
                     <input 
-                        type="password" 
-                        id="confirm_password" 
-                        name="confirm_password" 
+                        type="email" 
+                        id="admin_email" 
+                        name="admin_email" 
                         class="form-input" 
                         required 
-                        autocomplete="new-password"
-                        placeholder="Re-enter your password"
-                        minlength="8"
+                        autocomplete="email"
+                        placeholder="admin@company.com"
+                        value="<?= e($_POST['admin_email'] ?? '') ?>"
                     >
-                    <button type="button" class="password-toggle" id="confirm-password-toggle">
-                        <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
-                        </svg>
-                    </button>
+                    <small class="form-hint">This will be your login email address</small>
+                </div>
+                
+                <div class="signup-form-grid">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password <span class="required">*</span></label>
+                        <div class="input-container password-container">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input" 
+                                required 
+                                autocomplete="new-password"
+                                placeholder="Minimum 8 characters"
+                                minlength="8"
+                            >
+                            <button type="button" class="password-toggle" id="password-toggle" aria-label="Toggle password visibility">
+                                <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <small class="form-hint">Must be at least 8 characters</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password" class="form-label">Confirm Password <span class="required">*</span></label>
+                        <div class="input-container password-container">
+                            <input 
+                                type="password" 
+                                id="confirm_password" 
+                                name="confirm_password" 
+                                class="form-input" 
+                                required 
+                                autocomplete="new-password"
+                                placeholder="Re-enter your password"
+                                minlength="8"
+                            >
+                            <button type="button" class="password-toggle" id="confirm-password-toggle" aria-label="Toggle password visibility">
+                                <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="timezone" class="form-label">Timezone</label>
-                <select id="timezone" name="timezone" class="form-input" required>
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">Eastern Time (ET)</option>
-                    <option value="America/Chicago">Central Time (CT)</option>
-                    <option value="America/Denver">Mountain Time (MT)</option>
-                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                    <option value="Europe/London">London (GMT)</option>
-                    <option value="Europe/Paris">Paris (CET)</option>
-                    <option value="Asia/Dubai">Dubai (GST)</option>
-                    <option value="Asia/Tokyo">Tokyo (JST)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="country" class="form-label">Country</label>
-                <input 
-                    type="text" 
-                    id="country" 
-                    name="country" 
-                    class="form-input" 
-                    placeholder="United States"
-                    value="<?= e($_POST['country'] ?? '') ?>"
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="company_size" class="form-label">Company Size</label>
-                <select id="company_size" name="company_size" class="form-input">
-                    <option value="">Select size</option>
-                    <option value="1-10">1-10 employees</option>
-                    <option value="11-50">11-50 employees</option>
-                    <option value="51-200">51-200 employees</option>
-                    <option value="201-500">201-500 employees</option>
-                    <option value="500+">500+ employees</option>
-                </select>
+            <!-- Location Settings Section -->
+            <div class="signup-form-section">
+                <h3 class="signup-form-section-title">Location Settings</h3>
+                <div class="signup-form-grid">
+                    <div class="form-group">
+                        <label for="timezone" class="form-label">Timezone <span class="required">*</span></label>
+                        <select id="timezone" name="timezone" class="form-input" required>
+                            <option value="UTC">UTC (Coordinated Universal Time)</option>
+                            <option value="America/New_York">Eastern Time (ET)</option>
+                            <option value="America/Chicago">Central Time (CT)</option>
+                            <option value="America/Denver">Mountain Time (MT)</option>
+                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                            <option value="Europe/London">London (GMT)</option>
+                            <option value="Europe/Paris">Paris (CET)</option>
+                            <option value="Asia/Dubai">Dubai (GST)</option>
+                            <option value="Asia/Tokyo">Tokyo (JST)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country" class="form-label">Country</label>
+                        <input 
+                            type="text" 
+                            id="country" 
+                            name="country" 
+                            class="form-input" 
+                            placeholder="United States"
+                            value="<?= e($_POST['country'] ?? '') ?>"
+                        >
+                    </div>
+                </div>
             </div>
             
             <div class="form-actions">
@@ -323,7 +343,10 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             </div>
             
             <div class="form-footer">
-                <p>Already have an account? <a href="/login.php">Sign in</a></p>
+                <div class="form-footer-content">
+                    <span class="form-footer-text">Already have an account?</span>
+                    <a href="/login.php" class="form-footer-link">Sign in to your account</a>
+                </div>
             </div>
         </form>
     </div>

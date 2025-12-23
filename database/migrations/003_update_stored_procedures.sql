@@ -52,20 +52,20 @@ CREATE PROCEDURE sp_create_company(
     IN p_verification_token VARCHAR(255)
 )
 BEGIN
-    DECLARE v_company_slug VARCHAR(255);
+    DECLARE v_company_slug VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     DECLARE v_slug_exists INT DEFAULT 1;
     DECLARE v_counter INT DEFAULT 0;
     
-    -- Generate unique slug
-    SET v_company_slug = LOWER(REGEXP_REPLACE(p_company_name, '[^a-zA-Z0-9]+', '-'));
+    -- Generate unique slug (explicitly set collation)
+    SET v_company_slug = LOWER(REGEXP_REPLACE(p_company_name COLLATE utf8mb4_unicode_ci, '[^a-zA-Z0-9]+', '-')) COLLATE utf8mb4_unicode_ci;
     SET v_company_slug = TRIM(BOTH '-' FROM v_company_slug);
     
-    -- Ensure slug is unique
+    -- Ensure slug is unique (explicitly set collation for comparison)
     WHILE v_slug_exists > 0 DO
-        SELECT COUNT(*) INTO v_slug_exists FROM companies WHERE company_slug = v_company_slug;
+        SELECT COUNT(*) INTO v_slug_exists FROM companies WHERE company_slug COLLATE utf8mb4_unicode_ci = v_company_slug;
         IF v_slug_exists > 0 THEN
             SET v_counter = v_counter + 1;
-            SET v_company_slug = CONCAT(v_company_slug, '-', v_counter);
+            SET v_company_slug = CONCAT(v_company_slug, '-', v_counter) COLLATE utf8mb4_unicode_ci;
         END IF;
     END WHILE;
     

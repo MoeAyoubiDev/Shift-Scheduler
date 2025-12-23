@@ -35,15 +35,15 @@ class Company extends BaseModel
                     $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $data['company_name']));
                     $slug = trim($slug, '-');
                     
-                    // Ensure slug is unique
+                    // Ensure slug is unique (explicitly set collation for comparison)
                     $counter = 0;
                     $originalSlug = $slug;
                     try {
-                        $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                        $existing = $model->query("SELECT id FROM companies WHERE company_slug COLLATE utf8mb4_unicode_ci = ?", [$slug]);
                         while (!empty($existing)) {
                             $counter++;
                             $slug = $originalSlug . '-' . $counter;
-                            $existing = $model->query("SELECT id FROM companies WHERE company_slug = ?", [$slug]);
+                            $existing = $model->query("SELECT id FROM companies WHERE company_slug COLLATE utf8mb4_unicode_ci = ?", [$slug]);
                         }
                     } catch (PDOException $e) {
                         // Table doesn't exist - that's okay, this is the first company

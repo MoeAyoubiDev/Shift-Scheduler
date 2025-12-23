@@ -59,8 +59,8 @@ require_once __DIR__ . '/../includes/header.php';
                     <path d="M24 12L32 20H28V32H20V20H16L24 12Z" fill="white"/>
                 </svg>
             </div>
-            <h1 class="brand-title">Shift Scheduler</h1>
-            <p class="brand-subtitle">Sign in to your account</p>
+            <h1 class="brand-title">Welcome Back</h1>
+            <p class="brand-subtitle">Sign in to access your dashboard</p>
         </div>
 
         <?php if ($error): ?>
@@ -130,7 +130,10 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             
             <div class="form-footer">
-                <p>Don't have an account? <a href="/signup.php">Sign up</a></p>
+                <div class="form-footer-content">
+                    <span class="form-footer-text">New to Shift Scheduler?</span>
+                    <a href="/signup.php" class="form-footer-link">Create an account</a>
+                </div>
             </div>
         </form>
     </div>
