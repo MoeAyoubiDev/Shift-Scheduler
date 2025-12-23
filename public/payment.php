@@ -41,12 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $paymentToken = bin2hex(random_bytes(16));
     
     if (Company::completePayment((int)$companyId, $paymentToken, $paymentAmount)) {
-        $success = 'Payment completed successfully! Your account is now active.';
+        // Update company status to ACTIVE
+        $pdo = db();
+        $stmt = $pdo->prepare("UPDATE companies SET status = 'ACTIVE' WHERE id = ?");
+        $stmt->execute([$companyId]);
+        
+        $success = 'Payment completed successfully! Your account is now active. Redirecting to login...';
         $_SESSION['payment_success'] = true;
         $_SESSION['company_id'] = $companyId;
         
-        // Redirect to login after 3 seconds
-        header('Refresh: 3; url=/login.php?payment=success');
+        // Redirect to login after 2 seconds
+        header('Refresh: 2; url=/login.php?payment=success&email=' . urlencode($company['admin_email']));
     } else {
         $error = 'Payment processing failed. Please try again.';
     }

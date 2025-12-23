@@ -28,6 +28,33 @@ if (!$company || $company['status'] !== 'PAYMENT_PENDING') {
 
 $onboardingData = Company::getOnboardingProgress((int)$companyId);
 
+// Get actual data created during onboarding
+$pdo = db();
+$sections = [];
+$employees = [];
+
+try {
+    $sectionStmt = $pdo->prepare("SELECT id, section_name FROM sections WHERE company_id = ?");
+    $sectionStmt->execute([$companyId]);
+    $sections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if (!empty($sections)) {
+        $sectionId = (int)$sections[0]['id'];
+        $empStmt = $pdo->prepare("
+            SELECT e.id, e.full_name, e.email, e.employee_code, r.role_name
+            FROM employees e
+            INNER JOIN user_roles ur ON ur.id = e.user_role_id
+            INNER JOIN roles r ON r.id = ur.role_id
+            WHERE ur.section_id = ? AND e.is_active = 1
+            LIMIT 5
+        ");
+        $empStmt->execute([$sectionId]);
+        $employees = $empStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    // Data might not be created yet, use onboarding data
+}
+
 $title = 'Preview Your Dashboard - Shift Scheduler';
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -54,7 +81,7 @@ require_once __DIR__ . '/../includes/header.php';
                         </svg>
                     </div>
                     <h4>Total Employees</h4>
-                    <div class="metric-value"><?= e(count($onboardingData['step_3']['data']['employees'] ?? [])) ?></div>
+                    <div class="metric-value"><?= e(count($employees) ?: count($onboardingData['step_3']['data']['employees'] ?? [])) ?></div>
                 </div>
                 
                 <div class="preview-metric">
@@ -98,9 +125,10 @@ require_once __DIR__ . '/../includes/header.php';
                     </thead>
                     <tbody>
                         <?php 
-                        $employees = $onboardingData['step_3']['data']['employees'] ?? [];
-                        $sampleEmployees = array_slice($employees, 0, 3);
-                        foreach ($sampleEmployees as $idx => $emp): 
+                        if (empty($employees)) {
+                            $onboardingEmps = $onboardingData['step_3']['data']['employees'] ?? [];
+                            $sampleEmployees = array_slice($onboardingEmps, 0, 3);
+                            foreach ($sampleEmployees as $idx => $emp): 
                         ?>
                             <tr>
                                 <td><?= e($emp['full_name'] ?? 'Employee ' . ($idx + 1)) ?></td>
@@ -110,7 +138,24 @@ require_once __DIR__ . '/../includes/header.php';
                                 <td><span class="shift-pill shift-am">AM</span></td>
                                 <td><span class="shift-pill">OFF</span></td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php 
+                            endforeach;
+                        } else {
+                            $sampleEmployees = array_slice($employees, 0, 3);
+                            foreach ($sampleEmployees as $emp): 
+                        ?>
+                            <tr>
+                                <td><?= e($emp['full_name']) ?></td>
+                                <td><span class="shift-pill shift-am">AM</span></td>
+                                <td><span class="shift-pill shift-pm">PM</span></td>
+                                <td><span class="shift-pill shift-mid">MID</span></td>
+                                <td><span class="shift-pill shift-am">AM</span></td>
+                                <td><span class="shift-pill">OFF</span></td>
+                            </tr>
+                        <?php 
+                            endforeach;
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>

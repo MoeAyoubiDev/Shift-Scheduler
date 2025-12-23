@@ -21,12 +21,24 @@ if (isset($_GET['token'])) {
     $token = $_GET['token'];
     if (Company::verifyEmail($token)) {
         $success = 'Email verified successfully! Redirecting to onboarding...';
-        // Get company ID from session or token
+        // Get company ID from session or database
         $companyId = $_SESSION['signup_company_id'] ?? null;
+        if (!$companyId) {
+            // Try to find company by token (before it was cleared)
+            $pdo = db();
+            $stmt = $pdo->prepare("SELECT id FROM companies WHERE verification_token = ? OR email_verified_at IS NOT NULL ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$token]);
+            $company = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($company) {
+                $companyId = (int)$company['id'];
+            }
+        }
         if ($companyId) {
             $_SESSION['onboarding_company_id'] = $companyId;
-            header('Location: /onboarding.php?step=1');
+            header('Location: /onboarding.php?step=1&company_id=' . $companyId);
             exit;
+        } else {
+            $error = 'Could not find company account. Please contact support.';
         }
     } else {
         $error = 'Invalid or expired verification token.';

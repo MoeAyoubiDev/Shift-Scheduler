@@ -141,8 +141,26 @@ class Company extends BaseModel
     public static function verifyEmail(string $token): bool
     {
         $model = new self();
-        $rows = $model->callProcedure('sp_verify_company_email', ['p_token' => $token]);
-        return ($rows[0]['updated'] ?? 0) > 0;
+        try {
+            $rows = $model->callProcedure('sp_verify_company_email', ['p_token' => $token]);
+            return ($rows[0]['updated'] ?? 0) > 0;
+        } catch (PDOException $e) {
+            // Fallback to direct SQL if stored procedure doesn't exist
+            if (strpos($e->getMessage(), 'does not exist') !== false || strpos($e->getMessage(), 'Unknown procedure') !== false) {
+                $pdo = db();
+                $stmt = $pdo->prepare("
+                    UPDATE companies 
+                    SET status = 'VERIFIED',
+                        email_verified_at = NOW(),
+                        verification_token = NULL
+                    WHERE verification_token = ?
+                      AND status = 'PENDING_VERIFICATION'
+                ");
+                $stmt->execute([$token]);
+                return $stmt->rowCount() > 0;
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -151,12 +169,32 @@ class Company extends BaseModel
     public static function completePayment(int $companyId, string $paymentToken, float $amount): bool
     {
         $model = new self();
-        $rows = $model->callProcedure('sp_complete_company_payment', [
-            'p_company_id' => $companyId,
-            'p_payment_token' => $paymentToken,
-            'p_payment_amount' => $amount,
-        ]);
-        return ($rows[0]['updated'] ?? 0) > 0;
+        try {
+            $rows = $model->callProcedure('sp_complete_company_payment', [
+                'p_company_id' => $companyId,
+                'p_payment_token' => $paymentToken,
+                'p_payment_amount' => $amount,
+            ]);
+            return ($rows[0]['updated'] ?? 0) > 0;
+        } catch (PDOException $e) {
+            // Fallback to direct SQL if stored procedure doesn't exist
+            if (strpos($e->getMessage(), 'does not exist') !== false || strpos($e->getMessage(), 'Unknown procedure') !== false) {
+                $pdo = db();
+                $stmt = $pdo->prepare("
+                    UPDATE companies 
+                    SET payment_status = 'COMPLETED',
+                        payment_token = ?,
+                        payment_amount = ?,
+                        payment_completed_at = NOW(),
+                        status = 'ACTIVE'
+                    WHERE id = ?
+                      AND status = 'PAYMENT_PENDING'
+                ");
+                $stmt->execute([$paymentToken, $amount, $companyId]);
+                return $stmt->rowCount() > 0;
+            }
+            throw $e;
+        }
     }
 
     /**

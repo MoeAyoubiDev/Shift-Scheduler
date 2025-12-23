@@ -30,6 +30,18 @@ $currentStep = (int)($_GET['step'] ?? 1);
 $totalSteps = 5;
 $progress = Company::getOnboardingProgress((int)$companyId);
 
+// Prevent skipping steps - ensure previous steps are completed
+if ($currentStep > 1) {
+    $requiredStep = $currentStep - 1;
+    $prevStepData = $progress["step_{$requiredStep}"] ?? null;
+    if (!$prevStepData || !$prevStepData['completed']) {
+        header('Location: /onboarding.php?step=' . $requiredStep . '&company_id=' . $companyId);
+        exit;
+    }
+}
+
+$error = '';
+
 // Handle step submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
     require_csrf($_POST);
@@ -38,23 +50,123 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
     $stepData = $_POST;
     unset($stepData['step'], $stepData['csrf_token'], $stepData['action']);
     
-    Company::updateOnboardingStep((int)$companyId, "step_{$step}", $stepData, true);
+    // Validation
+    if ($step === 1) {
+        if (empty($stepData['company_name']) || strlen($stepData['company_name']) < 2) {
+            $error = 'Company name must be at least 2 characters.';
+        }
+    } elseif ($step === 2) {
+        if (empty($stepData['default_shift_hours']) || $stepData['default_shift_hours'] < 4 || $stepData['default_shift_hours'] > 12) {
+            $error = 'Shift duration must be between 4 and 12 hours.';
+        }
+    } elseif ($step === 3) {
+        if (empty($stepData['employees']) || !is_array($stepData['employees'])) {
+            $error = 'Please add at least one employee.';
+        } else {
+            foreach ($stepData['employees'] as $idx => $emp) {
+                if (empty($emp['full_name'])) {
+                    $error = "Employee " . ($idx + 1) . " must have a full name.";
+                    break;
+                }
+            }
+        }
+    }
     
-    if ($step < $totalSteps) {
-        header('Location: /onboarding.php?step=' . ($step + 1) . '&company_id=' . $companyId);
-        exit;
-    } else {
-        // Complete onboarding
-        Company::updateOnboardingStep((int)$companyId, 'completed', [], true);
-        // Update company status
-        $pdo = db();
-        $stmt = $pdo->prepare("UPDATE companies SET status = 'PAYMENT_PENDING', onboarding_completed_at = NOW() WHERE id = ?");
-        $stmt->execute([$companyId]);
+    if (!$error) {
+        Company::updateOnboardingStep((int)$companyId, "step_{$step}", $stepData, true);
         
-        header('Location: /onboarding-preview.php?company_id=' . $companyId);
-        exit;
+        if ($step < $totalSteps) {
+            header('Location: /onboarding.php?step=' . ($step + 1) . '&company_id=' . $companyId);
+            exit;
+        } else {
+            // Complete onboarding and create initial data
+            Company::updateOnboardingStep((int)$companyId, 'completed', [], true);
+            
+            // Create initial sections and employees
+            require_once __DIR__ . '/../app/Models/Section.php';
+            require_once __DIR__ . '/../app/Models/User.php';
+            
+            $pdo = db();
+            
+            // Create default section
+            $sectionName = $progress['step_1']['data']['company_name'] ?? $company['company_name'];
+            $sectionStmt = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
+            $sectionStmt->execute([$sectionName . ' - Main', $companyId]);
+            $sectionId = (int)$pdo->lastInsertId();
+            
+            // Create admin user
+            $adminEmail = $company['admin_email'];
+            $adminPassword = $company['admin_password_hash'];
+            $username = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $company['company_name'])) . '_admin';
+            
+            $userStmt = $pdo->prepare("INSERT INTO users (username, password_hash, email, company_id) VALUES (?, ?, ?, ?)");
+            $userStmt->execute([$username, $adminPassword, $adminEmail, $companyId]);
+            $userId = (int)$pdo->lastInsertId();
+            
+            // Get Director role
+            $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
+            $roleStmt->execute();
+            $roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
+            $roleId = (int)($roleRow['id'] ?? 0);
+            
+            // Assign Director role
+            $userRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
+            $userRoleStmt->execute([$userId, $roleId, $sectionId]);
+            
+            // Create employees from step 3
+            if (!empty($progress['step_3']['data']['employees'])) {
+                $empRoleMap = ['Employee' => 'Employee', 'Senior' => 'Senior', 'Team Leader' => 'Team Leader'];
+                foreach ($progress['step_3']['data']['employees'] as $idx => $emp) {
+                    $empRoleName = $empRoleMap[$emp['role']] ?? 'Employee';
+                    $empRoleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = ? LIMIT 1");
+                    $empRoleStmt->execute([$empRoleName]);
+                    $empRoleRow = $empRoleStmt->fetch(PDO::FETCH_ASSOC);
+                    $empRoleId = (int)($empRoleRow['id'] ?? 0);
+                    
+                    if ($empRoleId > 0) {
+                        $empUsername = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $emp['full_name'])) . '_' . ($idx + 1);
+                        $empPassword = password_hash('TempPass123!', PASSWORD_BCRYPT);
+                        
+                        $userStmt->execute([$empUsername, $empPassword, $emp['email'] ?? '', $companyId]);
+                        $empUserId = (int)$pdo->lastInsertId();
+                        
+                        $userRoleStmt->execute([$empUserId, $empRoleId, $sectionId]);
+                        $empUserRoleId = (int)$pdo->lastInsertId();
+                        
+                        // Only create employee record if role is Employee or Senior
+                        if (in_array($empRoleName, ['Employee', 'Senior'])) {
+                            $empCode = 'EMP' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT);
+                            $isSenior = ($empRoleName === 'Senior') ? 1 : 0;
+                            
+                            $employeeStmt = $pdo->prepare("
+                                INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            ");
+                            $employeeStmt->execute([
+                                $empUserRoleId,
+                                $empCode,
+                                $emp['full_name'],
+                                $emp['email'] ?? '',
+                                $isSenior,
+                                $isSenior ? 5 : 0
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // Update company status
+            $stmt = $pdo->prepare("UPDATE companies SET status = 'PAYMENT_PENDING', onboarding_completed_at = NOW() WHERE id = ?");
+            $stmt->execute([$companyId]);
+            
+            header('Location: /onboarding-preview.php?company_id=' . $companyId);
+            exit;
+        }
     }
 }
+
+// Get saved data for current step
+$savedData = $progress["step_{$currentStep}"]['data'] ?? [];
 
 $title = 'Onboarding - Shift Scheduler';
 require_once __DIR__ . '/../includes/header.php';
@@ -72,6 +184,10 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Step Content -->
         <div class="onboarding-content">
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?= e($error) ?></div>
+            <?php endif; ?>
+            
             <?php if ($currentStep === 1): ?>
                 <!-- Step 1: Company Details -->
                 <h2>Company Details</h2>
@@ -83,25 +199,25 @@ require_once __DIR__ . '/../includes/header.php';
                     
                     <div class="form-group">
                         <label class="form-label">Company Name</label>
-                        <input type="text" name="company_name" class="form-input" value="<?= e($company['company_name']) ?>" required>
+                        <input type="text" name="company_name" class="form-input" value="<?= e($savedData['company_name'] ?? $company['company_name']) ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Industry</label>
                         <select name="industry" class="form-input">
                             <option value="">Select industry</option>
-                            <option value="retail">Retail</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="hospitality">Hospitality</option>
-                            <option value="manufacturing">Manufacturing</option>
-                            <option value="services">Services</option>
-                            <option value="other">Other</option>
+                            <option value="retail" <?= ($savedData['industry'] ?? '') === 'retail' ? 'selected' : '' ?>>Retail</option>
+                            <option value="healthcare" <?= ($savedData['industry'] ?? '') === 'healthcare' ? 'selected' : '' ?>>Healthcare</option>
+                            <option value="hospitality" <?= ($savedData['industry'] ?? '') === 'hospitality' ? 'selected' : '' ?>>Hospitality</option>
+                            <option value="manufacturing" <?= ($savedData['industry'] ?? '') === 'manufacturing' ? 'selected' : '' ?>>Manufacturing</option>
+                            <option value="services" <?= ($savedData['industry'] ?? '') === 'services' ? 'selected' : '' ?>>Services</option>
+                            <option value="other" <?= ($savedData['industry'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Address</label>
-                        <textarea name="address" class="form-input" rows="3"></textarea>
+                        <textarea name="address" class="form-input" rows="3"><?= e($savedData['address'] ?? '') ?></textarea>
                     </div>
                     
                     <div class="form-actions">
@@ -120,21 +236,21 @@ require_once __DIR__ . '/../includes/header.php';
                     
                     <div class="form-group">
                         <label class="form-label">Default Shift Duration (hours)</label>
-                        <input type="number" name="default_shift_hours" class="form-input" value="8" min="4" max="12" step="0.5" required>
+                        <input type="number" name="default_shift_hours" class="form-input" value="<?= e($savedData['default_shift_hours'] ?? '8') ?>" min="4" max="12" step="0.5" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Work Days Per Week</label>
                         <select name="work_days_per_week" class="form-input" required>
-                            <option value="5">5 days</option>
-                            <option value="6">6 days</option>
-                            <option value="7">7 days</option>
+                            <option value="5" <?= ($savedData['work_days_per_week'] ?? '5') === '5' ? 'selected' : '' ?>>5 days</option>
+                            <option value="6" <?= ($savedData['work_days_per_week'] ?? '') === '6' ? 'selected' : '' ?>>6 days</option>
+                            <option value="7" <?= ($savedData['work_days_per_week'] ?? '') === '7' ? 'selected' : '' ?>>7 days</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Break Duration (minutes)</label>
-                        <input type="number" name="break_duration" class="form-input" value="30" min="15" max="120" step="15" required>
+                        <input type="number" name="break_duration" class="form-input" value="<?= e($savedData['break_duration'] ?? '30') ?>" min="15" max="120" step="15" required>
                     </div>
                     
                     <div class="form-actions">
@@ -153,24 +269,29 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                     
                     <div id="employees-list">
+                        <?php 
+                        $employees = $savedData['employees'] ?? [['full_name' => '', 'email' => '', 'role' => 'Employee']];
+                        foreach ($employees as $idx => $emp): 
+                        ?>
                         <div class="employee-entry">
                             <div class="form-group">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" name="employees[0][full_name]" class="form-input" required>
+                                <input type="text" name="employees[<?= $idx ?>][full_name]" class="form-input" value="<?= e($emp['full_name'] ?? '') ?>" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Email</label>
-                                <input type="email" name="employees[0][email]" class="form-input">
+                                <input type="email" name="employees[<?= $idx ?>][email]" class="form-input" value="<?= e($emp['email'] ?? '') ?>">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Role</label>
-                                <select name="employees[0][role]" class="form-input" required>
-                                    <option value="Employee">Employee</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="Team Leader">Team Leader</option>
+                                <select name="employees[<?= $idx ?>][role]" class="form-input" required>
+                                    <option value="Employee" <?= ($emp['role'] ?? 'Employee') === 'Employee' ? 'selected' : '' ?>>Employee</option>
+                                    <option value="Senior" <?= ($emp['role'] ?? '') === 'Senior' ? 'selected' : '' ?>>Senior</option>
+                                    <option value="Team Leader" <?= ($emp['role'] ?? '') === 'Team Leader' ? 'selected' : '' ?>>Team Leader</option>
                                 </select>
                             </div>
                         </div>
+                        <?php endforeach; ?>
                     </div>
                     
                     <button type="button" class="btn secondary" id="add-employee">+ Add Another Employee</button>
@@ -193,26 +314,27 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="form-group">
                         <label class="form-label">Auto-generate schedules?</label>
                         <select name="auto_generate" class="form-input" required>
-                            <option value="yes">Yes, auto-generate weekly</option>
-                            <option value="manual">No, manual creation only</option>
+                            <option value="yes" <?= ($savedData['auto_generate'] ?? 'yes') === 'yes' ? 'selected' : '' ?>>Yes, auto-generate weekly</option>
+                            <option value="manual" <?= ($savedData['auto_generate'] ?? '') === 'manual' ? 'selected' : '' ?>>No, manual creation only</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Request submission window</label>
                         <select name="request_window" class="form-input" required>
-                            <option value="current_week">Current week only</option>
-                            <option value="next_week">Next week only</option>
-                            <option value="both">Both current and next week</option>
+                            <option value="current_week" <?= ($savedData['request_window'] ?? 'current_week') === 'current_week' ? 'selected' : '' ?>>Current week only</option>
+                            <option value="next_week" <?= ($savedData['request_window'] ?? '') === 'next_week' ? 'selected' : '' ?>>Next week only</option>
+                            <option value="both" <?= ($savedData['request_window'] ?? '') === 'both' ? 'selected' : '' ?>>Both current and next week</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Notification preferences</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="notifications[]" value="email" checked> Email notifications</label>
-                            <label><input type="checkbox" name="notifications[]" value="schedule_published" checked> Schedule published</label>
-                            <label><input type="checkbox" name="notifications[]" value="request_status" checked> Request status updates</label>
+                            <?php $notifications = $savedData['notifications'] ?? ['email', 'schedule_published', 'request_status']; ?>
+                            <label><input type="checkbox" name="notifications[]" value="email" <?= in_array('email', $notifications) ? 'checked' : '' ?>> Email notifications</label>
+                            <label><input type="checkbox" name="notifications[]" value="schedule_published" <?= in_array('schedule_published', $notifications) ? 'checked' : '' ?>> Schedule published</label>
+                            <label><input type="checkbox" name="notifications[]" value="request_status" <?= in_array('request_status', $notifications) ? 'checked' : '' ?>> Request status updates</label>
                         </div>
                     </div>
                     
@@ -373,7 +495,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <script>
 // Add employee entry
-let employeeCount = 1;
+let employeeCount = <?= count($savedData['employees'] ?? [['']]) ?>;
 document.getElementById('add-employee')?.addEventListener('click', function() {
     const list = document.getElementById('employees-list');
     const entry = document.createElement('div');
