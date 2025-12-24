@@ -161,16 +161,16 @@ try {
 ?>
 
 <div class="login-container">
-    <div class="login-card">
+    <div class="login-card signup-card">
         <div class="login-brand">
             <div class="brand-logo">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="48" height="48" rx="10" fill="#4f46e5"/>
-                    <path d="M24 12L32 20H28V32H20V20H16L24 12Z" fill="white"/>
+                <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="48" height="48" rx="10" fill="white"/>
+                    <path d="M24 12L32 20H28V32H20V20H16L24 12Z" fill="#4f46e5"/>
                 </svg>
             </div>
             <h1 class="brand-title">Create Your Account</h1>
-            <p class="brand-subtitle">Get started with professional workforce management</p>
+            <p class="brand-subtitle">Join thousands of companies managing their workforce efficiently</p>
         </div>
 
         <?php if ($dbError && empty($error)): ?>
@@ -206,7 +206,9 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             
             <!-- Company Information Section -->
             <div class="signup-form-section">
-                <h3 class="signup-form-section-title">Company Information</h3>
+                <h3 class="signup-form-section-title">
+                    <span>Company Information</span>
+                </h3>
                 <div class="signup-form-grid">
                     <div class="form-group">
                         <label for="company_name" class="form-label">Company Name <span class="required">*</span></label>
@@ -238,7 +240,9 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             
             <!-- Account Credentials Section -->
             <div class="signup-form-section">
-                <h3 class="signup-form-section-title">Account Credentials</h3>
+                <h3 class="signup-form-section-title">
+                    <span>Account Credentials</span>
+                </h3>
                 <div class="form-group">
                     <label for="admin_email" class="form-label">Admin Email <span class="required">*</span></label>
                     <input 
@@ -302,7 +306,9 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             
             <!-- Location Settings Section -->
             <div class="signup-form-section">
-                <h3 class="signup-form-section-title">Location Settings</h3>
+                <h3 class="signup-form-section-title">
+                    <span>Location Settings</span>
+                </h3>
                 <div class="signup-form-grid">
                     <div class="form-group">
                         <label for="timezone" class="form-label">Timezone <span class="required">*</span></label>
