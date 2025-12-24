@@ -493,6 +493,10 @@ require_once __DIR__ . '/../includes/header.php';
     align-items: center;
     justify-content: center;
     padding: var(--space-xl);
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .onboarding-card {
@@ -504,6 +508,9 @@ require_once __DIR__ . '/../includes/header.php';
     max-width: 700px;
     width: 100%;
     box-shadow: var(--shadow-xl);
+    box-sizing: border-box;
+    overflow: visible;
+    margin: 0 auto;
 }
 
 .onboarding-progress {

@@ -196,11 +196,17 @@ require_once __DIR__ . '/../includes/header.php';
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--space-2xl);
+    width: 100%;
+    max-width: min(1200px, 100vw - 2rem);
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .preview-header {
     text-align: center;
     margin-bottom: var(--space-2xl);
+    width: 100%;
+    max-width: 100%;
 }
 
 .preview-header h1 {
@@ -211,11 +217,13 @@ require_once __DIR__ . '/../includes/header.php';
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    word-wrap: break-word;
 }
 
 .preview-header p {
     color: var(--color-text-secondary);
     font-size: 1.125rem;
+    word-wrap: break-word;
 }
 
 .preview-dashboard {
@@ -223,6 +231,8 @@ require_once __DIR__ . '/../includes/header.php';
     flex-direction: column;
     gap: var(--space-xl);
     margin-bottom: var(--space-2xl);
+    width: 100%;
+    max-width: 100%;
 }
 
 .preview-card {
@@ -232,6 +242,10 @@ require_once __DIR__ . '/../includes/header.php';
     border-radius: var(--radius-xl);
     padding: var(--space-xl);
     box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
 }
 
 .preview-card-header {
