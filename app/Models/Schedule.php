@@ -19,24 +19,52 @@ class Schedule extends BaseModel
 
             return (int) ($rows[0]['week_id'] ?? 0);
         } catch (PDOException $e) {
-            // Fallback: If stored procedure doesn't exist, use direct SQL
-            if (strpos($e->getMessage(), 'does not exist') !== false || 
-                strpos($e->getMessage(), 'Unknown procedure') !== false ||
-                strpos($e->getMessage(), 'PROCEDURE') !== false) {
-                
-                $pdo = db();
-                $stmt = $pdo->prepare('SELECT id FROM weeks WHERE week_start_date = ? LIMIT 1');
-                $stmt->execute([$weekStart]);
-                $week = $stmt->fetch();
-                
-                if ($week) {
-                    return (int) $week['id'];
+            // Fallback: If stored procedure doesn't exist or has an error, use direct SQL
+            $errorMsg = $e->getMessage();
+            $isProcedureError = (
+                strpos($errorMsg, 'does not exist') !== false || 
+                strpos($errorMsg, 'Unknown procedure') !== false ||
+                strpos($errorMsg, 'PROCEDURE') !== false ||
+                strpos($errorMsg, 'routine') !== false ||
+                $e->getCode() == '42000' // SQL syntax error/access violation
+            );
+            
+            if ($isProcedureError) {
+                try {
+                    $pdo = db();
+                    
+                    // Check if weeks table exists
+                    $stmt = $pdo->query("SHOW TABLES LIKE 'weeks'");
+                    if ($stmt->rowCount() === 0) {
+                        throw new RuntimeException("The 'weeks' table does not exist. Please run the database setup script: php database/setup.php");
+                    }
+                    
+                    // Try to find existing week
+                    $stmt = $pdo->prepare('SELECT id FROM weeks WHERE week_start_date = ? LIMIT 1');
+                    $stmt->execute([$weekStart]);
+                    $week = $stmt->fetch();
+                    
+                    if ($week) {
+                        return (int) $week['id'];
+                    }
+                    
+                    // Insert new week (company_id can be NULL for now)
+                    $stmt = $pdo->prepare('INSERT INTO weeks (week_start_date, week_end_date, company_id) VALUES (?, ?, NULL)');
+                    $stmt->execute([$weekStart, $weekEnd]);
+                    $weekId = (int) $pdo->lastInsertId();
+                    
+                    if ($weekId <= 0) {
+                        throw new RuntimeException("Failed to insert week record. lastInsertId returned 0.");
+                    }
+                    
+                    return $weekId;
+                } catch (PDOException $fallbackError) {
+                    // If fallback also fails, provide a helpful error message
+                    throw new RuntimeException(
+                        "Database error in fallback: " . $fallbackError->getMessage() . 
+                        " (Original error: " . $errorMsg . ")"
+                    );
                 }
-                
-                // Insert new week
-                $stmt = $pdo->prepare('INSERT INTO weeks (week_start_date, week_end_date) VALUES (?, ?)');
-                $stmt->execute([$weekStart, $weekEnd]);
-                return (int) $pdo->lastInsertId();
             }
             
             // Re-throw if it's a different error

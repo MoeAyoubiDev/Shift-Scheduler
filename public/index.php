@@ -37,17 +37,43 @@ try {
         throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
     }
 } catch (PDOException $e) {
-    error_log("Database error in Schedule::upsertWeek: " . $e->getMessage());
+    error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
+    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     if ($appEnv === 'development') {
-        die("Database Error: " . $e->getMessage() . "\n\nSQL State: " . $e->getCode() . "\n\nStack trace:\n" . $e->getTraceAsString());
+        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+            "<strong>Database Error (PDOException):</strong>\n" .
+            "Message: " . $errorMsg . "\n" .
+            "SQL State: " . $e->getCode() . "\n" .
+            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+            "</pre>");
     }
-    die("Database error. Please check server logs.");
+    die("Database error. Please check server logs. Error: " . $errorMsg);
+} catch (RuntimeException $e) {
+    error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
+    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+    if ($appEnv === 'development') {
+        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+            "<strong>Runtime Error:</strong>\n" .
+            "Message: " . $errorMsg . "\n" .
+            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+            "</pre>");
+    }
+    die("Database error. Please check server logs. Error: " . $errorMsg);
 } catch (Exception $e) {
     error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
+    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     if ($appEnv === 'development') {
-        die("Error: " . $e->getMessage() . "\n\nStack trace:\n" . $e->getTraceAsString());
+        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+            "<strong>Error:</strong>\n" .
+            "Message: " . $errorMsg . "\n" .
+            "Type: " . get_class($e) . "\n" .
+            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+            "</pre>");
     }
-    die("Database error. Please check server logs.");
+    die("Database error. Please check server logs. Error: " . $errorMsg);
 }
 
 // Initialize action handlers
