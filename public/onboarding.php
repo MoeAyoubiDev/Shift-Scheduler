@@ -119,6 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
             $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
             $roleStmt->execute();
             $roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
+            if ($roleId === 0) {
+                throw new RuntimeException(
+                    'Director role not found. Database seed data is missing. 
+                     Please run: php database/setup.php'
+                );
+            }
             $roleId = (int)($roleRow['id'] ?? 0);
             
             // Assign Director role
