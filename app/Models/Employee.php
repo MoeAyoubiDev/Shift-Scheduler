@@ -23,4 +23,27 @@ class Employee extends BaseModel
             'p_date' => $date,
         ]);
     }
+
+    public static function updateInSection(
+        int $employeeId,
+        int $sectionId,
+        string $fullName,
+        ?string $email,
+        int $roleId,
+        int $seniorityLevel,
+        int $isSenior
+    ): bool {
+        $model = new self();
+        $rows = $model->callProcedure('sp_update_employee', [
+            'p_employee_id' => $employeeId,
+            'p_section_id' => $sectionId,
+            'p_full_name' => $fullName,
+            'p_email' => $email,
+            'p_role_id' => $roleId,
+            'p_seniority_level' => $seniorityLevel,
+            'p_is_senior' => $isSenior,
+        ]);
+
+        return (int) ($rows[0]['affected_rows'] ?? 0) > 0;
+    }
 }

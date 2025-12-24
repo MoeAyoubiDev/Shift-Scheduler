@@ -9,6 +9,7 @@
     // Global flags
     window.dashboardScriptLoaded = true;
     let currentSection = 'overview';
+    let bulkSelectActive = false;
     
     // ============================================
     // NAVIGATION SYSTEM - Enhanced with Animations
@@ -183,7 +184,18 @@
     document.addEventListener('click', function(e) {
         const target = e.target;
         const button = target.closest('button');
-        
+
+        if (bulkSelectActive) {
+            const selectableCell = target.closest('.shift-cell');
+            if (selectableCell) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleShiftSelection(selectableCell);
+                updateBulkSelectState();
+                return false;
+            }
+        }
+
         // Navigation cards - Enhanced with animations
         if (button && button.classList.contains('nav-card')) {
             e.preventDefault();
@@ -291,11 +303,55 @@
         }
         
         // Close modal
-        if (target.closest('.modal-close') || target.closest('.modal-cancel') || 
-            (target.classList.contains('modal-overlay') && target.id === 'assign-modal')) {
+        if (target.closest('.modal-close') || target.closest('.modal-cancel') || target.closest('[data-modal-close]') ||
+            target.classList.contains('modal')) {
             e.preventDefault();
             e.stopPropagation();
-            closeModal();
+            const modalId = target.closest('[data-modal-close]')?.getAttribute('data-modal-close');
+            if (modalId) {
+                closeModalById(modalId);
+            } else if (target.classList.contains('modal') && target.id) {
+                closeModalById(target.id);
+            } else {
+                closeModal();
+            }
+            return false;
+        }
+
+        if (button && button.id === 'assign-shifts-btn') {
+            e.preventDefault();
+            e.stopPropagation();
+            openAssignModal(null, null, null, null);
+            return false;
+        }
+
+        if (button && button.id === 'bulk-select-btn') {
+            e.preventDefault();
+            e.stopPropagation();
+            bulkSelectActive = !bulkSelectActive;
+            document.body.classList.toggle('bulk-select-active', bulkSelectActive);
+            updateBulkSelectState();
+            return false;
+        }
+
+        if (button && button.id === 'copy-week-btn') {
+            e.preventDefault();
+            e.stopPropagation();
+            copySelectedShifts();
+            return false;
+        }
+
+        if (button && button.id === 'clear-conflicts-btn') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleConflictHighlights(button);
+            return false;
+        }
+
+        if (button && button.classList.contains('btn-update-employee')) {
+            e.preventDefault();
+            e.stopPropagation();
+            openEmployeeUpdateModal(button);
             return false;
         }
     }, true); // Use capture phase
@@ -313,7 +369,12 @@
         const requestIdInput = document.getElementById('assign-request-id');
         const shiftDefSelect = document.getElementById('assign-shift-def');
         
-        if (dateInput) dateInput.value = date || '';
+        if (dateInput) {
+            dateInput.value = date || dateInput.value || '';
+            if (!dateInput.value && dateInput.options && dateInput.options.length > 1) {
+                dateInput.value = dateInput.options[1].value;
+            }
+        }
         if (employeeSelect) employeeSelect.value = employeeId || '';
         if (requestIdInput) requestIdInput.value = requestId || '';
         if (shiftDefSelect && shiftDefId) {
@@ -352,6 +413,142 @@
     
     window.openAssignModal = openAssignModal;
     window.closeModal = closeModal;
+
+    function closeModalById(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        modal.style.animation = 'fadeOut 0.2s ease-out';
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'modalSlideOut 0.2s ease-out';
+        }
+
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 200);
+    }
+
+    function toggleShiftSelection(cell) {
+        cell.classList.toggle('shift-selected');
+    }
+
+    function updateBulkSelectState() {
+        const bulkBtn = document.getElementById('bulk-select-btn');
+        if (!bulkBtn) return;
+
+        const selectedCount = document.querySelectorAll('.shift-selected').length;
+        if (bulkSelectActive) {
+            bulkBtn.classList.add('active');
+            bulkBtn.innerHTML = `Selected ${selectedCount || 0}`;
+        } else {
+            bulkBtn.classList.remove('active');
+            bulkBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display: inline-block; margin-right: 0.25rem; vertical-align: middle;">
+                    <path d="M2 4L6 8L14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Bulk Select
+            `;
+            document.querySelectorAll('.shift-selected').forEach(cell => cell.classList.remove('shift-selected'));
+        }
+    }
+
+    function copySelectedShifts() {
+        const selectedCells = document.querySelectorAll('.shift-selected');
+        const cells = selectedCells.length ? selectedCells : document.querySelectorAll('.shift-cell');
+        const rows = [];
+
+        cells.forEach(cell => {
+            const row = cell.closest('tr');
+            const employeeName = row?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
+            const date = cell.getAttribute('data-date') || '';
+            const shiftLabels = Array.from(cell.querySelectorAll('.shift-pill'))
+                .map(pill => pill.textContent.trim().replace(/\s+/g, ' '))
+                .filter(Boolean);
+            if (!shiftLabels.length) {
+                return;
+            }
+            rows.push(`${employeeName}\t${date}\t${shiftLabels.join(', ')}`);
+        });
+
+        if (!rows.length) {
+            notify('No shifts found to copy.', 'warning');
+            return;
+        }
+
+        const text = ['Employee\tDate\tShift', ...rows].join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(() => notify('Schedule copied to clipboard.', 'success'))
+                .catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            notify('Schedule copied to clipboard.', 'success');
+        } catch (err) {
+            notify('Unable to copy schedule.', 'error');
+        }
+        textarea.remove();
+    }
+
+    function toggleConflictHighlights(button) {
+        const wrapper = document.querySelector('.schedule-table-wrapper');
+        if (!wrapper) return;
+        const isActive = wrapper.classList.toggle('conflicts-visible');
+        button.classList.toggle('active', isActive);
+        notify(isActive ? 'Conflict highlighting enabled.' : 'Conflict highlighting cleared.', 'info');
+    }
+
+    function openEmployeeUpdateModal(button) {
+        const modal = document.getElementById('update-employee-modal');
+        if (!modal) return;
+
+        const employeeId = button.getAttribute('data-employee-id') || '';
+        const fullName = button.getAttribute('data-full-name') || '';
+        const email = button.getAttribute('data-email') || '';
+        const roleId = button.getAttribute('data-role-id') || '';
+        const seniorityLevel = button.getAttribute('data-seniority-level') || 0;
+
+        const idField = document.getElementById('update-employee-id');
+        const nameField = document.getElementById('update-full-name');
+        const emailField = document.getElementById('update-email');
+        const roleField = document.getElementById('update-role');
+        const seniorityField = document.getElementById('update-seniority');
+
+        if (idField) idField.value = employeeId;
+        if (nameField) nameField.value = fullName;
+        if (emailField) emailField.value = email;
+        if (roleField && roleId) roleField.value = roleId;
+        if (seniorityField) seniorityField.value = seniorityLevel;
+
+        modal.style.display = 'flex';
+        modal.style.animation = 'fadeIn 0.2s ease-out';
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        }
+        document.body.style.overflow = 'hidden';
+    }
+
+    function notify(message, type = 'info') {
+        if (window.NotificationManager) {
+            window.NotificationManager.show(message, type);
+        } else {
+            showNotification(message, type);
+        }
+    }
     
     // Auto-fill shift times when shift definition changes
     const shiftDefSelect = document.getElementById('assign-shift-def');
@@ -397,7 +594,7 @@
         });
         
         // Filter input with debounce
-        const filterInput = document.getElementById('filter-employees');
+        const filterInput = document.getElementById('schedule-filter') || document.getElementById('filter-employees');
         if (filterInput) {
             let filterTimeout;
             filterInput.addEventListener('input', function() {

@@ -203,9 +203,47 @@ class TeamLeaderController
             return 'Section not selected.';
         }
 
-        // For now, return a message indicating update functionality
-        // This would need a database procedure to implement fully
-        return 'Employee update functionality - to be implemented with database procedure.';
+        $fullName = trim($payload['full_name'] ?? '');
+        if ($fullName === '') {
+            return 'Full name is required.';
+        }
+
+        $roleId = (int) ($payload['role_id'] ?? 0);
+        $seniorityLevel = (int) ($payload['seniority_level'] ?? 0);
+        $email = trim($payload['email'] ?? '') ?: null;
+
+        require_once __DIR__ . '/../Models/Role.php';
+        $roles = Role::listRoles();
+        $selectedRole = null;
+        foreach ($roles as $role) {
+            if ((int) $role['id'] === $roleId) {
+                $selectedRole = $role;
+                break;
+            }
+        }
+
+        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Employee', 'Senior'], true)) {
+            return 'Invalid role selection.';
+        }
+
+        $isSenior = $selectedRole['role_name'] === 'Senior' ? 1 : 0;
+
+        try {
+            require_once __DIR__ . '/../Models/Employee.php';
+            $updated = Employee::updateInSection(
+                $employeeId,
+                (int) $sectionId,
+                $fullName,
+                $email,
+                $roleId,
+                $seniorityLevel,
+                $isSenior
+            );
+
+            return $updated ? 'Employee updated successfully.' : 'No changes were applied.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
     }
 
     public static function handleDeleteEmployee(array $payload): ?string
