@@ -9,7 +9,7 @@ declare(strict_types=1);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
+require_once __DIR__ . '/../app/Core/config.php';
 require_once __DIR__ . '/../app/Helpers/helpers.php';
 require_once __DIR__ . '/../app/Models/Company.php';
 
@@ -369,7 +369,8 @@ require_once __DIR__ . '/../includes/header.php';
                                 <ul>
                                     <?php foreach ($stepData['data'] as $key => $value): ?>
                                         <?php if (is_array($value)): ?>
-                                            <li><strong><?= e(ucwords(str_replace('_', ' ', $key))) ?>:</strong> <?= e(implode(', ', $value)) ?></li>
+                                            <li><strong><?= e(ucwords(str_replace('_', ' ', $key))) ?>:</strong> <?= e(json_encode($value, JSON_PRETTY_PRINT)) ?></li>
+
                                         <?php else: ?>
                                             <li><strong><?= e(ucwords(str_replace('_', ' ', $key))) ?>:</strong> <?= e($value) ?></li>
                                         <?php endif; ?>
