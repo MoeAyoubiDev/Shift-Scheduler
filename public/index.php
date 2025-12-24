@@ -84,35 +84,37 @@ $message = '';
 $redirectUrl = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
     $result = ActionHandler::process($_POST, [
         'weekId' => $weekId,
         'weekStart' => $weekStart,
         'weekEnd' => $weekEnd,
     ]);
-    
-    // Handle redirects
-    if (!empty($result['redirect'])) {
-        $redirectUrl = $result['redirect'];
-        if (!empty($result['message'])) {
-            $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=' . urlencode($result['message']);
-        }
-        header('Location: ' . $redirectUrl);
-        exit;
-    }
-    
-    // Handle AJAX requests
-    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    
+
+    // ✅ If AJAX: always return JSON (even if redirect exists)
     if ($isAjax) {
         header('Content-Type: application/json');
         echo json_encode($result);
         exit;
     }
-    
-    // Store message for display
+
+    // ✅ Normal request: redirect if needed
+    if (!empty($result['redirect'])) {
+        $redirectUrl = $result['redirect'];
+        if (!empty($result['message'])) {
+            $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?')
+                         . 'message=' . urlencode($result['message']);
+        }
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
     $message = $result['message'] ?? '';
 }
+
 
 // Get message from URL if present (for redirects after form submissions)
 if (empty($message) && isset($_GET['message'])) {

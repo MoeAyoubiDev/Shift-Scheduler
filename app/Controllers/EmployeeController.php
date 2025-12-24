@@ -83,9 +83,9 @@ class EmployeeController
                 'importance_level' => $importance,
             ]);
 
-            return 'Shift request submitted successfully for next week.';
+            json_response(true, 'Shift request submitted successfully for next week.');
         } catch (Exception $e) {
-            return 'Error: ' . $e->getMessage();
+            json_response(false, $e->getMessage());
         }
     }
 

@@ -191,16 +191,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<style>
-.preview-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-2xl);
-    width: 100%;
-    max-width: min(1200px, 100vw - 2rem);
-    box-sizing: border-box;
-    overflow-x: hidden;
-}
+<!-- Preview styles are now in app.css -->
 
 .preview-header {
     text-align: center;
