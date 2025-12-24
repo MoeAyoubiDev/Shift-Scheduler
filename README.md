@@ -65,6 +65,22 @@ systemctl reload nginx
 
 **That's it!** The setup script handles everything.
 
+### 4. Seed Test Data (Optional)
+
+To create a ready-to-use test company with employees and sample data:
+
+```bash
+php database/seed_test_data.php
+```
+
+This creates:
+- A test company ("Demo Company")
+- Admin user with credentials: `democompany_admin` / `Demo123!`
+- 6 employees with different roles
+- Sample schedules and shift requests
+
+**See "Quick Test Data Setup" section below for full credentials.**
+
 ## Project Structure
 
 ```
@@ -349,15 +365,15 @@ Shift-Scheduler/
 
 **Solution:** Run the database setup script:
 
-```bash
+   ```bash
 php database/setup.php
-```
+   ```
 
 ### Collation Error (utf8mb4_unicode_ci vs utf8mb4_0900_ai_ci)
 
 **Solution:** The setup script creates the database with `utf8mb4_unicode_ci`. If you see collation errors, the stored procedures are already fixed. Just run:
 
-```bash
+   ```bash
 php database/setup.php
 ```
 
@@ -365,13 +381,13 @@ php database/setup.php
 
 **Solution:** Verify the database is set up correctly:
 
-```bash
+   ```bash
 php database/setup.php
-```
+   ```
 
 Then verify stored procedure exists:
 
-```sql
+   ```sql
 SHOW PROCEDURE STATUS WHERE Db = 'ShiftSchedulerDB' AND Name = 'sp_verify_login';
 ```
 
@@ -398,12 +414,12 @@ DB_PASSWORD=StrongPassword123!
 ```
 
 2. **Verify `config/database.php` has correct credentials:**
-```php
-return [
+   ```php
+   return [
     'user' => 'shift_user',
     'pass' => 'StrongPassword123!',
-];
-```
+   ];
+   ```
 
 3. **Check your configuration in `app/Core/config.php`:**
 
@@ -726,6 +742,72 @@ After successful login:
 - **Senior**: Shift management dashboard
 - **Employee**: Personal schedule and requests dashboard
 
+### Quick Test Data Setup
+
+To quickly create a test company with employees and sample data, run:
+
+```bash
+php database/seed_test_data.php
+```
+
+This script creates:
+- **Test Company**: "Demo Company"
+- **Admin User**: Ready to login
+- **6 Employees**: With different roles
+- **Schedules**: Sample weekly schedules
+- **Shift Requests**: Sample pending requests
+
+**After running the seed script, use these credentials:**
+
+```
+Company: Demo Company
+Username: democompany_admin
+Password: Demo123!
+Email: admin@demo.com
+Status: ACTIVE (ready to use immediately)
+```
+
+**Employee Test Accounts:**
+```
+Employee 1:
+  Name: John Doe
+  Username: johndoe_1
+  Password: TempPass123!
+  Role: Employee
+
+Employee 2:
+  Name: Jane Smith
+  Username: janesmith_2
+  Password: TempPass123!
+  Role: Employee
+
+Employee 3:
+  Name: Mike Johnson
+  Username: mikejohnson_3
+  Password: TempPass123!
+  Role: Senior
+
+Employee 4:
+  Name: Sarah Williams
+  Username: sarahwilliams_4
+  Password: TempPass123!
+  Role: Employee
+
+Team Leader:
+  Name: Tom Brown
+  Username: tombrown_5
+  Password: TempPass123!
+  Role: Team Leader
+
+Supervisor:
+  Name: Lisa Davis
+  Username: lisadavis_6
+  Password: TempPass123!
+  Role: Supervisor
+```
+
+**Note:** The seed script checks if test data already exists. If it does, it will skip creation and display existing credentials.
+
 ### Password Reset
 
 Currently, password reset functionality is not implemented. To reset:
@@ -738,6 +820,13 @@ Currently, password reset functionality is not implemented. To reset:
 UPDATE users 
 SET password_hash = '$2y$10$YourHashedPasswordHere' 
 WHERE username = 'testcompany_admin';
+```
+
+**Or use PHP to generate hash:**
+```php
+<?php
+echo password_hash('NewPassword123!', PASSWORD_BCRYPT);
+?>
 ```
 
 ---
