@@ -173,6 +173,7 @@ try {
         SELECT e.employee_code, e.full_name, u.username 
         FROM employees e
         INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        INNER JOIN users u ON u.id = ur.user_id
         INNER JOIN sections s ON s.id = ur.section_id
         WHERE s.company_id = ?
     ");
