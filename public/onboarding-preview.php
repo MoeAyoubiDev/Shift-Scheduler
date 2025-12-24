@@ -262,28 +262,7 @@ require_once __DIR__ . '/../includes/header.php';
     color: white;
 }
 
-.preview-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(clamp(160px, 25vw, 220px), 1fr));
-    gap: clamp(1rem, 2vw, var(--space-lg));
-}
-
-.preview-metric {
-    text-align: center;
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(1rem, 2.5vw, var(--space-lg));
-    min-height: clamp(160px, 25vw, 220px);
-}
-
-.preview-metric h4 {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    margin: var(--space-sm) 0;
-}
+<!-- Preview metrics styles are now in app.css -->
 
 .preview-table {
     width: 100%;
