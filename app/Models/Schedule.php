@@ -139,6 +139,26 @@ class Schedule extends BaseModel
         ]);
     }
 
+    public static function getCoverageGaps(int $weekId, int $sectionId): array
+    {
+        $stmt = db()->prepare(
+            'SELECT ss.shift_date, sd.shift_name, ss.required_count, COUNT(sa.id) AS assigned_count
+             FROM schedules s
+             INNER JOIN schedule_shifts ss ON ss.schedule_id = s.id
+             INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
+             LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id
+             WHERE s.week_id = :week_id AND s.section_id = :section_id
+             GROUP BY ss.id
+             HAVING assigned_count < ss.required_count'
+        );
+        $stmt->execute([
+            'week_id' => $weekId,
+            'section_id' => $sectionId,
+        ]);
+
+        return $stmt->fetchAll();
+    }
+
     public static function updateAssignment(int $assignmentId, int $shiftDefinitionId, ?int $employeeId = null): void
     {
         $model = new self();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../Helpers/helpers.php';
 require_once __DIR__ . '/../Models/ShiftRequest.php';
 require_once __DIR__ . '/../Models/Break.php';
+require_once __DIR__ . '/../Models/FcmToken.php';
+require_once __DIR__ . '/../Services/FirebaseNotificationService.php';
 
 class EmployeeController
 {
@@ -83,6 +85,25 @@ class EmployeeController
                 'importance_level' => $importance,
             ]);
 
+            try {
+                $sectionId = (int) ($user['section_id'] ?? 0);
+                if ($sectionId > 0) {
+                    $tokens = FcmToken::listTokensForRoleInSection('Team Leader', $sectionId);
+                    $employeeName = $user['full_name'] ?? $user['username'] ?? 'Employee';
+                    $title = 'New shift request submitted';
+                    $body = sprintf('%s submitted a shift request for %s.', $employeeName, $date);
+                    $service = new FirebaseNotificationService();
+                    $service->sendToTokens($tokens, $title, $body, [
+                        'type' => 'SHIFT_REQUEST_SUBMITTED',
+                        'employee_id' => (string) $user['employee_id'],
+                        'week_id' => (string) $nextWeekId,
+                        'request_date' => $date,
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log('FCM notify submit request error: ' . $e->getMessage());
+            }
+
             json_response(true, 'Shift request submitted successfully for next week.');
         } catch (Exception $e) {
             json_response(false, $e->getMessage());
@@ -101,10 +122,33 @@ class EmployeeController
         if ($action === 'start') {
             $scheduleShiftId = isset($payload['schedule_shift_id']) ? (int) $payload['schedule_shift_id'] : null;
             BreakModel::start((int) $user['employee_id'], $date, $scheduleShiftId);
+
+            self::notifyBreakStatus((int) $user['employee_id'], 'Break started.', [
+                'status' => 'STARTED',
+                'worked_date' => $date,
+            ]);
             return 'Break started.';
         }
 
         BreakModel::end((int) $user['employee_id'], $date);
+        self::notifyBreakStatus((int) $user['employee_id'], 'Break ended.', [
+            'status' => 'ENDED',
+            'worked_date' => $date,
+        ]);
         return 'Break ended.';
+    }
+
+    private static function notifyBreakStatus(int $employeeId, string $message, array $data): void
+    {
+        try {
+            $tokens = FcmToken::listTokensForEmployee($employeeId);
+            $service = new FirebaseNotificationService();
+            $service->sendToTokens($tokens, 'Break status update', $message, array_merge([
+                'type' => 'BREAK_STATUS',
+                'employee_id' => (string) $employeeId,
+            ], $data));
+        } catch (Exception $e) {
+            error_log('FCM break notify error: ' . $e->getMessage());
+        }
     }
 }

@@ -13,6 +13,7 @@ require_once __DIR__ . '/../Controllers/TeamLeaderController.php';
 require_once __DIR__ . '/../Controllers/EmployeeController.php';
 require_once __DIR__ . '/../Controllers/SeniorController.php';
 require_once __DIR__ . '/../Controllers/SupervisorController.php';
+require_once __DIR__ . '/../Controllers/NotificationController.php';
 require_once __DIR__ . '/Router.php';
 
 class ActionHandler
@@ -168,6 +169,11 @@ class ActionHandler
             }
             return ['message' => $result];
         }, ['Employee', 'Senior'], true);
+
+        // Notification actions
+        Router::register('save_fcm_token', function(array $payload) {
+            return NotificationController::handleSaveFcmToken($payload);
+        }, ['Employee', 'Senior', 'Team Leader', 'Supervisor', 'Director'], true);
     }
     
     /**
@@ -178,4 +184,3 @@ class ActionHandler
         return Router::handle($payload, $context);
     }
 }
-
