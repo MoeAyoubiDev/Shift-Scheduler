@@ -26,6 +26,15 @@ if (!$company || $company['status'] !== 'PAYMENT_PENDING') {
     exit;
 }
 
+// Handle confirmation POST request (must be before any HTML output)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'confirm') {
+    require_csrf($_POST);
+    
+    // Redirect to payment
+    header('Location: /payment.php?company_id=' . (int)$_POST['company_id']);
+    exit;
+}
+
 $onboardingData = Company::getOnboardingProgress((int)$companyId);
 
 // Get actual data created during onboarding
@@ -306,15 +315,6 @@ require_once __DIR__ . '/../includes/header.php';
 </style>
 
 <?php
-// Handle confirmation
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'confirm') {
-    require_csrf($_POST);
-    
-    // Redirect to payment
-    header('Location: /payment.php?company_id=' . (int)$_POST['company_id']);
-    exit;
-}
-
 require_once __DIR__ . '/../includes/footer.php';
 ?>
 
