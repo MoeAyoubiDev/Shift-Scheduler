@@ -5,6 +5,6 @@ return [
     'host' => 'localhost',
     'port' => '3306',
     'name' => 'ShiftSchedulerDB',
-    'user' => 'root',
-    'pass' => '',
+    'user' => 'shift_user',
+    'pass' => 'StrongPassword123!',
 ];

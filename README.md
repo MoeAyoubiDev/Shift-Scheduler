@@ -6,7 +6,21 @@ Complete workforce management system with multi-tenant architecture.
 
 ### 1. Database Setup (REQUIRED)
 
-**Run this single command to set up everything:**
+**First, create the database user (if not exists):**
+
+```bash
+mysql -u root -p
+```
+
+Then run in MySQL:
+```sql
+CREATE USER IF NOT EXISTS 'shift_user'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON ShiftSchedulerDB.* TO 'shift_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+**Then run this single command to set up everything:**
 
 ```bash
 php database/setup.php
@@ -22,6 +36,11 @@ php database/setup.php
 - ✅ Seed reference data (roles, shift_types, shift_definitions, schedule_patterns)
 
 **Important:** This is the ONLY script you need. It replaces all previous SQL files and migration scripts.
+
+**Note:** The database credentials are configured in `config/database.php`:
+- User: `shift_user`
+- Password: `StrongPassword123!`
+- Database: `ShiftSchedulerDB`
 
 ### 2. Verify Setup
 
