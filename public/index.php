@@ -30,7 +30,16 @@ require_once __DIR__ . '/../app/Models/Schedule.php';
 $today = new DateTimeImmutable();
 $weekStart = $today->modify('monday this week')->format('Y-m-d');
 $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
-$weekId = Schedule::upsertWeek($weekStart, $weekEnd);
+
+try {
+    $weekId = Schedule::upsertWeek($weekStart, $weekEnd);
+} catch (Exception $e) {
+    error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
+    if ($appEnv === 'development') {
+        die("Database Error: " . $e->getMessage() . "\n\nStack trace:\n" . $e->getTraceAsString());
+    }
+    die("Database error. Please check server logs.");
+}
 
 // Initialize action handlers
 ActionHandler::initialize($weekId);
