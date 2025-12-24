@@ -553,6 +553,72 @@ SHOW PROCEDURE STATUS WHERE Db = 'ShiftSchedulerDB';
 
 ---
 
+## Test Credentials
+
+### Creating Test Accounts
+
+Since this is a multi-tenant SaaS platform, test accounts are created through the sign-up process. Each company gets its own isolated environment.
+
+### Sign-Up Process
+
+1. **Go to Sign-Up Page**: `/signup.php`
+2. **Fill in Company Information**:
+   - Company Name: `Test Company` (or any name)
+   - Admin Email: `admin@testcompany.com` (or any email)
+   - Password: `TestPassword123!` (minimum 8 characters)
+   - Timezone: Select your timezone
+   - Country: Select your country
+   - Company Size: Select appropriate size
+
+3. **After Sign-Up**:
+   - Company is automatically verified (no email verification needed)
+   - You'll be redirected to onboarding wizard
+   - Complete the 5-step onboarding process
+   - Complete payment (simulated)
+   - You can then log in
+
+### Login Credentials
+
+After completing sign-up and onboarding, use these credentials to log in:
+
+**Format:**
+- **Username**: The username you created during onboarding (usually the admin email or a custom username)
+- **Password**: The password you set during sign-up
+
+**Example:**
+```
+Username: admin@testcompany.com
+Password: TestPassword123!
+```
+
+### Creating Multiple Test Companies
+
+You can create multiple test companies by:
+1. Signing up with different company names and emails
+2. Each company will have its own isolated data
+3. Each company can have multiple users with different roles
+
+### Test User Roles
+
+After onboarding, you can create users with different roles:
+- **Director**: Read-only access to all sections
+- **Team Leader**: Full CRUD for assigned section
+- **Supervisor**: Read-only monitoring
+- **Senior**: Real-time shift management
+- **Employee**: Self-service requests
+
+### Quick Test Setup
+
+For quick testing, you can create a test company with:
+- Company Name: `Demo Company`
+- Admin Email: `demo@example.com`
+- Password: `Demo123!`
+- Complete onboarding with minimal data
+- Complete payment
+- Login and test the dashboard
+
+---
+
 ## Project Status
 
 **Status**: ✅ Production-Ready  
