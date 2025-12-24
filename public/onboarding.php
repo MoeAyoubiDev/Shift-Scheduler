@@ -102,9 +102,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
             
             // Create default section
             $sectionName = $progress['step_1']['data']['company_name'] ?? $company['company_name'];
-            $sectionStmt = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
-            $sectionStmt->execute([$sectionName . ' - Main', $companyId]);
+            $sectionNameFull = $sectionName . ' - Main';
+
+            $sectionStmt = $pdo->prepare("
+                INSERT INTO sections (section_name, company_id)
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
+            ");
+            $sectionStmt->execute([$sectionNameFull, $companyId]);
             $sectionId = (int)$pdo->lastInsertId();
+            
             
             // Create admin user
             $adminEmail = $company['admin_email'];
@@ -153,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                         
                         // Only create employee record if role is Employee or Senior
                         if (in_array($empRoleName, ['Employee', 'Senior'])) {
-                            $empCode = 'EMP' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT);
+                            $empCode = 'EMP' . str_pad((string)($idx + 1), 3, '0', STR_PAD_LEFT);
                             $isSenior = ($empRoleName === 'Senior') ? 1 : 0;
                             
                             $employeeStmt = $pdo->prepare("
