@@ -10,12 +10,38 @@ class Schedule extends BaseModel
     public static function upsertWeek(string $weekStart, string $weekEnd): int
     {
         $model = new self();
-        $rows = $model->callProcedure('sp_upsert_week', [
-            'p_week_start' => $weekStart,
-            'p_week_end' => $weekEnd,
-        ]);
+        
+        try {
+            $rows = $model->callProcedure('sp_upsert_week', [
+                'p_week_start' => $weekStart,
+                'p_week_end' => $weekEnd,
+            ]);
 
-        return (int) ($rows[0]['week_id'] ?? 0);
+            return (int) ($rows[0]['week_id'] ?? 0);
+        } catch (PDOException $e) {
+            // Fallback: If stored procedure doesn't exist, use direct SQL
+            if (strpos($e->getMessage(), 'does not exist') !== false || 
+                strpos($e->getMessage(), 'Unknown procedure') !== false ||
+                strpos($e->getMessage(), 'PROCEDURE') !== false) {
+                
+                $pdo = db();
+                $stmt = $pdo->prepare('SELECT id FROM weeks WHERE week_start_date = ? LIMIT 1');
+                $stmt->execute([$weekStart]);
+                $week = $stmt->fetch();
+                
+                if ($week) {
+                    return (int) $week['id'];
+                }
+                
+                // Insert new week
+                $stmt = $pdo->prepare('INSERT INTO weeks (week_start_date, week_end_date) VALUES (?, ?)');
+                $stmt->execute([$weekStart, $weekEnd]);
+                return (int) $pdo->lastInsertId();
+            }
+            
+            // Re-throw if it's a different error
+            throw $e;
+        }
     }
 
     public static function getShiftTypes(): array

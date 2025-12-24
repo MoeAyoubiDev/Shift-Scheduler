@@ -33,10 +33,19 @@ $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
 
 try {
     $weekId = Schedule::upsertWeek($weekStart, $weekEnd);
+    if ($weekId <= 0) {
+        throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
+    }
+} catch (PDOException $e) {
+    error_log("Database error in Schedule::upsertWeek: " . $e->getMessage());
+    if ($appEnv === 'development') {
+        die("Database Error: " . $e->getMessage() . "\n\nSQL State: " . $e->getCode() . "\n\nStack trace:\n" . $e->getTraceAsString());
+    }
+    die("Database error. Please check server logs.");
 } catch (Exception $e) {
     error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
     if ($appEnv === 'development') {
-        die("Database Error: " . $e->getMessage() . "\n\nStack trace:\n" . $e->getTraceAsString());
+        die("Error: " . $e->getMessage() . "\n\nStack trace:\n" . $e->getTraceAsString());
     }
     die("Database error. Please check server logs.");
 }
