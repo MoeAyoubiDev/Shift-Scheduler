@@ -64,8 +64,8 @@ $DATABASE_CONFIG = [
     'host' => getenv('DB_HOST') ?: ($databaseConfig['host'] ?? 'localhost'),
     'port' => getenv('DB_PORT') ?: ($databaseConfig['port'] ?? '3306'),
     'name' => getenv('DB_NAME') ?: ($databaseConfig['name'] ?? 'ShiftSchedulerDB'),
-    'user' => getenv('DB_USER') ?: ($databaseConfig['user'] ?? 'root'),
-    'pass' => getenv('DB_PASSWORD') ?: ($databaseConfig['pass'] ?? ''),
+    'user' => getenv('DB_USER') ?: ($databaseConfig['user'] ?? 'shift_user'),
+    'pass' => getenv('DB_PASSWORD') ?: ($databaseConfig['pass'] ?? 'StrongPassword123!'),
 ];
 
 /**
