@@ -781,14 +781,19 @@ main {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background: var(--color-primary);
     color: white;
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    padding: 0.9375rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-strong);
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .btn-secondary {
@@ -1891,23 +1896,36 @@ table tr:hover {
 }
 
 .calendar-actions .btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--color-text-primary);
+    padding: 0.9375rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calendar-actions .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .calendar-actions .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    box-shadow: var(--shadow-glow);
+    background: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    padding: 0.9375rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 .calendar-actions .btn-primary:hover {
-    box-shadow: var(--shadow-glow-strong);
-    transform: translateY(-2px);
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 /* ============================================
@@ -2048,7 +2066,7 @@ body.landing-page footer.landing-footer {
 
 .preview-content {
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     gap: var(--space-sm);
 }
 
@@ -2083,7 +2101,7 @@ body.landing-page footer.landing-footer {
     gap: clamp(1.5rem, 4vw, 2rem);
     max-width: 1000px;
     margin: 0 auto;
-    width: 100%;
+        width: 100%;
 }
 
 .feature-card {

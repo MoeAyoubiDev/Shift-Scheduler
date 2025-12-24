@@ -553,42 +553,117 @@ SHOW PROCEDURE STATUS WHERE Db = 'ShiftSchedulerDB';
 
 ---
 
-## Test Credentials
+## Test Credentials & User Accounts
 
-### Creating Test Accounts
+### Database Credentials
+
+**Database Connection:**
+- **Host**: `localhost` (or your server IP)
+- **Port**: `3306`
+- **Database Name**: `ShiftSchedulerDB`
+- **Username**: `shift_user`
+- **Password**: `StrongPassword123!`
+
+**To create the database user:**
+```sql
+CREATE USER IF NOT EXISTS 'shift_user'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON ShiftSchedulerDB.* TO 'shift_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### Creating Test Company Accounts
 
 Since this is a multi-tenant SaaS platform, test accounts are created through the sign-up process. Each company gets its own isolated environment.
 
-### Sign-Up Process
+#### Sign-Up Process
 
 1. **Go to Sign-Up Page**: `/signup.php`
 2. **Fill in Company Information**:
-   - Company Name: `Test Company` (or any name)
-   - Admin Email: `admin@testcompany.com` (or any email)
-   - Password: `TestPassword123!` (minimum 8 characters)
-   - Timezone: Select your timezone
-   - Country: Select your country
-   - Company Size: Select appropriate size
+   - **Company Name**: `Test Company` (or any name)
+   - **Admin Email**: `admin@testcompany.com` (or any valid email)
+   - **Password**: `TestPassword123!` (minimum 8 characters)
+   - **Timezone**: Select your timezone (e.g., `America/New_York`)
+   - **Country**: Select your country
+   - **Company Size**: Select appropriate size (e.g., `11-50`)
 
 3. **After Sign-Up**:
    - Company is automatically verified (no email verification needed)
-   - You'll be redirected to onboarding wizard
-   - Complete the 5-step onboarding process
-   - Complete payment (simulated)
+   - You'll be redirected to onboarding wizard (`/onboarding.php`)
+   - Complete the 5-step onboarding process:
+     - Step 1: Company Details
+     - Step 2: Work Rules & Shifts
+     - Step 3: Add Initial Employees
+     - Step 4: Scheduling Preferences
+     - Step 5: Review & Confirm
+   - Complete payment (simulated one-time payment)
    - You can then log in
 
-### Login Credentials
+#### Login Credentials After Sign-Up
 
-After completing sign-up and onboarding, use these credentials to log in:
+After completing sign-up and onboarding, your login credentials are automatically generated:
 
-**Format:**
-- **Username**: The username you created during onboarding (usually the admin email or a custom username)
-- **Password**: The password you set during sign-up
+**Username Format:**
+- The username is automatically generated from your company name
+- Format: `{company_name}_admin` (all lowercase, special characters removed)
+- Example: If company name is "Test Company", username becomes `testcompany_admin`
 
-**Example:**
+**Password:**
+- The password you set during sign-up (the one you entered in the signup form)
+
+**Example Credentials:**
 ```
-Username: admin@testcompany.com
-Password: TestPassword123!
+Company Name: Test Company
+Admin Email: admin@testcompany.com
+Username: testcompany_admin
+Password: TestPassword123! (the password you entered during signup)
+```
+
+**Login URL:** `/login.php`
+
+#### Complete Example
+
+**Sign-Up Information:**
+```
+Company Name: Acme Corporation
+Admin Email: admin@acme.com
+Password: SecurePass123!
+Timezone: America/New_York
+Country: United States
+Company Size: 51-200
+```
+
+**Generated Login Credentials:**
+```
+Username: acmecorporation_admin
+Password: SecurePass123!
+Email: admin@acme.com
+```
+
+**Login Steps:**
+1. Go to `/login.php`
+2. Enter username: `acmecorporation_admin`
+3. Enter password: `SecurePass123!`
+4. Click "Sign In"
+5. You'll be redirected to your dashboard
+
+### Employee Credentials (Created During Onboarding)
+
+When you add employees in Step 3 of onboarding, they are automatically created with:
+
+**Username Format:**
+- Format: `{employee_name}_{index}` (all lowercase, special characters removed)
+- Example: If employee name is "John Doe", username becomes `johndoe_1`
+
+**Default Password:**
+- All employees get the same default password: `TempPass123!`
+- **Important**: Employees should change this password after first login
+
+**Example Employee Credentials:**
+```
+Employee Name: John Doe
+Username: johndoe_1
+Password: TempPass123!
+Role: Employee (or Senior, Team Leader based on selection)
 ```
 
 ### Creating Multiple Test Companies
@@ -597,25 +672,73 @@ You can create multiple test companies by:
 1. Signing up with different company names and emails
 2. Each company will have its own isolated data
 3. Each company can have multiple users with different roles
+4. Each company has its own admin account
 
-### Test User Roles
+**Example Multiple Companies:**
+```
+Company 1:
+- Company: Acme Corp
+- Username: acmecorp_admin
+- Email: admin@acme.com
 
-After onboarding, you can create users with different roles:
-- **Director**: Read-only access to all sections
-- **Team Leader**: Full CRUD for assigned section
-- **Supervisor**: Read-only monitoring
-- **Senior**: Real-time shift management
-- **Employee**: Self-service requests
+Company 2:
+- Company: Tech Solutions
+- Username: techsolutions_admin
+- Email: admin@techsolutions.com
+```
+
+### User Roles & Access
+
+After onboarding, users are created with different roles:
+
+- **Director**: Full read-only access to all sections, analytics, and reports
+- **Team Leader**: Full CRUD for assigned section, schedule management
+- **Supervisor**: Read-only monitoring, performance tracking
+- **Senior**: Real-time shift management, break monitoring
+- **Employee**: Self-service shift requests, view own schedule
 
 ### Quick Test Setup
 
-For quick testing, you can create a test company with:
-- Company Name: `Demo Company`
-- Admin Email: `demo@example.com`
-- Password: `Demo123!`
-- Complete onboarding with minimal data
-- Complete payment
-- Login and test the dashboard
+For quick testing, use these exact credentials:
+
+**Sign-Up:**
+```
+Company Name: Demo Company
+Admin Email: demo@example.com
+Password: Demo123!
+Timezone: UTC
+Country: United States
+Company Size: 1-10
+```
+
+**After Onboarding, Login With:**
+```
+Username: democompany_admin
+Password: Demo123!
+```
+
+### Dashboard Access
+
+After successful login:
+- **Director**: Full dashboard with all sections visible
+- **Team Leader**: Dashboard for assigned section only
+- **Supervisor**: Monitoring dashboard
+- **Senior**: Shift management dashboard
+- **Employee**: Personal schedule and requests dashboard
+
+### Password Reset
+
+Currently, password reset functionality is not implemented. To reset:
+1. Access the database directly
+2. Update the `password_hash` in the `users` table
+3. Use PHP's `password_hash()` function to generate new hash
+
+**Example SQL:**
+```sql
+UPDATE users 
+SET password_hash = '$2y$10$YourHashedPasswordHere' 
+WHERE username = 'testcompany_admin';
+```
 
 ---
 
