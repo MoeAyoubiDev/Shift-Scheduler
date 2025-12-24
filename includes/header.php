@@ -14,7 +14,8 @@ $currentSectionId = function_exists('current_section_id') ? current_section_id()
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="format-detection" content="telephone=no">
     <title><?= function_exists('e') ? e($pageTitle) : htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="description" content="Manage shift coverage, employee requests, and weekly schedules in one secure workspace.">
     <link rel="preconnect" href="https://fonts.googleapis.com">

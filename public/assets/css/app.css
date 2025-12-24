@@ -186,7 +186,7 @@ body.login-page .login-container {
     background: var(--color-bg-tertiary);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
-    padding: 3rem 2.5rem;
+    padding: clamp(1.5rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
     animation: cardSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -980,6 +980,15 @@ textarea.form-input {
 /* ============================================
    TABLES - Modern Design
    ============================================ */
+/* Table wrapper for horizontal scrolling on mobile */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-lg);
+    position: relative;
+}
+
 table {
     width: 100%;
     border-collapse: separate;
@@ -990,6 +999,7 @@ table {
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     overflow: hidden;
+    min-width: 600px; /* Minimum width for desktop */
 }
 
 table th {
@@ -1002,12 +1012,14 @@ table th {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap;
 }
 
 table td {
     padding: var(--space-md);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--color-text-primary);
+    white-space: nowrap;
 }
 
 table tr:last-child td {
@@ -1352,20 +1364,358 @@ table tr:hover {
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - MOBILE FIRST
    ============================================ */
-@media (max-width: 768px) {
-    .dashboard-nav-cards {
-        grid-template-columns: 1fr;
+
+/* Base mobile styles (up to 480px) */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+    
+    body {
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Header */
+    header {
+        padding: 0.75rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: var(--z-sticky);
+    }
+    
+    .header-content {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .brand {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .user-name {
+        font-size: 0.875rem;
+    }
+    
+    .user-name svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* Main content */
+    main {
+        padding: 1rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 1rem;
+        border-radius: var(--radius-md);
     }
     
     .hero-row {
-    flex-direction: column;
+        flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .hero-row h2 {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+    
+    /* Navigation cards */
+    .dashboard-nav-cards {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .nav-card {
+        padding: 1rem;
+    }
+    
+    .nav-card-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .nav-card-title {
+        font-size: 1rem;
+    }
+    
+    .nav-card-subtitle {
+        font-size: 0.8125rem;
+    }
+    
+    /* Login/Signup cards */
+    .login-container {
+        padding: 1rem;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem 1.25rem;
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+    }
+    
+    .brand-title {
+        font-size: 1.5rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-input {
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9375rem;
+        width: 100%;
+    }
+    
+    /* Tables - make them scrollable on mobile */
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-collapse: collapse;
+    }
+    
+    table thead {
+        display: none;
+    }
+    
+    table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    table tr {
+        display: block;
+        margin-bottom: 1rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+    }
+    
+    table td {
+        display: block;
+        text-align: right;
+        padding: 0.5rem 0;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    table td:last-child {
+        border-bottom: none;
+    }
+    
+    table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    /* Metrics grid */
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+    
+    .metric {
+        padding: 1.25rem;
+    }
+    
+    /* Forms */
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .signup-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Buttons */
+    .btn-large {
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+    }
+    
+    .btn-secondary {
+        width: 100%;
+    }
+    
+    /* Calendar */
+    .calendar-modal-content {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    
+    .calendar-header {
+        padding: 1rem;
+    }
+    
+    .calendar-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .calendar-actions .btn {
+        width: 100%;
+    }
+    
+    /* Preview cards */
+    .preview-container {
+        padding: 1rem;
+    }
+    
+    .preview-card {
+        padding: 1rem;
+    }
+    
+    .preview-table {
+        font-size: 0.8125rem;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 0.5rem;
+    }
+    
+    /* Onboarding */
+    .onboarding-container {
+        padding: 1rem;
+    }
+    
+    .onboarding-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Footer */
+    .form-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Small phones (320px - 375px) */
+@media (max-width: 375px) {
+    html {
+        font-size: 13px;
+    }
+    
+    .login-card {
+        padding: 1.25rem 1rem;
+    }
+    
+    .brand-title {
+        font-size: 1.375rem;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem;
+    }
+    
+    .hero-description {
+        font-size: 0.9375rem;
+    }
+}
+
+/* Tablets and small screens (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .login-card {
+        padding: 2rem 1.75rem;
+        max-width: 420px;
+    }
+    
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    table {
+        display: table;
+    }
+    
+    table thead {
+        display: table-header-group;
+    }
+    
+    table tbody {
+        display: table-row-group;
+    }
+    
+    table tr {
+        display: table-row;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+    
+    table td {
+        display: table-cell;
+        text-align: left;
+        padding: var(--space-md);
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    table td::before {
+        display: none;
+    }
+    
+    .signup-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Standard mobile (up to 768px) */
+@media (max-width: 768px) {
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
     }
     
     header {
-        padding: var(--space-md);
+        padding: 1rem;
     }
     
     .header-content {
@@ -1373,19 +1723,168 @@ table tr:hover {
     }
     
     main {
-        padding: var(--space-md);
+        padding: 1.25rem 1rem;
     }
     
-    /* Make login card responsive on mobile */
-    .login-card {
-        min-height: auto;
-        aspect-ratio: auto;
-        max-width: 100%;
+    /* Make tables horizontally scrollable */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin: 0 -1rem;
+        padding: 0 1rem;
     }
     
-    .login-container {
+    table {
+        min-width: 600px;
+    }
+    
+    /* Calendar improvements */
+    .calendar-day {
+        min-height: 44px;
+        font-size: 0.875rem;
+    }
+    
+    .calendar-modal-overlay {
+        padding: 0;
+        align-items: flex-start;
+    }
+    
+    .calendar-modal-content {
         max-width: 100%;
-        padding: var(--space-md);
+        border-radius: 0;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+    }
+    
+    .calendar-header {
+        padding: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .calendar-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+    }
+    
+    .calendar-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .calendar-weekdays {
+        gap: 0.25rem;
+        padding: 0;
+    }
+    
+    .calendar-days {
+        gap: 0.25rem;
+        padding: 0.25rem;
+    }
+    
+    .calendar-day {
+        min-height: 40px;
+        font-size: 0.75rem;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 1.25rem;
+    }
+    
+    /* Forms */
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+    }
+    
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    img, svg, video {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Better touch targets */
+    button, a, input, select, textarea {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+    
+    /* Alerts on mobile */
+    .alert {
+        padding: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ajax-notification {
+        right: 1rem;
+        left: 1rem;
+        max-width: 100%;
+        top: 1rem;
+    }
+    
+    /* Section cards */
+    .sections-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .section-card {
+        padding: 1.5rem;
+    }
+    
+    /* Preview cards */
+    .preview-container {
+        padding: 1rem;
+    }
+    
+    .preview-card {
+        padding: 1rem;
+    }
+    
+    .preview-table {
+        font-size: 0.75rem;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    /* Onboarding */
+    .onboarding-container {
+        padding: 1rem;
+    }
+    
+    .onboarding-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Payment page */
+    .payment-summary,
+    .payment-features {
+        padding: 1rem;
+    }
+    
+    .payment-methods {
+        flex-direction: column;
+    }
+    
+    .payment-method {
+        width: 100%;
     }
 }
 
