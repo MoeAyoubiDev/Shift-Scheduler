@@ -1278,7 +1278,7 @@ table tr:hover {
 
 /* Signup form improvements */
 .signup-form-section {
-    margin-bottom: 2rem;
+        margin-bottom: 2rem;
     padding: 1.5rem 0;
     animation: fadeInUp 0.4s ease-out both;
 }
@@ -1314,7 +1314,7 @@ table tr:hover {
 
 .signup-form-grid {
     display: grid;
-    grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
     gap: 1.5rem;
 }
 
@@ -1352,7 +1352,7 @@ table tr:hover {
 }
 
 .empty-state-title {
-    font-size: 1.25rem;
+        font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-text-primary);
     margin-bottom: var(--space-xs);
@@ -1379,19 +1379,19 @@ table tr:hover {
     }
     
     /* Header */
-    header {
+header {
         padding: 0.75rem 1rem;
-        position: sticky;
-        top: 0;
+    position: sticky;
+    top: 0;
         z-index: var(--z-sticky);
-    }
-    
-    .header-content {
+}
+
+.header-content {
         flex-wrap: wrap;
         gap: 0.75rem;
-    }
-    
-    .brand {
+}
+
+.brand {
         flex: 1;
         min-width: 0;
     }
@@ -1406,7 +1406,7 @@ table tr:hover {
     }
     
     /* Main content */
-    main {
+main {
         padding: 1rem;
         max-width: 100%;
         overflow-x: hidden;
@@ -1493,12 +1493,12 @@ table tr:hover {
     }
     
     /* Tables - make them scrollable on mobile */
-    table {
+table {
         display: block;
-        width: 100%;
+    width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        border-collapse: collapse;
+    border-collapse: collapse;
     }
     
     table thead {
@@ -1520,7 +1520,7 @@ table tr:hover {
     }
     
     table td {
-        display: block;
+    display: block;
         text-align: right;
         padding: 0.5rem 0;
         border: none;
@@ -1534,7 +1534,7 @@ table tr:hover {
     table td::before {
         content: attr(data-label);
         float: left;
-        font-weight: 600;
+    font-weight: 600;
         color: var(--color-text-secondary);
         text-transform: uppercase;
         font-size: 0.75rem;
@@ -1561,7 +1561,7 @@ table tr:hover {
     
     /* Buttons */
     .btn-large {
-        width: 100%;
+    width: 100%;
         max-width: 100%;
         padding: 1rem;
     }
@@ -1666,9 +1666,9 @@ table tr:hover {
     .login-card {
         padding: 2rem 1.75rem;
         max-width: 420px;
-    }
-    
-    .grid {
+}
+
+.grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
@@ -1727,8 +1727,8 @@ table tr:hover {
     }
     
     /* Make tables horizontally scrollable */
-    .table-wrapper {
-        overflow-x: auto;
+.table-wrapper {
+    overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         width: 100%;
         margin: 0 -1rem;
@@ -1764,7 +1764,7 @@ table tr:hover {
     }
     
     .calendar-actions {
-        flex-direction: column;
+    flex-direction: column;
         gap: 0.75rem;
         width: 100%;
     }
@@ -2565,7 +2565,7 @@ body.landing-page footer.landing-footer {
 
 .preview-content {
     display: flex;
-        flex-direction: column;
+    flex-direction: column;
     gap: var(--space-sm);
 }
 
@@ -2696,7 +2696,7 @@ body.landing-page footer.landing-footer {
     
     .hero-actions {
         flex-direction: column;
-        width: 100%;
+    width: 100%;
     }
     
     .btn-large {
@@ -2830,6 +2830,777 @@ body.landing-page footer.landing-footer {
     
     .feature-card:hover {
         transform: none;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+/* ============================================
+   COMPREHENSIVE RESPONSIVE DESIGN
+   All breakpoints for full device coverage
+   ============================================ */
+
+/* ============================================
+   MOBILE PHONES (max-width: 480px)
+   ============================================ */
+@media (max-width: 480px) {
+    /* Base typography */
+    html {
+        font-size: 14px;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+    
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    img, svg, video, iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Header adjustments */
+    header {
+        padding: 0.75rem 1rem;
+    }
+
+    .header-content {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .brand {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .user-name {
+        font-size: 0.875rem;
+    }
+    
+    .user-name svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Main content */
+    main {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    /* Login/Signup pages */
+    .login-container {
+        padding: 1rem;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 1.5rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem 1.25rem;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .brand-title {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    .brand-logo {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .brand-logo svg {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Forms */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+        width: 100%;
+    }
+    
+    .signup-form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .signup-form-section {
+        padding: 1.25rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .signup-form-section-title {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Buttons */
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9375rem;
+        width: 100%;
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+    
+    .btn-large {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+    
+    .form-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+    
+    .form-footer-content {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    /* Onboarding */
+    .onboarding-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    .onboarding-card {
+        padding: 1.5rem 1rem;
+        width: 100%;
+    }
+    
+    .onboarding-progress {
+        margin-bottom: 1.5rem;
+    }
+    
+    .progress-text {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    .onboarding-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step-description {
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .onboarding-form {
+        width: 100%;
+    }
+    
+    .employee-entry {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+    }
+    
+    /* Preview page */
+    .preview-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    .preview-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .preview-header h1 {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .preview-header p {
+        font-size: 0.9375rem;
+    }
+    
+    .preview-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .preview-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .preview-card-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .preview-metrics {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .preview-metric {
+        padding: 1rem;
+    }
+
+    .preview-table {
+        font-size: 0.75rem;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+    
+    .preview-actions {
+        padding: 1rem 0;
+    }
+    
+    .preview-form {
+        width: 100%;
+    }
+    
+    /* Dashboard */
+    .dashboard-container {
+        width: 100%;
+    }
+    
+    .dashboard-nav-cards {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .nav-card {
+        padding: 1rem;
+    }
+    
+    .nav-card-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .nav-card-title {
+        font-size: 1rem;
+    }
+    
+    .nav-card-subtitle {
+        font-size: 0.8125rem;
+    }
+    
+    .hero-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .hero-row h2 {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+    
+    .meta-row {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+    
+    .week-selector-pill {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 1rem;
+        border-radius: var(--radius-md);
+    }
+    
+    /* Tables - card layout on mobile */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+    
+    table {
+        display: block;
+        width: 100%;
+        min-width: 600px;
+    }
+    
+    table thead {
+        display: none;
+    }
+    
+    table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    table tr {
+        display: block;
+        margin-bottom: 1rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+    }
+    
+    table td {
+        display: block;
+        text-align: right;
+        padding: 0.5rem 0;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    table td:last-child {
+        border-bottom: none;
+    }
+    
+    table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    /* Grid layouts */
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+    
+    .metric {
+        padding: 1.25rem;
+    }
+    
+    /* Calendar modal */
+    .calendar-modal-overlay {
+        padding: 0;
+        align-items: flex-start;
+    }
+    
+    .calendar-modal-content {
+        max-width: 100%;
+        border-radius: 0;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+    }
+    
+    .calendar-header {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .calendar-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .calendar-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+    }
+    
+    .calendar-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .calendar-weekdays {
+        gap: 0.25rem;
+        padding: 0;
+    }
+    
+    .calendar-days {
+        gap: 0.25rem;
+        padding: 0.25rem;
+    }
+    
+    .calendar-day {
+        min-height: 40px;
+        font-size: 0.75rem;
+    }
+    
+    /* Alerts */
+    .alert {
+        padding: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ajax-notification {
+        right: 1rem;
+        left: 1rem;
+        max-width: calc(100% - 2rem);
+        top: 1rem;
+    }
+    
+    /* Section cards */
+    .sections-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .section-card {
+        padding: 1.5rem;
+    }
+    
+    /* Touch targets */
+    button, a, input[type="button"], input[type="submit"], select {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+}
+
+/* ============================================
+   TABLETS / iPAD (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+    
+    /* Header */
+    header {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-wrap: wrap;
+    }
+    
+    /* Main content */
+    main {
+        padding: 1.25rem 1rem;
+    }
+    
+    /* Login/Signup */
+    .login-container {
+        padding: 1.5rem;
+    }
+    
+    .login-card {
+        padding: 2rem 1.75rem;
+        max-width: 420px;
+    }
+    
+    /* Dashboard navigation */
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    /* Forms */
+    .signup-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Tables - restore table layout but make scrollable */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+    
+    table {
+        display: table;
+        min-width: 600px;
+    }
+    
+    table thead {
+        display: table-header-group;
+    }
+    
+    table tbody {
+        display: table-row-group;
+    }
+    
+    table tr {
+        display: table-row;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+    
+    table td {
+        display: table-cell;
+        text-align: left;
+        padding: var(--space-md);
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    table td::before {
+        display: none;
+    }
+    
+    /* Grid layouts */
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .preview-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Cards */
+    .card {
+        padding: 1.25rem;
+    }
+    
+    /* Onboarding */
+    .onboarding-container {
+        padding: 1.5rem;
+    }
+    
+    .onboarding-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    /* Preview */
+    .preview-container {
+        padding: 1.5rem;
+    }
+    
+    .preview-card {
+        padding: 1.5rem;
+    }
+    
+    /* Calendar */
+    .calendar-modal-content {
+        max-width: 90%;
+        padding: 1.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 44px;
+        font-size: 0.875rem;
+    }
+    
+    /* Hero row */
+    .hero-row {
+        flex-wrap: wrap;
+    }
+    
+    .meta-row {
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================================
+   SMALL LAPTOPS (max-width: 1024px)
+   ============================================ */
+@media (max-width: 1024px) {
+    /* Main content */
+    main {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    /* Dashboard navigation */
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    
+    /* Grid layouts */
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .preview-metrics {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Tables */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 700px;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 1.5rem;
+    }
+    
+    /* Forms */
+    .signup-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Preview */
+    .preview-container {
+        padding: var(--space-xl);
+    }
+    
+    /* Calendar */
+    .calendar-modal-content {
+        max-width: 600px;
+    }
+}
+
+/* ============================================
+   DESKTOP / LARGE SCREENS (min-width: 1280px)
+   ============================================ */
+@media (min-width: 1280px) {
+    /* Main content */
+    main {
+        padding: var(--space-xl) var(--space-2xl);
+    }
+    
+    /* Dashboard navigation */
+    .dashboard-nav-cards {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-lg);
+    }
+    
+    /* Grid layouts */
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .preview-metrics {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    /* Forms */
+    .signup-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Cards */
+    .card {
+        padding: var(--space-xl);
+    }
+    
+    /* Preview */
+    .preview-container {
+        padding: var(--space-2xl);
+    }
+    
+    /* Calendar */
+    .calendar-modal-content {
+        max-width: 650px;
+    }
+    
+    /* Tables */
+    table {
+        min-width: auto;
+    }
+}
+
+/* ============================================
+   LANDSCAPE ORIENTATION FIXES
+   ============================================ */
+@media (orientation: landscape) and (max-height: 600px) {
+    .login-container {
+        min-height: auto;
+        padding: 1rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+    }
+    
+    .onboarding-container {
+        padding: 1rem;
+    }
+    
+    .onboarding-card {
+        padding: 1.5rem;
+    }
+    
+    .calendar-modal-content {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    button, a.btn, .nav-card {
+        min-height: 44px;
+    }
+    
+    /* Remove hover effects on touch */
+    .nav-card:hover {
+        transform: none;
+    }
+    
+    .nav-card:active {
+        transform: scale(0.98);
+    }
+    
+    /* Better spacing for touch */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-actions {
+        gap: 1rem;
     }
 }
 
