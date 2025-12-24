@@ -23,59 +23,67 @@ try {
     $checkStmt->execute();
     $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($existing) {
-        echo "⚠️  Test company already exists. Skipping seed.\n";
-        echo "   To recreate, delete the company first or use a different slug.\n\n";
-        echo "📋 Existing Test Credentials:\n";
-        echo "   Company: Demo Company\n";
-        echo "   Username: democompany_admin\n";
-        echo "   Password: Demo123!\n";
-        echo "   Email: admin@demo.com\n\n";
-        exit(0);
-    }
+    $companyId = $existing ? (int)$existing['id'] : null;
     
-    echo "📦 Step 1: Creating test company...\n";
-    
-    // Create test company
     $companyName = "Demo Company";
     $adminEmail = "admin@demo.com";
     $adminPassword = "Demo123!";
     $passwordHash = password_hash($adminPassword, PASSWORD_BCRYPT);
     
-    $companyStmt = $pdo->prepare("
-        INSERT INTO companies (
-            company_name, company_slug, admin_email, admin_password_hash,
-            timezone, country, company_size, status, email_verified_at,
-            payment_status, payment_completed_at, onboarding_completed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), 'COMPLETED', NOW(), NOW())
-    ");
+    if (!$companyId) {
+        echo "📦 Step 1: Creating test company...\n";
+        
+        // Create test company
+        $companyStmt = $pdo->prepare("
+            INSERT INTO companies (
+                company_name, company_slug, admin_email, admin_password_hash,
+                timezone, country, company_size, status, email_verified_at,
+                payment_status, payment_completed_at, onboarding_completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), 'COMPLETED', NOW(), NOW())
+        ");
+        
+        $companyStmt->execute([
+            $companyName,
+            'demo-company',
+            $adminEmail,
+            $passwordHash,
+            'America/New_York',
+            'United States',
+            '11-50'
+        ]);
+        
+        $companyId = (int)$pdo->lastInsertId();
+        echo "   ✓ Company created (ID: $companyId)\n\n";
+    } else {
+        echo "📦 Step 1: Using existing company (ID: $companyId)...\n";
+        echo "   ✓ Company found\n\n";
+    }
     
-    $companyStmt->execute([
-        $companyName,
-        'demo-company',
-        $adminEmail,
-        $passwordHash,
-        'America/New_York',
-        'United States',
-        '11-50'
-    ]);
+    echo "👤 Step 2: Creating/checking admin user...\n";
     
-    $companyId = (int)$pdo->lastInsertId();
-    echo "   ✓ Company created (ID: $companyId)\n\n";
-    
-    echo "👤 Step 2: Creating admin user...\n";
-    
-    // Create admin user
+    // Check if admin user exists
     $username = "democompany_admin";
-    $userStmt = $pdo->prepare("
-        INSERT INTO users (username, password_hash, email, company_id, is_active)
-        VALUES (?, ?, ?, ?, 1)
+    $checkAdminStmt = $pdo->prepare("
+        SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1
     ");
-    $userStmt->execute([$username, $passwordHash, $adminEmail, $companyId]);
-    $userId = (int)$pdo->lastInsertId();
-    echo "   ✓ Admin user created (ID: $userId)\n\n";
+    $checkAdminStmt->execute([$username, $companyId]);
+    $existingAdmin = $checkAdminStmt->fetch(PDO::FETCH_ASSOC);
     
-    echo "📋 Step 3: Creating sections...\n";
+    if ($existingAdmin) {
+        $userId = (int)$existingAdmin['id'];
+        echo "   ✓ Admin user already exists (ID: $userId)\n\n";
+    } else {
+        // Create admin user
+        $userStmt = $pdo->prepare("
+            INSERT INTO users (username, password_hash, email, company_id, is_active)
+            VALUES (?, ?, ?, ?, 1)
+        ");
+        $userStmt->execute([$username, $passwordHash, $adminEmail, $companyId]);
+        $userId = (int)$pdo->lastInsertId();
+        echo "   ✓ Admin user created (ID: $userId)\n\n";
+    }
+    
+    echo "📋 Step 3: Creating/checking sections...\n";
     
     // Get Director role
     $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
@@ -83,35 +91,59 @@ try {
     $directorRole = $roleStmt->fetch(PDO::FETCH_ASSOC);
     $directorRoleId = (int)$directorRole['id'];
     
-    // Create sections
-    $sections = [
-        ['Main Section', $companyId],
-        ['Secondary Section', $companyId]
-    ];
-    
-    $sectionIds = [];
-    $sectionStmt = $pdo->prepare("
-        INSERT INTO sections (section_name, company_id)
-        VALUES (?, ?)
+    // Check for existing sections
+    $checkSectionStmt = $pdo->prepare("
+        SELECT id FROM sections WHERE company_id = ? ORDER BY id LIMIT 1
     ");
+    $checkSectionStmt->execute([$companyId]);
+    $existingSection = $checkSectionStmt->fetch(PDO::FETCH_ASSOC);
     
-    foreach ($sections as $section) {
-        $sectionStmt->execute($section);
-        $sectionIds[] = (int)$pdo->lastInsertId();
+    if ($existingSection) {
+        $mainSectionId = (int)$existingSection['id'];
+        echo "   ✓ Main section already exists (ID: $mainSectionId)\n\n";
+    } else {
+        // Create sections
+        $sections = [
+            ['Main Section', $companyId],
+            ['Secondary Section', $companyId]
+        ];
+        
+        $sectionIds = [];
+        $sectionStmt = $pdo->prepare("
+            INSERT INTO sections (section_name, company_id)
+            VALUES (?, ?)
+        ");
+        
+        foreach ($sections as $section) {
+            $sectionStmt->execute($section);
+            $sectionIds[] = (int)$pdo->lastInsertId();
+        }
+        
+        $mainSectionId = $sectionIds[0];
+        echo "   ✓ Sections created (Main: $mainSectionId)\n\n";
     }
-    
-    $mainSectionId = $sectionIds[0];
-    echo "   ✓ Sections created (Main: $mainSectionId)\n\n";
     
     echo "🔐 Step 4: Assigning Director role to admin...\n";
     
-    // Assign Director role to admin
-    $userRoleStmt = $pdo->prepare("
-        INSERT INTO user_roles (user_id, role_id, section_id)
-        VALUES (?, ?, ?)
+    // Check if role already assigned
+    $checkRoleStmt = $pdo->prepare("
+        SELECT id FROM user_roles 
+        WHERE user_id = ? AND role_id = ? AND section_id = ? LIMIT 1
     ");
-    $userRoleStmt->execute([$userId, $directorRoleId, $mainSectionId]);
-    echo "   ✓ Director role assigned\n\n";
+    $checkRoleStmt->execute([$userId, $directorRoleId, $mainSectionId]);
+    $existingRole = $checkRoleStmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($existingRole) {
+        echo "   ✓ Director role already assigned\n\n";
+    } else {
+        // Assign Director role to admin
+        $userRoleStmt = $pdo->prepare("
+            INSERT INTO user_roles (user_id, role_id, section_id)
+            VALUES (?, ?, ?)
+        ");
+        $userRoleStmt->execute([$userId, $directorRoleId, $mainSectionId]);
+        echo "   ✓ Director role assigned\n\n";
+    }
     
     echo "👥 Step 5: Creating employees...\n";
     
@@ -134,9 +166,29 @@ try {
     ];
     
     $employeeIds = [];
+    $defaultPassword = password_hash('TempPass123!', PASSWORD_BCRYPT);
+    
+    // Check existing employees for this company
+    $checkEmpStmt = $pdo->prepare("
+        SELECT e.employee_code, e.full_name, u.username 
+        FROM employees e
+        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        INNER JOIN sections s ON s.id = ur.section_id
+        WHERE s.company_id = ?
+    ");
+    $checkEmpStmt->execute([$companyId]);
+    $existingEmployees = [];
+    while ($row = $checkEmpStmt->fetch(PDO::FETCH_ASSOC)) {
+        $existingEmployees[$row['employee_code']] = $row;
+    }
+    
     $empUserStmt = $pdo->prepare("
         INSERT INTO users (username, password_hash, email, company_id, is_active)
         VALUES (?, ?, ?, ?, 1)
+    ");
+    
+    $checkUserStmt = $pdo->prepare("
+        SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1
     ");
     
     $empRoleStmt = $pdo->prepare("
@@ -144,30 +196,80 @@ try {
         VALUES (?, ?, ?)
     ");
     
+    $checkRoleStmt = $pdo->prepare("
+        SELECT ur.id FROM user_roles ur
+        INNER JOIN users u ON u.id = ur.user_id
+        WHERE u.username = ? AND ur.section_id = ? LIMIT 1
+    ");
+    
     $empStmt = $pdo->prepare("
         INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level, is_active)
         VALUES (?, ?, ?, ?, ?, ?, 1)
     ");
     
-    $defaultPassword = password_hash('TempPass123!', PASSWORD_BCRYPT);
+    $getEmpIdStmt = $pdo->prepare("
+        SELECT e.id FROM employees e
+        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        WHERE ur.id = ? LIMIT 1
+    ");
     
     foreach ($employees as $idx => $emp) {
         [$fullName, $email, $roleName, $empCode, $isSenior, $seniority] = $emp;
         $empUsername = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $fullName)) . '_' . ($idx + 1);
         
-        // Create user
-        $empUserStmt->execute([$empUsername, $defaultPassword, $email, $companyId]);
-        $empUserId = (int)$pdo->lastInsertId();
+        // Check if employee code already exists
+        if (isset($existingEmployees[$empCode])) {
+            echo "   ⚠ Skipped: $fullName ($roleName) - already exists\n";
+            // Get existing employee ID
+            $checkRoleStmt->execute([$empUsername, $mainSectionId]);
+            $existingRole = $checkRoleStmt->fetch(PDO::FETCH_ASSOC);
+            if ($existingRole) {
+                $getEmpIdStmt->execute([$existingRole['id']]);
+                $existingEmpId = $getEmpIdStmt->fetchColumn();
+                if ($existingEmpId && in_array($roleName, ['Employee', 'Senior'])) {
+                    $employeeIds[] = (int)$existingEmpId;
+                }
+            }
+            continue;
+        }
         
-        // Assign role
-        $roleId = $roles[$roleName] ?? $roles['Employee'];
-        $empRoleStmt->execute([$empUserId, $roleId, $mainSectionId]);
-        $userRoleId = (int)$pdo->lastInsertId();
+        // Check if user already exists
+        $checkUserStmt->execute([$empUsername, $companyId]);
+        $existingUser = $checkUserStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existingUser) {
+            $empUserId = (int)$existingUser['id'];
+        } else {
+            // Create user
+            $empUserStmt->execute([$empUsername, $defaultPassword, $email, $companyId]);
+            $empUserId = (int)$pdo->lastInsertId();
+        }
+        
+        // Check if role already assigned
+        $checkRoleStmt->execute([$empUsername, $mainSectionId]);
+        $existingRole = $checkRoleStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existingRole) {
+            $userRoleId = (int)$existingRole['id'];
+        } else {
+            // Assign role
+            $roleId = $roles[$roleName] ?? $roles['Employee'];
+            $empRoleStmt->execute([$empUserId, $roleId, $mainSectionId]);
+            $userRoleId = (int)$pdo->lastInsertId();
+        }
         
         // Create employee (only for Employee and Senior roles)
         if (in_array($roleName, ['Employee', 'Senior'])) {
-            $empStmt->execute([$userRoleId, $empCode, $fullName, $email, $isSenior, $seniority]);
-            $employeeIds[] = (int)$pdo->lastInsertId();
+            // Check if employee already exists for this user_role_id
+            $getEmpIdStmt->execute([$userRoleId]);
+            $existingEmpId = $getEmpIdStmt->fetchColumn();
+            
+            if (!$existingEmpId) {
+                $empStmt->execute([$userRoleId, $empCode, $fullName, $email, $isSenior, $seniority]);
+                $employeeIds[] = (int)$pdo->lastInsertId();
+            } else {
+                $employeeIds[] = (int)$existingEmpId;
+            }
         }
         
         echo "   ✓ Created: $fullName ($roleName)\n";
@@ -196,13 +298,27 @@ try {
     $shiftDefs = $shiftDefStmt->fetchAll(PDO::FETCH_ASSOC);
     
     if (!empty($shiftDefs) && !empty($employeeIds)) {
-        // Create a schedule
-        $scheduleStmt = $pdo->prepare("
-            INSERT INTO schedules (week_id, section_id, generated_by_admin_id, status, company_id)
-            VALUES (?, ?, ?, 'FINAL', ?)
+        // Check if schedule already exists
+        $checkScheduleStmt = $pdo->prepare("
+            SELECT id FROM schedules 
+            WHERE week_id = ? AND section_id = ? AND company_id = ? LIMIT 1
         ");
-        $scheduleStmt->execute([$weekId, $mainSectionId, $employeeIds[0], $companyId]);
-        $scheduleId = (int)$pdo->lastInsertId();
+        $checkScheduleStmt->execute([$weekId, $mainSectionId, $companyId]);
+        $existingSchedule = $checkScheduleStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existingSchedule) {
+            $scheduleId = (int)$existingSchedule['id'];
+            echo "   ✓ Schedule already exists (ID: $scheduleId)\n";
+        } else {
+            // Create a schedule
+            $scheduleStmt = $pdo->prepare("
+                INSERT INTO schedules (week_id, section_id, generated_by_admin_id, status, company_id)
+                VALUES (?, ?, ?, 'FINAL', ?)
+            ");
+            $scheduleStmt->execute([$weekId, $mainSectionId, $employeeIds[0], $companyId]);
+            $scheduleId = (int)$pdo->lastInsertId();
+            echo "   ✓ Schedule created (ID: $scheduleId)\n";
+        }
         
         // Create some schedule shifts
         $shiftStmt = $pdo->prepare("
@@ -273,24 +389,47 @@ try {
                 INSERT INTO weeks (week_start_date, week_end_date, company_id)
                 VALUES (?, ?, ?)
             ");
-            $nextWeekStmt->execute([$nextWeekStart, $nextWeekEnd, $companyId]);
-            $nextWeekId = (int)$pdo->lastInsertId();
+            // Check if next week exists
+            $checkNextWeekStmt = $pdo->prepare("
+                SELECT id FROM weeks 
+                WHERE week_start_date = ? AND company_id = ? LIMIT 1
+            ");
+            $checkNextWeekStmt->execute([$nextWeekStart, $companyId]);
+            $existingNextWeek = $checkNextWeekStmt->fetch(PDO::FETCH_ASSOC);
             
-            // Create a few requests
-            for ($i = 0; $i < min(3, count($employeeIds)); $i++) {
-                $requestDate = $today->modify("+" . ($i + 1) . " days")->format('Y-m-d');
-                $shiftDef = $shiftDefs[$i % count($shiftDefs)];
-                $requestStmt->execute([
-                    $employeeIds[$i],
-                    $nextWeekId,
-                    $requestDate,
-                    $shiftDef['id'],
-                    $patternId,
-                    "Test request for " . $employees[$i][0]
-                ]);
+            if ($existingNextWeek) {
+                $nextWeekId = (int)$existingNextWeek['id'];
+            } else {
+                $nextWeekStmt->execute([$nextWeekStart, $nextWeekEnd, $companyId]);
+                $nextWeekId = (int)$pdo->lastInsertId();
             }
             
-            echo "   ✓ Shift requests created\n";
+            // Check existing requests
+            $checkRequestsStmt = $pdo->prepare("
+                SELECT COUNT(*) FROM shift_requests 
+                WHERE week_id = ? AND employee_id IN (" . implode(',', array_fill(0, count($employeeIds), '?')) . ")
+            ");
+            $checkRequestsStmt->execute(array_merge([$nextWeekId], $employeeIds));
+            $existingRequestsCount = (int)$checkRequestsStmt->fetchColumn();
+            
+            if ($existingRequestsCount > 0) {
+                echo "   ✓ Shift requests already exist ($existingRequestsCount requests)\n";
+            } else {
+                // Create a few requests
+                for ($i = 0; $i < min(3, count($employeeIds)); $i++) {
+                    $requestDate = $today->modify("+" . ($i + 1) . " days")->format('Y-m-d');
+                    $shiftDef = $shiftDefs[$i % count($shiftDefs)];
+                    $requestStmt->execute([
+                        $employeeIds[$i],
+                        $nextWeekId,
+                        $requestDate,
+                        $shiftDef['id'],
+                        $patternId,
+                        "Test request for " . $employees[$i][0]
+                    ]);
+                }
+                echo "   ✓ Shift requests created (3 requests)\n";
+            }
         }
     }
     
