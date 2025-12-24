@@ -782,6 +782,140 @@ main {
 }
 
 /* ============================================
+   ONBOARDING - Centered Card Design
+   ============================================ */
+.onboarding-container {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, var(--space-xl));
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+}
+
+.onboarding-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+    padding: clamp(1.5rem, 4vw, var(--space-2xl));
+    box-shadow: var(--shadow-xl), var(--shadow-glow);
+    width: 100%;
+    max-width: clamp(500px, 90vw, 800px);
+    margin: 0 auto;
+    box-sizing: border-box;
+    animation: cardSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible;
+}
+
+.onboarding-progress {
+    margin-bottom: clamp(1.5rem, 3vw, var(--space-xl));
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    font-weight: 500;
+}
+
+.onboarding-content {
+    width: 100%;
+}
+
+.onboarding-content h2 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: clamp(0.5rem, 1vw, var(--space-sm));
+    text-align: center;
+}
+
+.step-description {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-bottom: clamp(1.5rem, 3vw, var(--space-xl));
+}
+
+.onboarding-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.employee-entry {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2vw, var(--space-lg));
+    margin-bottom: var(--space-md);
+}
+
+.review-summary {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2vw, var(--space-lg));
+    margin-bottom: var(--space-xl);
+}
+
+.review-section {
+    margin-bottom: var(--space-lg);
+}
+
+.review-section h3 {
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text-primary);
+}
+
+.review-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.review-section li {
+    padding: var(--space-xs) 0;
+    color: var(--color-text-secondary);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+}
+
+/* ============================================
    CARDS - Glassmorphism Design
    ============================================ */
 .card {

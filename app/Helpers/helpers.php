@@ -121,3 +121,14 @@ function format_date(?string $date): string
 
     return (new DateTimeImmutable($date))->format('M d, Y');
 }
+
+function json_response(bool $success, string $message, array $extra = []): never
+{
+    header('Content-Type: application/json');
+    echo json_encode(array_merge([
+        'success' => $success,
+        'message' => $message,
+    ], $extra));
+    exit;
+}
+
