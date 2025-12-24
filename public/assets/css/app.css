@@ -499,8 +499,8 @@ main {
    ============================================ */
 .dashboard-nav-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 20vw, 200px), 1fr));
+    gap: clamp(1rem, 2vw, var(--space-lg));
     margin-bottom: var(--space-xl);
     width: 100%;
     max-width: 100%;
@@ -513,17 +513,23 @@ main {
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--space-lg);
+    padding: clamp(1rem, 2.5vw, var(--space-lg));
     cursor: pointer;
     transition: all var(--transition-base);
     position: relative;
     overflow: visible;
-    text-align: left;
+    text-align: center;
     box-shadow: var(--shadow-md);
     animation: cardFadeIn 0.5s ease-out both;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(140px, 20vw, 200px);
 }
 
 .nav-card:nth-child(1) { animation-delay: 0.1s; }
@@ -581,33 +587,47 @@ main {
 }
 
 .nav-card-icon {
-    width: 48px;
-    height: 48px;
-    margin-bottom: var(--space-md);
+    width: clamp(40px, 6vw, 56px);
+    height: clamp(40px, 6vw, 56px);
+    margin-bottom: clamp(0.75rem, 1.5vw, var(--space-md));
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     box-shadow: var(--shadow-glow);
     transition: all var(--transition-base);
+    flex-shrink: 0;
 }
 
 .nav-card:hover .nav-card-icon {
     transform: rotate(5deg) scale(1.1);
 }
 
+.nav-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+}
+
 .nav-card-title {
-    font-size: 1.125rem;
+    font-size: clamp(0.9375rem, 2vw, 1.125rem);
     font-weight: 600;
     color: var(--color-text-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: clamp(0.25rem, 0.5vw, var(--space-xs));
+    text-align: center;
+    line-height: 1.3;
 }
 
 .nav-card-subtitle {
-    font-size: 0.875rem;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
     color: var(--color-text-secondary);
+    text-align: center;
+    line-height: 1.4;
 }
 
 /* ============================================
@@ -646,7 +666,7 @@ main {
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--space-xl);
+    padding: clamp(1rem, 2.5vw, var(--space-xl));
     text-align: center;
     transition: all var(--transition-base);
     box-shadow: var(--shadow-md);
@@ -655,8 +675,12 @@ main {
     max-width: 100%;
     box-sizing: border-box;
     overflow: visible;
-}
-    overflow: hidden;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(160px, 25vw, 220px);
 }
 
 .metric::before {
@@ -682,15 +706,16 @@ main {
 }
 
 .metric-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto var(--space-md);
+    width: clamp(48px, 7vw, 64px);
+    height: clamp(48px, 7vw, 64px);
+    margin: 0 auto clamp(0.75rem, 1.5vw, var(--space-md));
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-glow);
     transition: all var(--transition-base);
+    flex-shrink: 0;
 }
 
 .metric:hover .metric-icon {
@@ -698,16 +723,17 @@ main {
 }
 
 .metric h3 {
-    font-size: 0.9375rem;
+    font-size: clamp(0.8125rem, 1.8vw, 0.9375rem);
     font-weight: 600;
     color: var(--color-text-secondary);
-    margin-bottom: var(--space-sm);
+    margin-bottom: clamp(0.5rem, 1vw, var(--space-sm));
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    text-align: center;
 }
 
 .metric-value {
-    font-size: 2.75rem;
+    font-size: clamp(2rem, 5vw, 2.75rem);
     font-weight: 700;
     background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
     -webkit-background-clip: text;
@@ -715,6 +741,7 @@ main {
     background-clip: text;
     margin-bottom: var(--space-xs);
     line-height: 1.2;
+    text-align: center;
 }
 
 /* ============================================
@@ -726,7 +753,7 @@ main {
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--space-xl);
+    padding: clamp(1rem, 2.5vw, var(--space-xl));
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-md);
     transition: all var(--transition-base);
@@ -1972,11 +1999,11 @@ table {
     transform: rotate(15deg) scale(1.1);
 }
 
-/* Section Selection Cards */
+/* Section Selection Cards - Square Design */
 .sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 30vw, 300px), 1fr));
+    gap: clamp(1rem, 2vw, var(--space-lg));
     margin-top: var(--space-xl);
 }
 
@@ -1986,7 +2013,7 @@ table {
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--space-xl);
+    padding: clamp(1rem, 2.5vw, var(--space-xl));
     text-align: center;
     transition: all var(--transition-base);
     box-shadow: var(--shadow-md);
@@ -1995,6 +2022,12 @@ table {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(200px, 30vw, 280px);
 }
 
 .section-card::before {
@@ -2041,26 +2074,32 @@ table {
 }
 
 .section-card-title {
-    font-size: 1.5rem;
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
     font-weight: 700;
     color: var(--color-text-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: clamp(0.5rem, 1vw, var(--space-xs));
     background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-align: center;
+    line-height: 1.3;
 }
 
 .section-card-description {
-    font-size: 0.9375rem;
+    font-size: clamp(0.8125rem, 1.8vw, 0.9375rem);
     color: var(--color-text-secondary);
-    margin-bottom: var(--space-lg);
-    line-height: 1.6;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: clamp(0.75rem, 1.5vw, var(--space-md));
+    flex: 1;
 }
 
 .section-card-button {
-    width: 100%;
-    margin-top: var(--space-md);
+    width: auto;
+    min-width: 140px;
+    margin-top: auto;
+    padding: 0.75rem 1.5rem;
 }
 
 /* ============================================
@@ -3341,7 +3380,7 @@ body.landing-page footer.landing-footer {
         top: 1rem;
     }
     
-    /* Section cards */
+    /* Section cards - Square on mobile */
     .sections-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -3349,6 +3388,30 @@ body.landing-page footer.landing-footer {
     
     .section-card {
         padding: 1.5rem;
+        aspect-ratio: 1;
+        min-height: 200px;
+    }
+    
+    .section-card-title {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-card-description {
+        font-size: 0.8125rem;
+        margin-bottom: 1rem;
+    }
+    
+    .section-card-icon {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .section-card-button {
+        min-width: 120px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
     }
     
     /* Touch targets */
@@ -3415,10 +3478,25 @@ body.landing-page footer.landing-footer {
         max-width: 420px;
     }
     
-    /* Dashboard navigation */
+    /* Dashboard navigation - Square cards on tablet */
     .dashboard-nav-cards {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 1rem;
+    }
+    
+    .nav-card {
+        aspect-ratio: 1;
+        min-height: 160px;
+    }
+    
+    .metric {
+        aspect-ratio: 1;
+        min-height: 180px;
+    }
+    
+    .section-card {
+        aspect-ratio: 1;
+        min-height: 240px;
     }
     
     /* Forms */
@@ -3605,10 +3683,25 @@ body.landing-page footer.landing-footer {
         box-sizing: border-box;
     }
     
-    /* Dashboard navigation */
+    /* Dashboard navigation - Square cards on desktop */
     .dashboard-nav-cards {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: var(--space-lg);
+    }
+    
+    .nav-card {
+        aspect-ratio: 1;
+        min-height: 200px;
+    }
+    
+    .metric {
+        aspect-ratio: 1;
+        min-height: 220px;
+    }
+    
+    .section-card {
+        aspect-ratio: 1;
+        min-height: 280px;
     }
     
     /* Grid layouts */

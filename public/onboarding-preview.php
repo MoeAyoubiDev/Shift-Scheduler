@@ -273,12 +273,19 @@ require_once __DIR__ . '/../includes/header.php';
 
 .preview-metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(160px, 25vw, 220px), 1fr));
+    gap: clamp(1rem, 2vw, var(--space-lg));
 }
 
 .preview-metric {
     text-align: center;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 2.5vw, var(--space-lg));
+    min-height: clamp(160px, 25vw, 220px);
 }
 
 .preview-metric h4 {
