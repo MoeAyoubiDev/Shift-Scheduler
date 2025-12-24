@@ -266,13 +266,9 @@ Shift-Scheduler/
 1. **Sign Up** (`/signup.php`)
    - Company name, admin email, password
    - Timezone, country, company size
-   - Creates company with status: `PENDING_VERIFICATION`
-   - Sends verification email
-
-2. **Email Verification** (`/verify-email.php`)
-   - Verifies email token
-   - Updates status to: `VERIFIED`
-   - Redirects to onboarding
+   - Creates company with status: `VERIFIED` (auto-verified)
+   - No email verification required
+   - Redirects directly to onboarding
 
 3. **Onboarding Wizard** (`/onboarding.php`) - 5 Steps
    - **Step 1**: Company details (name, timezone, etc.)

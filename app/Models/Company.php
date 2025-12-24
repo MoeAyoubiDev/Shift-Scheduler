@@ -24,7 +24,7 @@ class Company extends BaseModel
                     'p_timezone' => $data['timezone'] ?? 'UTC',
                     'p_country' => $data['country'] ?? null,
                     'p_company_size' => $data['company_size'] ?? null,
-                    'p_verification_token' => bin2hex(random_bytes(32)),
+                    'p_verification_token' => null, // No email verification - auto-verified
                 ]);
                 
                 $companyId = (int)($rows[0]['company_id'] ?? 0);
@@ -50,15 +50,14 @@ class Company extends BaseModel
                         // Just use the original slug
                     }
                     
-                    $verificationToken = bin2hex(random_bytes(32));
                     $passwordHash = password_hash($data['admin_password'], PASSWORD_BCRYPT);
                     
                     $pdo = db();
                     $stmt = $pdo->prepare("
                         INSERT INTO companies (
                             company_name, company_slug, admin_email, admin_password_hash,
-                            timezone, country, company_size, verification_token, status
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_VERIFICATION')
+                            timezone, country, company_size, verification_token, status, email_verified_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'VERIFIED', NOW())
                     ");
                     
                     $stmt->execute([
@@ -69,7 +68,6 @@ class Company extends BaseModel
                         $data['timezone'] ?? 'UTC',
                         $data['country'] ?? null,
                         $data['company_size'] ?? null,
-                        $verificationToken,
                     ]);
                     
                     $companyId = (int)$pdo->lastInsertId();
@@ -79,14 +77,12 @@ class Company extends BaseModel
             }
             
             if ($companyId > 0) {
-                // Get the verification token
-                $company = $model->findById($companyId);
-                $verificationToken = $company['verification_token'] ?? null;
+                // Auto-verify the company (no email verification needed)
+                $model->verifyEmailDirect($companyId);
                 
                 return [
                     'success' => true,
                     'company_id' => $companyId,
-                    'verification_token' => $verificationToken,
                 ];
             }
             
@@ -137,6 +133,33 @@ class Company extends BaseModel
 
     /**
      * Verify company email
+     */
+    /**
+     * Directly verify company email (auto-verification)
+     * Companies are now auto-verified on signup - no email verification needed
+     */
+    public static function verifyEmailDirect(int $companyId): bool
+    {
+        try {
+            $pdo = db();
+            $stmt = $pdo->prepare("
+                UPDATE companies 
+                SET status = 'VERIFIED',
+                    email_verified_at = NOW(),
+                    verification_token = NULL
+                WHERE id = ? AND status != 'ACTIVE'
+            ");
+            $stmt->execute([$companyId]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Error verifying company email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Verify email via token (legacy method - kept for backward compatibility)
+     * Note: Email verification is now disabled - companies are auto-verified
      */
     public static function verifyEmail(string $token): bool
     {

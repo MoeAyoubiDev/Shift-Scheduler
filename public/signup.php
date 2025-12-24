@@ -101,14 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     ]);
                     
                     if ($result['success']) {
-                        // Store company ID in session for email verification
+                        // Store company ID in session for onboarding
                         $_SESSION['signup_company_id'] = $result['company_id'];
+                        $_SESSION['onboarding_company_id'] = $result['company_id'];
                         $_SESSION['signup_email'] = $adminEmail;
                         
-                        // Send verification email (placeholder - implement email service)
-                        // EmailService::sendVerificationEmail($adminEmail, $result['verification_token']);
-                        
-                        header('Location: /verify-email.php?email=' . urlencode($adminEmail));
+                        // Company is auto-verified - redirect directly to onboarding
+                        header('Location: /onboarding.php?company_id=' . $result['company_id']);
                         exit;
                     } else {
                         $error = $result['message'] ?? 'Failed to create account. Please try again.';

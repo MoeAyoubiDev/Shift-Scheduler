@@ -21,8 +21,20 @@ if (!$companyId) {
 }
 
 $company = Company::findById((int)$companyId);
-if (!$company || $company['status'] !== 'VERIFIED') {
-    header('Location: /verify-email.php');
+if (!$company) {
+    header('Location: /signup.php');
+    exit;
+}
+
+// Company is auto-verified on signup, allow onboarding if status is VERIFIED or ONBOARDING
+if (!in_array($company['status'], ['VERIFIED', 'ONBOARDING', 'PAYMENT_PENDING'])) {
+    // If company is already active, redirect to login
+    if ($company['status'] === 'ACTIVE') {
+        header('Location: /login.php?message=' . urlencode('Your account is already set up. Please sign in.'));
+        exit;
+    }
+    // Otherwise, redirect to signup
+    header('Location: /signup.php');
     exit;
 }
 
