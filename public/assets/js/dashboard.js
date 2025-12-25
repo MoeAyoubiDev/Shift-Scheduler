@@ -61,6 +61,8 @@
     
     function navigateToSection(sectionName) {
         if (!sectionName) return;
+        const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
+        if (!targetSection) return;
         
         // Add haptic feedback if available
         if (navigator.vibrate) {
@@ -227,6 +229,7 @@
     document.addEventListener('click', function(e) {
         const target = e.target;
         const button = target.closest('button');
+        const navTrigger = target.closest('.nav-card, .quick-action-card, [data-section]');
 
         if (bulkSelectActive) {
             const selectableCell = target.closest('.shift-cell');
@@ -240,17 +243,17 @@
         }
 
         // Navigation cards - Enhanced with animations
-        if (button && button.classList.contains('nav-card')) {
+        if (navTrigger && navTrigger.classList.contains('nav-card')) {
             e.preventDefault();
             e.stopPropagation();
             
             // Add click animation
-            button.style.transform = 'scale(0.95)';
+            navTrigger.style.transform = 'scale(0.95)';
             setTimeout(() => {
-                button.style.transform = '';
+                navTrigger.style.transform = '';
             }, 150);
             
-            const sectionName = button.getAttribute('data-section');
+            const sectionName = navTrigger.getAttribute('data-section');
             if (sectionName) {
                 navigateToSection(sectionName);
             }
@@ -280,17 +283,17 @@
         }
         
         // Quick action cards / data-section buttons
-        if (button && (button.classList.contains('quick-action-card') || button.getAttribute('data-section'))) {
-            const targetSection = button.getAttribute('data-section');
-            const onclick = button.getAttribute('onclick');
+        if (navTrigger && (navTrigger.classList.contains('quick-action-card') || navTrigger.getAttribute('data-section'))) {
+            const targetSection = navTrigger.getAttribute('data-section');
+            const onclick = navTrigger.getAttribute('onclick');
             if (targetSection || (onclick && onclick.includes('navigateToSection'))) {
                 e.preventDefault();
                 e.stopPropagation();
                 
                 // Add click animation
-                button.style.transform = 'scale(0.95)';
+                navTrigger.style.transform = 'scale(0.95)';
                 setTimeout(() => {
-                    button.style.transform = '';
+                    navTrigger.style.transform = '';
                 }, 150);
                 
                 if (targetSection) {
@@ -351,7 +354,9 @@
         }
         
         // Close modal
-        if (target.closest('.modal-close') || target.closest('.modal-cancel') || target.closest('[data-modal-close]') ||
+        const modalCloseTarget = target.closest('.modal-close, .modal-cancel, [data-modal-close]');
+        const modalContainer = target.closest('.modal');
+        if ((modalCloseTarget && modalContainer) || target.closest('[data-modal-close]') ||
             target.classList.contains('modal')) {
             e.preventDefault();
             e.stopPropagation();
@@ -867,7 +872,7 @@
         // Handle hash changes
         window.addEventListener('hashchange', function() {
             const hash = window.location.hash.replace('#', '');
-            if (hash) {
+            if (hash && document.querySelector(`.dashboard-section[data-section="${hash}"]`)) {
                 navigateToSection(hash);
             }
         });
