@@ -284,6 +284,7 @@ if ($role === 'Director') {
         require_once __DIR__ . '/../app/Models/Role.php';
         require_once __DIR__ . '/../app/Models/Performance.php';
         require_once __DIR__ . '/../app/Models/ShiftRequest.php';
+        require_once __DIR__ . '/../app/Models/Employee.php';
         
         $dashboard = Performance::directorDashboard($sectionId, $weekId);
         $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
@@ -291,6 +292,8 @@ if ($role === 'Director') {
         $performance = Performance::report($weekStart, $weekEnd, $sectionId, null);
         $sections = Section::getAll();
         $roles = Role::listRoles();
+        $employees = Employee::listBySection($sectionId);
+        $admins = Employee::listAdmins();
 
         render_view('director/dashboard', [
             'user' => $user,
@@ -302,6 +305,8 @@ if ($role === 'Director') {
             'performance' => $performance,
             'sections' => $sections,
             'roles' => $roles,
+            'employees' => $employees,
+            'admins' => $admins,
         ]);
     }
 } elseif ($role === 'Team Leader') {
