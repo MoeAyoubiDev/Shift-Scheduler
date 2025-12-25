@@ -377,14 +377,14 @@ for ($i = 0; $i < 7; $i++) {
             Role
             <select name="role_id" required>
                 <?php foreach ($roles as $role): ?>
-                                <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
-                                    <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
+                    <?php if (in_array($role['role_name'], ['Employee'], true)): ?>
+                        <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </select>
         </label>
         <label>
-            Seniority Level
+            Experience Level
             <input type="number" name="seniority_level" min="0" value="0">
             <small class="muted">Higher values place employees earlier in coverage sorting.</small>
         </label>
@@ -481,14 +481,14 @@ for ($i = 0; $i < 7; $i++) {
                                 <label for="update-role" class="form-label">Role</label>
                                 <select id="update-role" name="role_id" class="form-input" required>
                                     <?php foreach ($roles as $role): ?>
-                                        <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
+                                        <?php if (in_array($role['role_name'], ['Employee'], true)): ?>
                                             <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="update-seniority" class="form-label">Seniority Level</label>
+                                <label for="update-seniority" class="form-label">Experience Level</label>
                                 <input type="number" id="update-seniority" name="seniority_level" class="form-input" min="0" value="0">
                             </div>
                         </div>

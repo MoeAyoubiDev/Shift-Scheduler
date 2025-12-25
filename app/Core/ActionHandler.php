@@ -11,8 +11,6 @@ require_once __DIR__ . '/../Controllers/AuthController.php';
 require_once __DIR__ . '/../Controllers/DirectorController.php';
 require_once __DIR__ . '/../Controllers/TeamLeaderController.php';
 require_once __DIR__ . '/../Controllers/EmployeeController.php';
-require_once __DIR__ . '/../Controllers/SeniorController.php';
-require_once __DIR__ . '/../Controllers/SupervisorController.php';
 require_once __DIR__ . '/Router.php';
 
 class ActionHandler
@@ -36,16 +34,16 @@ class ActionHandler
             return AuthController::handleSignup($payload);
         }, [], true);
         
-        // Director actions
+        // Supervisor actions
         Router::register('select_section', function(array $payload) {
             DirectorController::handleSelectSection($payload);
             return ['redirect' => '/index.php'];
-        }, ['Director'], true);
+        }, ['Supervisor'], true);
         
         Router::register('create_leader', function(array $payload) {
             $result = DirectorController::handleCreateLeader($payload);
             return ['message' => $result ?? 'Leader created successfully.'];
-        }, ['Director'], true);
+        }, ['Supervisor'], true);
         
         // Team Leader actions
         Router::register('create_employee', function(array $payload) {
@@ -134,24 +132,14 @@ class ActionHandler
         }, ['Employee'], true);
         
         Router::register('start_break', function(array $payload) {
-            $role = current_role();
-            if ($role === 'Senior') {
-                $result = SeniorController::handleBreakAction($payload, 'start');
-            } else {
-                $result = EmployeeController::handleBreakAction($payload, 'start');
-            }
+            $result = EmployeeController::handleBreakAction($payload, 'start');
             return ['message' => $result];
-        }, ['Employee', 'Senior'], true);
+        }, ['Employee'], true);
         
         Router::register('end_break', function(array $payload) {
-            $role = current_role();
-            if ($role === 'Senior') {
-                $result = SeniorController::handleBreakAction($payload, 'end');
-            } else {
-                $result = EmployeeController::handleBreakAction($payload, 'end');
-            }
+            $result = EmployeeController::handleBreakAction($payload, 'end');
             return ['message' => $result];
-        }, ['Employee', 'Senior'], true);
+        }, ['Employee'], true);
 
     }
     

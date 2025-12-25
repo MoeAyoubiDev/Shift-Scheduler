@@ -133,7 +133,7 @@ declare(strict_types=1);
         <div class="card admin-card admin-card--directory">
             <div class="card-header">
                 <div>
-                    <h3>Admins Directory</h3>
+                    <h3>Leadership Directory</h3>
                     <p>All Team Leaders and Supervisors across sections.</p>
                 </div>
                 <div class="card-header-meta">

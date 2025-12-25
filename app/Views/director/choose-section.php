@@ -6,7 +6,7 @@ declare(strict_types=1);
         <div class="hero-row">
             <div>
                 <h2>Choose a Section</h2>
-                <p>Select which section you want to review as Director. You can switch sections at any time.</p>
+                <p>Select which section you want to review as Supervisor. You can switch sections at any time.</p>
             </div>
         </div>
         

@@ -23,7 +23,7 @@ function current_section_id(): ?int
         return null;
     }
 
-    if ($user['role'] === 'Director') {
+    if ($user['role'] === 'Supervisor') {
         return $_SESSION['selected_section_id'] ?? null;
     }
 

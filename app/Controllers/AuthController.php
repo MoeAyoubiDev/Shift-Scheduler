@@ -87,20 +87,20 @@ class AuthController
         }
 
         try {
-            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'director'));
-            $usernameCandidate = $usernameBase ?: 'director';
+            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'supervisor'));
+            $usernameCandidate = $usernameBase ?: 'supervisor';
 
-            $userId = User::createDirector([
+            $userId = User::createSupervisor([
                 'company_id' => $companyId,
                 'company_name' => $companyName,
                 'username' => $usernameCandidate,
                 'password_hash' => $passwordHash,
                 'email' => $email,
-                'full_name' => $companyName . ' Director',
+                'full_name' => $companyName . ' Supervisor',
             ]);
 
             if ($userId <= 0) {
-                throw new RuntimeException('Unable to create director account.');
+                throw new RuntimeException('Unable to create supervisor account.');
             }
         } catch (Throwable $e) {
             error_log('Signup creation error: ' . $e->getMessage());

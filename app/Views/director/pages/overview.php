@@ -4,9 +4,10 @@ declare(strict_types=1);
 $employeeTotal = count($employees);
 $departmentTotal = count($sections);
 $reportTotal = count($performance);
-$pendingRequests = count($requests);
 $scheduledTotal = count($schedule);
 $leadersTotal = count($admins);
+$pendingRequests = count(array_filter($requests, static fn($row) => strtoupper((string) ($row['status'] ?? '')) === 'PENDING'));
+$approvedRequests = count(array_filter($requests, static fn($row) => strtoupper((string) ($row['status'] ?? '')) === 'APPROVED'));
 $onTimeEmployees = count(array_filter($performance, static fn($row) => (float) ($row['average_delay_minutes'] ?? 0) <= 0));
 $avgDelay = 0.0;
 if ($performance) {
@@ -14,37 +15,16 @@ if ($performance) {
     $avgDelay = round($avgDelay, 1);
 }
 
-$dashboardSummary = $dashboard[0] ?? [];
-$employeeMetric = $employeeTotal > 0 ? $employeeTotal : 127;
-$laborCost = (float) ($dashboardSummary['labor_cost'] ?? 42500);
-$laborCostLabel = '$' . number_format($laborCost / 1000, 1) . 'K';
-$fillRate = (float) ($dashboardSummary['fill_rate'] ?? 98.5);
-$openShifts = (int) ($dashboardSummary['open_shifts'] ?? 3);
-$employeeDelta = $employeeTotal > 0 ? '+' . min(12, $employeeTotal % 10) : '+8';
-$laborDelta = '-5%';
-$fillDelta = '+2.3%';
-$openDelta = '-12';
-
-$sectionsWithLeaders = [];
-foreach ($admins as $admin) {
-    if (!empty($admin['section_name'])) {
-        $sectionsWithLeaders[$admin['section_name']] = true;
-    }
-}
-$unassignedDepartments = max(0, $departmentTotal - count($sectionsWithLeaders));
-
 $totalHours = 0.0;
 foreach ($schedule as $entry) {
     $totalHours += (float) ($entry['duration_hours'] ?? 0);
 }
-$totalHours = $totalHours > 0 ? $totalHours : 1984;
-$totalShifts = $scheduledTotal > 0 ? $scheduledTotal : 248;
-$overtimeHours = (float) ($dashboardSummary['overtime_hours'] ?? 42);
-$callOuts = (int) ($dashboardSummary['call_outs'] ?? 3);
-
-$coverageRate = $employeeTotal > 0 ? min(100, round(($scheduledTotal / max(1, $employeeTotal)) * 100, 1)) : 98.5;
-$budgetUsed = (float) ($dashboardSummary['budget_used'] ?? 76);
-$complianceScore = $performance ? max(0, min(100, 100 - $avgDelay)) : 100;
+$totalShifts = $scheduledTotal;
+$coverageRate = $employeeTotal > 0 ? min(100, round(($scheduledTotal / max(1, $employeeTotal)) * 100, 1)) : 0;
+$onTimeRate = $reportTotal > 0 ? round(($onTimeEmployees / $reportTotal) * 100, 1) : 0;
+$requestApprovalRate = ($approvedRequests + $pendingRequests) > 0
+    ? round(($approvedRequests / ($approvedRequests + $pendingRequests)) * 100, 1)
+    : 0;
 
 $recentActivity = [];
 if (!empty($requests)) {
@@ -55,21 +35,14 @@ if (!empty($requests)) {
             'tone' => strtolower((string) ($request['status'] ?? 'info')),
         ];
     }
-} else {
-    $recentActivity = [
-        ['title' => 'Week 52 schedule published', 'time' => '2 hours ago', 'tone' => 'success'],
-        ['title' => 'Sarah Johnson requested shift swap', 'time' => '3 hours ago', 'tone' => 'info'],
-        ['title' => 'Coverage gap on Friday 3-11pm', 'time' => '5 hours ago', 'tone' => 'warning'],
-        ['title' => '12 new employees onboarded', 'time' => '1 day ago', 'tone' => 'success'],
-    ];
 }
 ?>
 <section class="dashboard-surface director-dashboard-page">
     <div class="dashboard-inner">
         <div class="dashboard-hero">
             <div>
-                <h1>Welcome back, Director</h1>
-                <p class="muted">Here's what's happening with your workforce today</p>
+                <h1>Welcome back, Supervisor</h1>
+                <p class="muted">Here's what's happening across your workforce today</p>
             </div>
             <div class="dashboard-hero-actions">
                 <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
@@ -78,7 +51,6 @@ if (!empty($requests)) {
                     </svg>
                     <span>Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
                 </button>
-                <a class="btn ghost" href="/index.php?reset_section=1">Change Section</a>
             </div>
         </div>
 
@@ -90,9 +62,9 @@ if (!empty($requests)) {
                         <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <div class="metric-value"><?= e((string) $employeeMetric) ?></div>
+                <div class="metric-value"><?= e((string) $employeeTotal) ?></div>
                 <div class="metric-label">Total Employees</div>
-                <div class="metric-delta positive"><?= e($employeeDelta) ?></div>
+                <div class="metric-delta positive"><?= e((string) $leadersTotal) ?> leaders active</div>
             </div>
             <div class="dashboard-card metric-card">
                 <div class="metric-icon">
@@ -101,9 +73,9 @@ if (!empty($requests)) {
                         <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5C7 8.88071 8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5C17 13.8807 15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <div class="metric-value"><?= e($laborCostLabel) ?></div>
-                <div class="metric-label">Labor Cost</div>
-                <div class="metric-delta negative"><?= e($laborDelta) ?></div>
+                <div class="metric-value"><?= e((string) $scheduledTotal) ?></div>
+                <div class="metric-label">Scheduled Shifts</div>
+                <div class="metric-delta"><?= e((string) $totalHours) ?> hrs scheduled</div>
             </div>
             <div class="dashboard-card metric-card">
                 <div class="metric-icon">
@@ -112,9 +84,9 @@ if (!empty($requests)) {
                         <path d="M22 7C20.6667 5.66667 19.3333 4.33333 18 3C16.6667 1.66667 14.3333 1 12 1C6.47715 1 2 5.47715 2 11C2 16.5228 6.47715 21 12 21C17.5228 21 22 16.5228 22 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <div class="metric-value"><?= e(number_format($fillRate, 1)) ?>%</div>
-                <div class="metric-label">Fill Rate</div>
-                <div class="metric-delta positive"><?= e($fillDelta) ?></div>
+                <div class="metric-value"><?= e((string) $pendingRequests) ?></div>
+                <div class="metric-label">Pending Requests</div>
+                <div class="metric-delta"><?= e((string) $approvedRequests) ?> approved</div>
             </div>
             <div class="dashboard-card metric-card">
                 <div class="metric-icon">
@@ -123,9 +95,9 @@ if (!empty($requests)) {
                         <path d="M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <div class="metric-value"><?= e((string) $openShifts) ?></div>
-                <div class="metric-label">Open Shifts</div>
-                <div class="metric-delta negative"><?= e($openDelta) ?></div>
+                <div class="metric-value"><?= e(number_format($avgDelay, 1)) ?></div>
+                <div class="metric-label">Avg Delay (mins)</div>
+                <div class="metric-delta"><?= e(number_format($onTimeRate, 1)) ?>% on time</div>
             </div>
         </div>
 
@@ -142,7 +114,7 @@ if (!empty($requests)) {
                 </div>
                 <div class="quick-access-title">Scheduling</div>
                 <div class="quick-access-subtitle">Manage shifts and assignments</div>
-                <div class="quick-access-meta"><?= e((string) ($scheduledTotal ?: 48)) ?> shifts this week</div>
+                <div class="quick-access-meta"><?= e((string) $scheduledTotal) ?> shifts this week</div>
             </a>
             <a class="dashboard-card quick-access-card" href="/dashboard/employees.php">
                 <div class="quick-access-icon accent-blue">
@@ -153,7 +125,7 @@ if (!empty($requests)) {
                 </div>
                 <div class="quick-access-title">Team Management</div>
                 <div class="quick-access-subtitle">Employees, roles &amp; permissions</div>
-                <div class="quick-access-meta"><?= e((string) $employeeMetric) ?> active employees</div>
+                <div class="quick-access-meta"><?= e((string) $employeeTotal) ?> active employees</div>
             </a>
             <a class="dashboard-card quick-access-card" href="/dashboard/reports.php">
                 <div class="quick-access-icon accent-teal">
@@ -177,7 +149,7 @@ if (!empty($requests)) {
                 </div>
                 <div class="quick-access-title">Time Tracking</div>
                 <div class="quick-access-subtitle">Hours, overtime &amp; attendance</div>
-                <div class="quick-access-meta"><?= e(number_format($totalHours)) ?> hrs this month</div>
+                <div class="quick-access-meta"><?= e(number_format($totalHours)) ?> hrs this week</div>
             </a>
             <a class="dashboard-card quick-access-card" href="/dashboard/departments.php">
                 <div class="quick-access-icon accent-pink">
@@ -188,7 +160,7 @@ if (!empty($requests)) {
                 </div>
                 <div class="quick-access-title">Locations</div>
                 <div class="quick-access-subtitle">Multiple sites &amp; departments</div>
-                <div class="quick-access-meta"><?= e((string) $departmentTotal) ?> locations</div>
+                <div class="quick-access-meta"><?= e((string) $departmentTotal) ?> departments</div>
             </a>
             <a class="dashboard-card quick-access-card" href="/dashboard/settings.php">
                 <div class="quick-access-icon accent-gold">
@@ -209,17 +181,24 @@ if (!empty($requests)) {
                     <h3>Recent Activity</h3>
                 </div>
                 <div class="activity-list">
-                    <?php foreach ($recentActivity as $activity): ?>
-                        <div class="activity-item">
-                            <div class="activity-icon <?= e($activity['tone']) ?>"></div>
-                            <div class="activity-text">
-                                <div class="activity-title"><?= e($activity['title']) ?></div>
-                                <div class="activity-time"><?= e($activity['time']) ?></div>
+                    <?php if ($recentActivity): ?>
+                        <?php foreach ($recentActivity as $activity): ?>
+                            <div class="activity-item">
+                                <div class="activity-icon <?= e($activity['tone']) ?>"></div>
+                                <div class="activity-text">
+                                    <div class="activity-title"><?= e($activity['title']) ?></div>
+                                    <div class="activity-time"><?= e($activity['time']) ?></div>
+                                </div>
                             </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <div class="empty-state-title">No recent activity yet</div>
+                            <div class="empty-state-text">Requests and updates will appear here as they arrive.</div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
-                <a class="activity-link" href="/dashboard/reports.php">View All Activity</a>
+                <a class="activity-link" href="/dashboard/reports.php">View Reports</a>
             </div>
 
             <div class="dashboard-side-stack">
@@ -238,20 +217,20 @@ if (!empty($requests)) {
                     </div>
                     <div class="health-item">
                         <div class="health-row">
-                            <span>Budget Used</span>
-                            <span><?= e(number_format($budgetUsed, 0)) ?>%</span>
+                            <span>Request Approval</span>
+                            <span><?= e(number_format($requestApprovalRate, 1)) ?>%</span>
                         </div>
                         <div class="health-bar info">
-                            <span style="width: <?= e((string) $budgetUsed) ?>%"></span>
+                            <span style="width: <?= e((string) $requestApprovalRate) ?>%"></span>
                         </div>
                     </div>
                     <div class="health-item">
                         <div class="health-row">
-                            <span>Compliance Score</span>
-                            <span><?= e(number_format($complianceScore, 0)) ?>%</span>
+                            <span>On-time Rate</span>
+                            <span><?= e(number_format($onTimeRate, 1)) ?>%</span>
                         </div>
                         <div class="health-bar success">
-                            <span style="width: <?= e((string) $complianceScore) ?>%"></span>
+                            <span style="width: <?= e((string) $onTimeRate) ?>%"></span>
                         </div>
                     </div>
                 </div>
@@ -270,12 +249,12 @@ if (!empty($requests)) {
                             <strong><?= e(number_format($totalHours)) ?></strong>
                         </div>
                         <div>
-                            <span>Overtime Hours</span>
-                            <strong><?= e(number_format($overtimeHours, 0)) ?></strong>
+                            <span>Pending Requests</span>
+                            <strong><?= e((string) $pendingRequests) ?></strong>
                         </div>
                         <div>
-                            <span>Call-outs</span>
-                            <strong><?= e((string) $callOuts) ?></strong>
+                            <span>Approved Requests</span>
+                            <strong><?= e((string) $approvedRequests) ?></strong>
                         </div>
                     </div>
                 </div>

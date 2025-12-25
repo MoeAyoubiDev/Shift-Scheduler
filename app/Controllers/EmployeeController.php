@@ -15,11 +15,6 @@ class EmployeeController
 
         $user = current_user();
         
-        // Check if user is Senior (Seniors cannot submit requests)
-        if ($user['role'] === 'Senior' || ($user['is_senior'] ?? 0) === 1) {
-            return 'Senior employees cannot submit shift requests.';
-        }
-
         // Validate submission window: can only submit during current week, but NOT on Sunday
         $today = new DateTimeImmutable();
         $currentWeekStart = $today->modify('monday this week');

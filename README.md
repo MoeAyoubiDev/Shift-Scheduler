@@ -82,12 +82,10 @@ Shift-Scheduler/
 │   ├── Controllers/                        # Request Handlers & Business Logic
 │   │   ├── AdminController.php            # Admin operations
 │   │   ├── AuthController.php             # Authentication (login/logout)
-│   │   ├── DirectorController.php         # Director role actions
+│   │   ├── DirectorController.php         # Supervisor (multi-section) actions
 │   │   ├── EmployeeController.php         # Employee actions (requests, breaks)
 │   │   ├── NotificationController.php     # Notification endpoints
 │   │   ├── RequestController.php          # Shift request management
-│   │   ├── SeniorController.php           # Senior role actions
-│   │   ├── SupervisorController.php       # Supervisor monitoring actions
 │   │   └── TeamLeaderController.php       # Team Leader scheduling actions
 │   │
 │   ├── Core/                               # Core System Components
@@ -134,19 +132,15 @@ Shift-Scheduler/
 │       │   └── overview.php               # Overview dashboard
 │       ├── director/
 │       │   ├── choose-section.php         # Section selection
-│       │   └── dashboard.php              # Director dashboard
+│       │   └── dashboard.php              # Supervisor dashboard (multi-section)
 │       ├── employee/
 │       │   └── dashboard.php              # Employee dashboard
 │       ├── partials/                      # Reusable view components
 │       ├── public/
 │       │   └── landing.php               # Public landing page
-│       ├── senior/
-│       │   └── dashboard.php             # Senior dashboard
 │       ├── shifts/
 │       │   ├── admin-schedule.php         # Admin schedule view
 │       │   └── employee-schedule.php     # Employee schedule view
-│       ├── supervisor/
-│       │   └── dashboard.php             # Supervisor dashboard
 │       └── teamleader/
 │           └── dashboard.php              # Team Leader dashboard
 │
@@ -263,7 +257,7 @@ Shift-Scheduler/
 - `company_onboarding` - Onboarding progress
 
 ### Core Tables
-- `roles` - System roles (Director, Team Leader, etc.)
+- `roles` - System roles (Supervisor, Team Leader, Employee)
 - `sections` - Company departments (company-scoped)
 - `users` - User accounts (company-scoped)
 - `user_roles` - User-role-section assignments
@@ -320,13 +314,13 @@ Shift-Scheduler/
 
 ## Roles & Permissions
 
-### Director
-- **Access**: Read-only access to all sections
+### Supervisor
+- **Access**: Executive oversight across sections
 - **Features**:
-  - View all sections (can switch between sections)
-  - View schedules, requests, performance reports
-  - View analytics and metrics
-  - No editing capabilities
+  - Switch between sections for full visibility
+  - Review schedules, requests, and performance reports
+  - Manage Team Leaders and supervisors
+  - Track leadership coverage and system health
 
 ### Team Leader
 - **Access**: Full CRUD for assigned section
@@ -338,23 +332,6 @@ Shift-Scheduler/
   - Generate weekly schedules
   - View performance reports
   - Manage employees
-
-### Supervisor
-- **Access**: Read-only monitoring for assigned section
-- **Features**:
-  - View schedules and assignments
-  - Monitor break status
-  - View shift requests (read-only)
-  - Track employee performance
-  - View coverage gaps
-
-### Senior
-- **Access**: Real-time shift management for assigned section
-- **Features**:
-  - View today's schedule
-  - Monitor active breaks
-  - View weekly schedule
-  - Cannot submit shift requests
 
 ### Employee
 - **Access**: Self-service for own data
@@ -685,7 +662,7 @@ When you add employees in Step 3 of onboarding, they are automatically created w
 Employee Name: John Doe
 Username: johndoe_1
 Password: TempPass123!
-Role: Employee (or Senior, Team Leader based on selection)
+Role: Employee (or Team Leader based on selection)
 ```
 
 ### Creating Multiple Test Companies
@@ -713,10 +690,8 @@ Company 2:
 
 After onboarding, users are created with different roles:
 
-- **Director**: Full read-only access to all sections, analytics, and reports
+- **Supervisor**: Executive oversight across sections, analytics, and reports
 - **Team Leader**: Full CRUD for assigned section, schedule management
-- **Supervisor**: Read-only monitoring, performance tracking
-- **Senior**: Real-time shift management, break monitoring
 - **Employee**: Self-service shift requests, view own schedule
 
 ### Quick Test Setup
@@ -742,18 +717,16 @@ Password: Demo123!
 ### Dashboard Access
 
 After successful login:
-- **Director**: Full dashboard with all sections visible
+- **Supervisor**: Full dashboard with all sections visible
 - **Team Leader**: Dashboard for assigned section only
-- **Supervisor**: Monitoring dashboard
-- **Senior**: Shift management dashboard
 - **Employee**: Personal schedule and requests dashboard
 
 ### Quick Start Data Workflow
 
 To generate data quickly:
-1. Sign up once to create a Director account.
-2. Use the Director dashboard to add Team Leaders or Supervisors.
-3. Have Team Leaders or Supervisors add Employees and Seniors.
+1. Sign up once to create a Supervisor account.
+2. Use the Supervisor dashboard to add Team Leaders.
+3. Have Team Leaders add Employees.
 
 The database script already includes robust reference data (roles, shift types, patterns, and settings) for immediate use.
 

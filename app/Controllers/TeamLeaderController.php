@@ -50,11 +50,11 @@ class TeamLeaderController
             }
         }
 
-        if (!in_array($roleName, ['Employee', 'Senior'], true)) {
+        if (!in_array($roleName, ['Employee'], true)) {
             return 'Invalid role selected.';
         }
 
-        $isSenior = $roleName === 'Senior';
+        $isSenior = $seniorityLevel > 0;
 
         try {
             $employeeId = User::createEmployee([
@@ -223,11 +223,11 @@ class TeamLeaderController
             }
         }
 
-        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Employee', 'Senior'], true)) {
+        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Employee'], true)) {
             return 'Invalid role selection.';
         }
 
-        $isSenior = $selectedRole['role_name'] === 'Senior' ? 1 : 0;
+        $isSenior = $seniorityLevel > 0 ? 1 : 0;
 
         try {
             require_once __DIR__ . '/../Models/Employee.php';

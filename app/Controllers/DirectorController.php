@@ -9,7 +9,7 @@ class DirectorController
     public static function handleSelectSection(array $payload): void
     {
         require_login();
-        require_role(['Director']);
+        require_role(['Supervisor']);
         require_csrf($payload);
 
         $sectionId = (int) ($payload['section_id'] ?? 0);
@@ -24,7 +24,7 @@ class DirectorController
     public static function handleCreateLeader(array $payload): ?string
     {
         require_login();
-        require_role(['Director']);
+        require_role(['Supervisor']);
         require_csrf($payload);
 
         $roleId = (int) ($payload['role_id'] ?? 0);
