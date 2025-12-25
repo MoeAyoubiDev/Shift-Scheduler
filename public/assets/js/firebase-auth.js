@@ -77,6 +77,7 @@
     }
 
     function sendTokenToBackend(firebaseToken, payloadOverrides) {
+        var config = getAppConfig();
         var payload = {
             action: 'firebase_login'
         };
@@ -85,6 +86,10 @@
             Object.keys(payloadOverrides).forEach(function (key) {
                 payload[key] = payloadOverrides[key];
             });
+        }
+
+        if (config.csrfToken) {
+            payload.csrf_token = config.csrfToken;
         }
 
         return fetch('/auth/firebase-login', {
