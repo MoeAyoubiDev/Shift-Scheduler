@@ -296,9 +296,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                         $_SESSION['role'] = $freshUser['role'];
                         $_SESSION['company_id'] = $freshUser['company_id'];
                     }
+                    $_SESSION['selected_section_id'] = $sectionId;
                     unset($_SESSION['onboarding_company_id']);
 
-                    header('Location: /dashboard');
+                    header('Location: /index.php?message=' . urlencode('Your account has been created successfully.'));
                     exit;
                 } catch (Exception $e) {
                     $pdo->rollBack();
@@ -495,26 +496,125 @@ require_once __DIR__ . '/../includes/header.php';
             <?php elseif ($currentStep === 5): ?>
                 <!-- Step 5: Review -->
                 <h2>Review & Confirm</h2>
-                <p class="step-description">Review your settings before proceeding</p>
-                
-                <div class="review-summary">
-                    <?php foreach ($progress as $stepKey => $stepData): ?>
-                        <?php if ($stepKey !== 'completed' && !empty($stepData['data'])): ?>
-                            <div class="review-section">
-                                <h3><?= ucfirst(str_replace('step_', 'Step ', $stepKey)) ?></h3>
-                                <ul>
-                                    <?php foreach ($stepData['data'] as $key => $value): ?>
-                                        <?php if (is_array($value)): ?>
-                                            <li><strong><?= e(ucwords(str_replace('_', ' ', $key))) ?>:</strong> <?= e(json_encode($value, JSON_PRETTY_PRINT)) ?></li>
+                <p class="step-description">Review the details below before completing your setup.</p>
 
-                                        <?php else: ?>
-                                            <li><strong><?= e(ucwords(str_replace('_', ' ', $key))) ?>:</strong> <?= e($value) ?></li>
-                                        <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </ul>
+                <?php
+                $step1 = $progress['step_1']['data'] ?? [];
+                $step2 = $progress['step_2']['data'] ?? [];
+                $step3 = $progress['step_3']['data'] ?? [];
+                $step4 = $progress['step_4']['data'] ?? [];
+
+                $industryLabel = $step1['industry'] ?? '';
+                $industryLabel = $industryLabel !== '' ? ucwords(str_replace('_', ' ', $industryLabel)) : 'Not specified';
+                $addressLabel = trim((string) ($step1['address'] ?? ''));
+                $addressLabel = $addressLabel !== '' ? $addressLabel : 'Not provided';
+
+                $workDays = $step2['work_days_per_week'] ?? '';
+                $workDaysLabel = $workDays !== '' ? $workDays . ' days' : 'Not specified';
+
+                $autoGenerate = ($step4['auto_generate'] ?? '') === 'yes' ? 'Enabled' : 'Manual scheduling';
+                $requestWindow = $step4['request_window'] ?? '';
+                $requestWindowMap = [
+                    'current_week' => 'Current week only',
+                    'next_week' => 'Next week only',
+                    'both' => 'Current and next week',
+                ];
+                $requestWindowLabel = $requestWindowMap[$requestWindow] ?? 'Not specified';
+                $notificationMap = [
+                    'email' => 'Email notifications',
+                    'schedule_published' => 'Schedule published',
+                    'request_status' => 'Request status updates',
+                ];
+                $notifications = array_filter($step4['notifications'] ?? []);
+                ?>
+
+                <div class="review-summary">
+                    <div class="review-section">
+                        <h3>Company Details</h3>
+                        <div class="review-grid">
+                            <div class="review-item">
+                                <span class="review-label">Company Name</span>
+                                <span class="review-value"><?= e($step1['company_name'] ?? $company['company_name']) ?></span>
                             </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                            <div class="review-item">
+                                <span class="review-label">Industry</span>
+                                <span class="review-value"><?= e($industryLabel) ?></span>
+                            </div>
+                            <div class="review-item review-item-full">
+                                <span class="review-label">Address</span>
+                                <span class="review-value"><?= e($addressLabel) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <h3>Work Rules &amp; Shifts</h3>
+                        <div class="review-grid">
+                            <div class="review-item">
+                                <span class="review-label">Default Shift Duration</span>
+                                <span class="review-value"><?= e((string) ($step2['default_shift_hours'] ?? '8')) ?> hours</span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Work Days Per Week</span>
+                                <span class="review-value"><?= e($workDaysLabel) ?></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Break Duration</span>
+                                <span class="review-value"><?= e((string) ($step2['break_duration'] ?? '30')) ?> minutes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <h3>Initial Team</h3>
+                        <div class="review-list">
+                            <?php $employees = $step3['employees'] ?? []; ?>
+                            <?php if (empty($employees)): ?>
+                                <p class="review-empty">No employees added yet.</p>
+                            <?php else: ?>
+                                <?php foreach ($employees as $emp): ?>
+                                    <?php if (empty($emp['full_name'])): ?>
+                                        <?php continue; ?>
+                                    <?php endif; ?>
+                                    <div class="review-employee">
+                                        <div>
+                                            <div class="review-employee-name"><?= e($emp['full_name']) ?></div>
+                                            <div class="review-employee-meta">
+                                                <?= e($emp['email'] ?? 'No email provided') ?>
+                                            </div>
+                                        </div>
+                                        <span class="review-pill"><?= e($emp['role'] ?? 'Employee') ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <h3>Scheduling Preferences</h3>
+                        <div class="review-grid">
+                            <div class="review-item">
+                                <span class="review-label">Auto-generate schedules</span>
+                                <span class="review-value"><?= e($autoGenerate) ?></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Request submission window</span>
+                                <span class="review-value"><?= e($requestWindowLabel) ?></span>
+                            </div>
+                            <div class="review-item review-item-full">
+                                <span class="review-label">Notification preferences</span>
+                                <?php if (!empty($notifications)): ?>
+                                    <div class="review-pill-group">
+                                        <?php foreach ($notifications as $notification): ?>
+                                            <span class="review-pill"><?= e($notificationMap[$notification] ?? $notification) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="review-value">No notifications selected</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <form method="post" class="onboarding-form">

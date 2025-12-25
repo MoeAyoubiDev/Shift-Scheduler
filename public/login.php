@@ -102,6 +102,13 @@ require_once __DIR__ . '/../includes/header.php';
                 </button>
             </div>
         </form>
+
+        <div class="form-footer">
+            <div class="form-footer-content">
+                <span class="form-footer-text">Don’t have an account?</span>
+                <a href="/signup.php" class="btn btn-secondary">Sign Up</a>
+            </div>
+        </div>
     </div>
 </div>
 
