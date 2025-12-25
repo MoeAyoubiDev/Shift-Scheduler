@@ -752,6 +752,87 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
+/* Director dashboard refinements */
+.director-dashboard .dashboard-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.director-dashboard .overview-card {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.director-dashboard .overview-hero {
+    align-items: flex-start;
+}
+
+.director-dashboard .overview-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: start;
+}
+
+.director-dashboard .overview-actions {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.35));
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2vw, 1.25rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    box-shadow: var(--shadow-md);
+}
+
+.director-dashboard .overview-actions-header p {
+    margin-top: 0.25rem;
+}
+
+.director-dashboard .overview-actions .quick-actions-grid {
+    grid-template-columns: 1fr;
+}
+
+.director-dashboard .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.director-dashboard .metric {
+    aspect-ratio: auto;
+    min-height: auto;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.director-dashboard .metric h3,
+.director-dashboard .metric-value {
+    text-align: left;
+}
+
+.director-dashboard .section-banner {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.25));
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2vw, 1.25rem);
+    box-shadow: var(--shadow-md);
+}
+
+.director-dashboard .section-banner h2 {
+    margin-bottom: 0.35rem;
+}
+
+.director-dashboard .section-banner p {
+    max-width: 60ch;
+}
+
+@media (max-width: 900px) {
+    .director-dashboard .overview-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
 @keyframes sectionSlideIn {
     from {
         opacity: 0;
