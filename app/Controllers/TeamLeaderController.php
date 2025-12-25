@@ -23,11 +23,6 @@ class TeamLeaderController
             return 'Section not selected.';
         }
 
-        $password = trim($payload['password'] ?? '');
-        if ($password === '') {
-            return 'Password is required.';
-        }
-
         // Validate required fields
         $username = trim($payload['username'] ?? '');
         $email = trim($payload['email'] ?? '');
@@ -61,7 +56,7 @@ class TeamLeaderController
         try {
             $employeeId = User::createEmployee([
                 'username' => $username,
-                'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                'password_hash' => null,
                 'email' => $email,
                 'role_id' => $roleId,
                 'section_id' => $sectionId,

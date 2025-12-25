@@ -37,16 +37,11 @@
 
     function getFriendlyFirebaseError(error) {
         var code = error && error.code ? String(error.code) : '';
-        switch (code) {
-            case 'auth/invalid-login-credentials':
-                return 'Invalid email or password.';
-            case 'auth/email-already-in-use':
-                return 'An account with this email already exists.';
-            case 'auth/weak-password':
-                return 'Password must be at least 8 characters.';
-            default:
-                return 'Something went wrong. Please try again.';
+        var message = error && error.message ? String(error.message) : '';
+        if (code) {
+            return message ? (code + ': ' + message) : code;
         }
+        return message || 'Authentication error. Please try again.';
     }
 
     function setFieldError(fieldId, message) {
@@ -97,7 +92,8 @@
         return fetch('/auth/firebase-login', {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: payload
+            body: payload,
+            credentials: 'same-origin'
         }).then(function (response) {
             return response.json();
         });

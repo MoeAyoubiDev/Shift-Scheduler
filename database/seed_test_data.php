@@ -27,8 +27,7 @@ try {
     
     $companyName = "Demo Company";
     $adminEmail = "admin@demo.com";
-    $adminPassword = "Demo123!";
-    $passwordHash = password_hash($adminPassword, PASSWORD_BCRYPT);
+    $passwordHash = null;
     
     if (!$companyId) {
         echo "📦 Step 1: Creating test company...\n";
@@ -75,8 +74,8 @@ try {
     } else {
         // Create admin user
         $userStmt = $pdo->prepare("
-            INSERT INTO users (username, password_hash, email, company_id, is_active)
-            VALUES (?, ?, ?, ?, 1)
+            INSERT INTO users (username, password_hash, email, company_id, role, onboarding_completed, is_active)
+            VALUES (?, ?, ?, ?, 'Director', 1, 1)
         ");
         $userStmt->execute([$username, $passwordHash, $adminEmail, $companyId]);
         $userId = (int)$pdo->lastInsertId();
@@ -166,7 +165,7 @@ try {
     ];
     
     $employeeIds = [];
-    $defaultPassword = password_hash('TempPass123!', PASSWORD_BCRYPT);
+    $defaultPassword = null;
     
     // Check existing employees for this company
     $checkEmpStmt = $pdo->prepare("
@@ -184,8 +183,8 @@ try {
     }
     
     $empUserStmt = $pdo->prepare("
-        INSERT INTO users (username, password_hash, email, company_id, is_active)
-        VALUES (?, ?, ?, ?, 1)
+        INSERT INTO users (username, password_hash, email, company_id, role, onboarding_completed, is_active)
+        VALUES (?, ?, ?, ?, ?, 1, 1)
     ");
     
     $checkUserStmt = $pdo->prepare("
@@ -242,7 +241,7 @@ try {
             $empUserId = (int)$existingUser['id'];
         } else {
             // Create user
-            $empUserStmt->execute([$empUsername, $defaultPassword, $email, $companyId]);
+            $empUserStmt->execute([$empUsername, $defaultPassword, $email, $companyId, $roleName]);
             $empUserId = (int)$pdo->lastInsertId();
         }
         
@@ -468,4 +467,3 @@ try {
     echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
     exit(1);
 }
-
