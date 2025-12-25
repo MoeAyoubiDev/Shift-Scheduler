@@ -35,6 +35,26 @@
         }
     }
 
+    function setFieldError(fieldId, message) {
+        var fieldError = document.querySelector('[data-error-for="' + fieldId + '"]');
+        if (!fieldError) {
+            return;
+        }
+        fieldError.textContent = message || '';
+        fieldError.style.display = message ? 'block' : 'none';
+    }
+
+    function clearFieldErrors(form) {
+        if (!form) {
+            return;
+        }
+        var errors = form.querySelectorAll('[data-error-for]');
+        errors.forEach(function (errorEl) {
+            errorEl.textContent = '';
+            errorEl.style.display = 'none';
+        });
+    }
+
     function setLoading(button, isLoading) {
         if (!button) {
             return;
@@ -83,36 +103,12 @@
             return;
         }
 
-        var googleButtons = document.querySelectorAll('[data-firebase-google]');
-        googleButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                setError('');
-                setLoading(button, true);
-
-                var provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider)
-                    .then(function (result) {
-                        if (!result || !result.user) {
-                            throw new Error('Authentication failed.');
-                        }
-                        return result.user.getIdToken();
-                    })
-                    .then(sendTokenToBackend)
-                    .then(handleBackendResponse)
-                    .catch(function (error) {
-                        setError(error && error.message ? error.message : 'Unable to sign in with Google.');
-                    })
-                    .finally(function () {
-                        setLoading(button, false);
-                    });
-            });
-        });
-
         var loginForm = document.getElementById('firebase-login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 setError('');
+                clearFieldErrors(loginForm);
 
                 var emailInput = loginForm.querySelector('input[name="firebase_email"]');
                 var passwordInput = loginForm.querySelector('input[name="firebase_password"]');
@@ -121,8 +117,16 @@
                 var email = emailInput ? emailInput.value.trim() : '';
                 var password = passwordInput ? passwordInput.value : '';
 
-                if (!email || !password) {
-                    setError('Email and password are required.');
+                var hasError = false;
+                if (!email) {
+                    setFieldError('firebase-email', 'Email is required.');
+                    hasError = true;
+                }
+                if (!password) {
+                    setFieldError('firebase-password', 'Password is required.');
+                    hasError = true;
+                }
+                if (hasError) {
                     return;
                 }
 
@@ -151,6 +155,7 @@
             signupForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 setError('');
+                clearFieldErrors(signupForm);
 
                 var emailInput = signupForm.querySelector('input[name="firebase_email"]');
                 var passwordInput = signupForm.querySelector('input[name="firebase_password"]');
@@ -159,8 +164,16 @@
                 var email = emailInput ? emailInput.value.trim() : '';
                 var password = passwordInput ? passwordInput.value : '';
 
-                if (!email || !password) {
-                    setError('Email and password are required.');
+                var hasError = false;
+                if (!email) {
+                    setFieldError('firebase-email', 'Email is required.');
+                    hasError = true;
+                }
+                if (!password) {
+                    setFieldError('firebase-password', 'Password is required.');
+                    hasError = true;
+                }
+                if (hasError) {
                     return;
                 }
 
