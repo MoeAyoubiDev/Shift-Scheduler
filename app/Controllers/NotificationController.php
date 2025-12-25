@@ -21,7 +21,10 @@ class NotificationController
             return ['success' => false, 'message' => 'User not found.'];
         }
 
-        $deviceType = trim($payload['device_type'] ?? 'web');
+        $deviceType = trim($payload['device_type'] ?? '');
+        if ($deviceType === '') {
+            $deviceType = trim($payload['platform'] ?? '');
+        }
         if ($deviceType === '') {
             $deviceType = 'web';
         }
