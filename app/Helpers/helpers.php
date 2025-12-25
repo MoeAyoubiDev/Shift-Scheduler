@@ -40,18 +40,6 @@ function set_current_section(int $sectionId): void
     $_SESSION['selected_section_id'] = $sectionId;
 }
 
-function login(string $username, string $password): bool
-{
-    $user = User::authenticate($username, $password);
-
-    if (!$user) {
-        return false;
-    }
-
-    $_SESSION['user'] = $user;
-    return true;
-}
-
 function logout(): void
 {
     unset($_SESSION['user'], $_SESSION['selected_section_id']);
@@ -131,4 +119,3 @@ function json_response(bool $success, string $message, array $extra = []): never
     ], $extra));
     exit;
 }
-

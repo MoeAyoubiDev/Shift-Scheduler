@@ -8,37 +8,6 @@ require_once __DIR__ . '/../Services/FirebaseAuthService.php';
 
 class AuthController
 {
-    public static function handleLogin(string $username, string $password, array $payload): ?string
-    {
-        try {
-            require_csrf($payload);
-        } catch (Exception $e) {
-            error_log("CSRF error in login: " . $e->getMessage());
-            http_response_code(400);
-            return 'Error 400: Invalid request. Please try again.';
-        }
-
-        try {
-            if (login($username, $password)) {
-                header('Location: /index.php');
-                exit;
-            }
-
-            // Authentication failed - return generic message
-            return 'Invalid username or password.';
-        } catch (PDOException $e) {
-            // Database errors - log but don't expose details
-            error_log("Database error during login: " . $e->getMessage());
-            http_response_code(400);
-            return 'Error 400: Unable to process login. Please try again.';
-        } catch (Exception $e) {
-            // Any other errors
-            error_log("Unexpected error during login: " . $e->getMessage());
-            http_response_code(400);
-            return 'Error 400: An error occurred. Please try again.';
-        }
-    }
-
     public static function handleLogout(array $payload): void
     {
         require_csrf($payload);
@@ -51,7 +20,7 @@ class AuthController
     {
         if (!verify_csrf($payload['csrf_token'] ?? null)) {
             http_response_code(400);
-            return ['success' => false, 'message' => 'Invalid request. Please try again.'];
+            return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
         }
 
         $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
@@ -64,8 +33,9 @@ class AuthController
             $service = new FirebaseAuthService();
             $tokenData = $service->verifyIdToken($idToken);
         } catch (Exception $e) {
+            error_log('Firebase login verification error: ' . $e->getMessage());
             http_response_code(401);
-            return ['success' => false, 'message' => 'Unable to verify authentication token.'];
+            return ['success' => false, 'message' => 'Unable to verify authentication token. Please sign in again.'];
         }
 
         $email = $tokenData['email'] ?? '';
@@ -78,29 +48,20 @@ class AuthController
         }
 
         $user = User::findByFirebaseUid($firebaseUid);
-
         if (!$user) {
             $user = User::findByEmail($email);
+            if ($user && !empty($user['firebase_uid']) && $user['firebase_uid'] !== $firebaseUid) {
+                http_response_code(409);
+                return ['success' => false, 'message' => 'This account is already linked to another sign-in.'];
+            }
         }
 
         if ($user) {
             User::updateFirebaseIdentity($user['id'], $firebaseUid, $provider);
+            $user = User::findByFirebaseUid($firebaseUid) ?? $user;
         } else {
-            if (User::emailExists($email)) {
-                http_response_code(409);
-                return ['success' => false, 'message' => 'An account with this email already exists.'];
-            }
-
-            $company = Company::findByEmail($email);
-            $roleName = $company ? 'Director' : 'Employee';
-            $user = User::createFirebaseUser([
-                'email' => $email,
-                'firebase_uid' => $firebaseUid,
-                'provider' => $provider,
-                'company_id' => $company['id'] ?? null,
-                'role_name' => $roleName,
-                'name' => $tokenData['name'] ?? '',
-            ]);
+            http_response_code(404);
+            return ['success' => false, 'message' => 'No account found for this email. Please sign up first.'];
         }
 
         if (!$user) {
@@ -108,16 +69,23 @@ class AuthController
             return ['success' => false, 'message' => 'Unable to complete sign-in.'];
         }
 
-        $_SESSION['user'] = $user;
+        self::initializeSession($user);
 
-        return ['success' => true, 'redirect' => '/index.php'];
+        $companyId = $user['company_id'] ?? null;
+        if ($companyId && empty($user['onboarding_completed'])) {
+            $_SESSION['onboarding_company_id'] = $companyId;
+            $nextStep = self::getNextOnboardingStep((int) $companyId);
+            return ['success' => true, 'redirect' => '/onboarding/step-' . $nextStep];
+        }
+
+        return ['success' => true, 'redirect' => '/dashboard'];
     }
 
     public static function handleFirebaseSignup(array $payload): array
     {
         if (!verify_csrf($payload['csrf_token'] ?? null)) {
             http_response_code(400);
-            return ['success' => false, 'message' => 'Invalid request. Please try again.'];
+            return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
         }
 
         $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
@@ -140,8 +108,9 @@ class AuthController
             $service = new FirebaseAuthService();
             $tokenData = $service->verifyIdToken($idToken);
         } catch (Exception $e) {
+            error_log('Firebase signup verification error: ' . $e->getMessage());
             http_response_code(401);
-            return ['success' => false, 'message' => 'Unable to verify authentication token.'];
+            return ['success' => false, 'message' => 'Unable to verify authentication token. Please try again.'];
         }
 
         $email = $tokenData['email'] ?? '';
@@ -195,6 +164,7 @@ class AuthController
             'company_id' => $companyId,
             'role_name' => 'Director',
             'name' => $tokenData['name'] ?? '',
+            'section_name' => $companyName . ' - Main',
         ]);
 
         if (!$user) {
@@ -202,12 +172,38 @@ class AuthController
             return ['success' => false, 'message' => 'Unable to complete sign-up.'];
         }
 
+        self::markCompanyOnboarding($companyId);
+        self::initializeSession($user);
+        $_SESSION['onboarding_company_id'] = $companyId;
+
+        return ['success' => true, 'redirect' => '/onboarding/step-1'];
+    }
+
+    private static function initializeSession(array $user): void
+    {
         $_SESSION['user'] = $user;
         $_SESSION['user_id'] = $user['id'] ?? null;
         $_SESSION['role'] = $user['role'] ?? null;
-        $_SESSION['company_id'] = $user['company_id'] ?? $companyId;
-        $_SESSION['onboarding_company_id'] = $companyId;
+        $_SESSION['company_id'] = $user['company_id'] ?? null;
+    }
 
-        return ['success' => true, 'redirect' => '/dashboard'];
+    private static function getNextOnboardingStep(int $companyId): int
+    {
+        $progress = Company::getOnboardingProgress($companyId);
+        for ($step = 1; $step <= 5; $step++) {
+            $stepKey = "step_{$step}";
+            if (empty($progress[$stepKey]) || empty($progress[$stepKey]['completed'])) {
+                return $step;
+            }
+        }
+
+        return 5;
+    }
+
+    private static function markCompanyOnboarding(int $companyId): void
+    {
+        $pdo = db();
+        $stmt = $pdo->prepare("UPDATE companies SET status = 'ONBOARDING' WHERE id = ? AND status != 'ACTIVE'");
+        $stmt->execute([$companyId]);
     }
 }

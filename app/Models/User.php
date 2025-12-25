@@ -26,6 +26,8 @@ class User extends BaseModel
             'id' => (int) $primary['user_id'],
             'username' => $primary['username'],
             'email' => $primary['email'],
+            'firebase_uid' => $primary['firebase_uid'] ?? null,
+            'provider' => $primary['provider'] ?? null,
             'company_id' => $primary['company_id'] ? (int) $primary['company_id'] : null,
             'role' => $primary['role_name'],
             'section_id' => $primary['section_id'] ? (int) $primary['section_id'] : null,
@@ -35,117 +37,9 @@ class User extends BaseModel
             'seniority_level' => (int) ($primary['seniority_level'] ?? 0),
             'employee_code' => $primary['employee_code'] ?? null,
             'full_name' => $primary['employee_name'] ?? null,
+            'onboarding_completed' => (bool) ($primary['onboarding_completed'] ?? false),
             'sections' => $sections,
         ];
-    }
-
-    public static function authenticate(string $username, string $password): ?array
-    {
-        $model = new self();
-        
-        try {
-            // First, try to get the user's company_id
-            $pdo = db();
-            $userStmt = $pdo->prepare("SELECT id, company_id, password_hash, is_active FROM users WHERE username = ? LIMIT 1");
-            $userStmt->execute([$username]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$userData) {
-                return null; // User not found
-            }
-            
-            // Verify password before proceeding
-            if (!password_verify($password, $userData['password_hash'])) {
-                return null; // Invalid password
-            }
-            
-            if (!$userData['is_active']) {
-                return null; // User inactive
-            }
-            
-            $companyId = $userData['company_id'] ?? null;
-            
-            // Try to use stored procedure with company_id
-            try {
-                if ($companyId !== null) {
-                    $rows = $model->callProcedure('sp_verify_login', [
-                        'p_username' => $username,
-                        'p_company_id' => $companyId,
-                    ]);
-                } else {
-                    // Fallback: try without company_id (for backward compatibility)
-                    $rows = $model->callProcedure('sp_verify_login', [
-                        'p_username' => $username,
-                    ]);
-                }
-            } catch (PDOException $e) {
-                // If stored procedure doesn't exist or has wrong signature, use direct SQL
-                if (strpos($e->getMessage(), 'does not exist') !== false || 
-                    strpos($e->getMessage(), 'Incorrect number of arguments') !== false ||
-                    strpos($e->getMessage(), 'Unknown procedure') !== false) {
-                    
-                    // Fallback to direct SQL query
-                    $sql = "
-                        SELECT u.id AS user_id,
-                               u.username,
-                               u.password_hash,
-                               u.email,
-                               u.is_active,
-                               u.company_id,
-                               ur.id AS user_role_id,
-                               r.id AS role_id,
-                               r.role_name,
-                               s.id AS section_id,
-                               s.section_name,
-                               e.id AS employee_id,
-                               e.full_name AS employee_name,
-                               e.is_senior,
-                               e.seniority_level,
-                               e.employee_code
-                        FROM users u
-                        INNER JOIN user_roles ur ON ur.user_id = u.id
-                        INNER JOIN roles r ON r.id = ur.role_id
-                        INNER JOIN sections s ON s.id = ur.section_id
-                        LEFT JOIN employees e ON e.user_role_id = ur.id
-                        WHERE u.username = ? AND u.is_active = 1
-                    ";
-                    
-                    if ($companyId !== null) {
-                        $sql .= " AND u.company_id = ?";
-                        $stmt = $pdo->prepare($sql);
-                        $stmt->execute([$username, $companyId]);
-                    } else {
-                        $stmt = $pdo->prepare($sql);
-                        $stmt->execute([$username]);
-                    }
-                    
-                    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                } else {
-                    throw $e;
-                }
-            }
-
-            if (!$rows || empty($rows)) {
-                return null;
-            }
-
-            $primary = $rows[0];
-
-            // Double-check password (already verified, but ensure consistency)
-            if (!password_verify($password, $primary['password_hash'])) {
-                return null;
-            }
-
-            return self::mapUserRows($rows);
-        } catch (PDOException $e) {
-            // Log the error but don't expose database details
-            error_log("Authentication error: " . $e->getMessage());
-            return null;
-        } catch (Exception $e) {
-            // Log unexpected errors
-            error_log("Unexpected authentication error: " . $e->getMessage());
-            return null;
-        }
     }
 
     public static function createEmployee(array $payload): int
@@ -188,8 +82,10 @@ class User extends BaseModel
             $sql = "
                 SELECT u.id AS user_id,
                        u.username,
-                       u.password_hash,
                        u.email,
+                       u.firebase_uid,
+                       u.provider,
+                       u.onboarding_completed,
                        u.is_active,
                        u.company_id,
                        ur.id AS user_role_id,
@@ -228,8 +124,10 @@ class User extends BaseModel
             $sql = "
                 SELECT u.id AS user_id,
                        u.username,
-                       u.password_hash,
                        u.email,
+                       u.firebase_uid,
+                       u.provider,
+                       u.onboarding_completed,
                        u.is_active,
                        u.company_id,
                        ur.id AS user_role_id,
@@ -309,10 +207,10 @@ class User extends BaseModel
             }
 
             $insertUser = $pdo->prepare("
-                INSERT INTO users (company_id, username, password_hash, email, firebase_uid, provider)
-                VALUES (?, ?, NULL, ?, ?, ?)
+                INSERT INTO users (company_id, username, password_hash, email, firebase_uid, provider, role, onboarding_completed)
+                VALUES (?, ?, NULL, ?, ?, ?, ?, 0)
             ");
-            $insertUser->execute([$companyId, $usernameCandidate, $email, $firebaseUid, $provider]);
+            $insertUser->execute([$companyId, $usernameCandidate, $email, $firebaseUid, $provider, $roleName]);
             $userId = (int) $pdo->lastInsertId();
 
             if ($userId <= 0) {

@@ -24,30 +24,6 @@ class ActionHandler
     public static function initialize(int $weekId): void
     {
         // Authentication actions
-        Router::register('login', function(array $payload) {
-            try {
-                $username = trim($payload['username'] ?? '');
-                $password = trim($payload['password'] ?? '');
-                
-                if (empty($username) || empty($password)) {
-                    return ['success' => false, 'message' => 'Invalid username or password.'];
-                }
-                
-                $result = AuthController::handleLogin($username, $password, $payload);
-                
-                if ($result === null) {
-                    // Login successful, redirect handled in controller
-                    return ['redirect' => '/index.php'];
-                }
-                
-                return ['success' => false, 'message' => $result];
-            } catch (Exception $e) {
-                error_log("Login action error: " . $e->getMessage());
-                http_response_code(400);
-                return ['success' => false, 'message' => 'Error 400: An error occurred. Please try again.'];
-            }
-        }, [], true);
-        
         Router::register('logout', function(array $payload) {
             AuthController::handleLogout($payload);
             return ['redirect' => '/index.php'];

@@ -22,7 +22,11 @@ if (!$companyId) {
 
 $company = Company::findById((int)$companyId);
 if (!$company || $company['status'] !== 'PAYMENT_PENDING') {
-    header('Location: /onboarding.php?company_id=' . $companyId);
+    if ($company && $company['status'] === 'ACTIVE') {
+        header('Location: /dashboard');
+        exit;
+    }
+    header('Location: /onboarding/step-1');
     exit;
 }
 
@@ -179,7 +183,7 @@ require_once __DIR__ . '/../includes/header.php';
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             
             <div class="form-actions">
-                <a href="/onboarding.php?step=5&company_id=<?= $companyId ?>" class="btn secondary">Back to Review</a>
+                <a href="/onboarding/step-5" class="btn secondary">Back to Review</a>
                 <button type="submit" class="btn-primary btn-large">
                     <span>Confirm & Proceed to Payment</span>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -308,4 +312,3 @@ require_once __DIR__ . '/../includes/header.php';
 <?php
 require_once __DIR__ . '/../includes/footer.php';
 ?>
-

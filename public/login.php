@@ -13,38 +13,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Redirect if already logged in
 if (isset($_SESSION['user'])) {
-    header('Location: /index.php');
+    header('Location: /dashboard');
     exit;
 }
 
 require_once __DIR__ . '/../app/Helpers/helpers.php';
-require_once __DIR__ . '/../app/Controllers/AuthController.php';
-require_once __DIR__ . '/../app/Core/ActionHandler.php';
-require_once __DIR__ . '/../app/Models/Schedule.php';
-
-// Initialize week data for action handler
-$today = new DateTimeImmutable();
-$weekStart = $today->modify('monday this week')->format('Y-m-d');
-$weekEnd = $today->modify('sunday this week')->format('Y-m-d');
-$weekId = Schedule::upsertWeek($weekStart, $weekEnd);
-ActionHandler::initialize($weekId);
 
 $error = '';
 $message = '';
-
-// Handle login form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
-    $result = ActionHandler::process($_POST);
-    
-    if (isset($result['redirect'])) {
-        header('Location: ' . $result['redirect']);
-        exit;
-    }
-    
-    if (isset($result['message'])) {
-        $error = $result['message'];
-    }
-}
 
 $title = 'Sign In - Shift Scheduler';
 require_once __DIR__ . '/../includes/header.php';

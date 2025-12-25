@@ -27,11 +27,6 @@ class DirectorController
         require_role(['Director']);
         require_csrf($payload);
 
-        $password = trim($payload['password'] ?? '');
-        if ($password === '') {
-            return 'Password is required.';
-        }
-
         $roleId = (int) ($payload['role_id'] ?? 0);
         $sectionId = (int) ($payload['section_id'] ?? 0);
 
@@ -57,7 +52,7 @@ class DirectorController
         try {
             $userId = User::createLeader([
                 'username' => trim($payload['username'] ?? ''),
-                'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                'password_hash' => null,
                 'email' => trim($payload['email'] ?? ''),
                 'role_id' => $roleId,
                 'section_id' => $sectionId,

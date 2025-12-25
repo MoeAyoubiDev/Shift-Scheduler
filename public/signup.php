@@ -18,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Redirect if already logged in
 if (isset($_SESSION['user'])) {
-    header('Location: /index.php');
+    header('Location: /dashboard');
     exit;
 }
 

@@ -13,11 +13,7 @@ class Company extends BaseModel
     public static function createCompany(array $data): array
     {
         $model = new Company();
-        $adminPassword = (string) ($data['admin_password'] ?? '');
-
-        if ($adminPassword === '') {
-            $adminPassword = bin2hex(random_bytes(16));
-        }
+        $adminPasswordHash = null;
         
         try {
             // Check if stored procedure exists, if not use direct insert
@@ -25,7 +21,7 @@ class Company extends BaseModel
                 $rows = $model->callProcedure('sp_create_company', [
                     'p_company_name' => $data['company_name'],
                     'p_admin_email' => $data['admin_email'],
-                    'p_admin_password_hash' => password_hash($adminPassword, PASSWORD_BCRYPT),
+                    'p_admin_password_hash' => $adminPasswordHash,
                     'p_timezone' => $data['timezone'] ?? 'UTC',
                     'p_country' => $data['country'] ?? null,
                     'p_company_size' => $data['company_size'] ?? null,
@@ -55,8 +51,6 @@ class Company extends BaseModel
                         // Just use the original slug
                     }
                     
-                    $passwordHash = password_hash($adminPassword, PASSWORD_BCRYPT);
-                    
                     $pdo = db();
                     $stmt = $pdo->prepare("
                         INSERT INTO companies (
@@ -69,7 +63,7 @@ class Company extends BaseModel
                         $data['company_name'],
                         $slug,
                         $data['admin_email'],
-                        $passwordHash,
+                        $adminPasswordHash,
                         $data['timezone'] ?? 'UTC',
                         $data['country'] ?? null,
                         $data['company_size'] ?? null,

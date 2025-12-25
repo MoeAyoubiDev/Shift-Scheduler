@@ -13,7 +13,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec("USE ShiftSchedulerDB");
 
 $email = 'mouhamad.ayoubi.dev@gmail.com';
-$passwordHash = password_hash('SeededPass123!', PASSWORD_BCRYPT);
+$passwordHash = null;
 
 $pdo->beginTransaction();
 
@@ -130,7 +130,7 @@ try {
     $sectionInsert = $pdo->prepare("INSERT IGNORE INTO sections (section_name, company_id) VALUES (?, ?)");
     $sectionSelect = $pdo->prepare("SELECT id FROM sections WHERE section_name = ? AND company_id = ? LIMIT 1");
 
-    $userInsert = $pdo->prepare("INSERT IGNORE INTO users (username, password_hash, email, company_id, is_active) VALUES (?, ?, ?, ?, 1)");
+    $userInsert = $pdo->prepare("INSERT IGNORE INTO users (username, password_hash, email, company_id, role, onboarding_completed, is_active) VALUES (?, ?, ?, ?, ?, 1, 1)");
     $userSelect = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1");
 
     $userRoleInsert = $pdo->prepare("INSERT IGNORE INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
@@ -155,7 +155,7 @@ try {
         }
 
         $directorUsername = $company[1] . '-director';
-        $userInsert->execute([$directorUsername, $passwordHash, $email, $companyId]);
+        $userInsert->execute([$directorUsername, $passwordHash, $email, $companyId, 'Director']);
         $userSelect->execute([$directorUsername, $companyId]);
         $directorUserId = (int)$userSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
@@ -172,7 +172,7 @@ try {
             $sectionCode = strtoupper(substr($sectionName, 0, 3));
 
             $teamLeaderUsername = $company[1] . '-tl-' . strtolower($sectionCode);
-            $userInsert->execute([$teamLeaderUsername, $passwordHash, $email, $companyId]);
+            $userInsert->execute([$teamLeaderUsername, $passwordHash, $email, $companyId, 'Team Leader']);
             $userSelect->execute([$teamLeaderUsername, $companyId]);
             $teamLeaderUserId = (int)$userSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
@@ -188,7 +188,7 @@ try {
             $sectionLeaders[$sectionId] = $teamLeaderEmployeeId;
 
             $supervisorUsername = $company[1] . '-sup-' . strtolower($sectionCode);
-            $userInsert->execute([$supervisorUsername, $passwordHash, $email, $companyId]);
+            $userInsert->execute([$supervisorUsername, $passwordHash, $email, $companyId, 'Supervisor']);
             $userSelect->execute([$supervisorUsername, $companyId]);
             $supervisorUserId = (int)$userSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
@@ -203,7 +203,7 @@ try {
             $supervisorEmployeeId = (int)$employeeSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
             $seniorUsername = $company[1] . '-senior-' . strtolower($sectionCode);
-            $userInsert->execute([$seniorUsername, $passwordHash, $email, $companyId]);
+            $userInsert->execute([$seniorUsername, $passwordHash, $email, $companyId, 'Senior']);
             $userSelect->execute([$seniorUsername, $companyId]);
             $seniorUserId = (int)$userSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
@@ -224,7 +224,7 @@ try {
 
             for ($i = 0; $i < 5; $i++) {
                 $username = $company[1] . '-emp-' . strtolower($sectionCode) . '-' . ($employeeCounter + $i);
-                $userInsert->execute([$username, $passwordHash, $email, $companyId]);
+                $userInsert->execute([$username, $passwordHash, $email, $companyId, 'Employee']);
                 $userSelect->execute([$username, $companyId]);
                 $employeeUserId = (int)$userSelect->fetch(PDO::FETCH_ASSOC)['id'];
 
