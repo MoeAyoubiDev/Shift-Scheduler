@@ -7,8 +7,6 @@ require_once __DIR__ . '/../Models/Employee.php';
 require_once __DIR__ . '/../Models/Role.php';
 require_once __DIR__ . '/../Models/Schedule.php';
 require_once __DIR__ . '/../Models/ShiftRequest.php';
-require_once __DIR__ . '/../Models/FcmToken.php';
-require_once __DIR__ . '/../Services/FirebaseNotificationService.php';
 
 class TeamLeaderController
 {
@@ -107,7 +105,6 @@ class TeamLeaderController
         }
 
         ShiftRequest::updateStatus($requestId, $status, (int) $user['employee_id']);
-        self::notifyRequestStatus($requestId, $status);
         return 'Request status updated.';
     }
 
@@ -141,8 +138,6 @@ class TeamLeaderController
 
         $user = current_user();
         Schedule::generateWeekly($weekId, $sectionId, (int) $user['employee_id']);
-        self::notifySchedulePublished($weekId, $sectionId);
-        self::notifyCoverageGaps($weekId, $sectionId);
         return 'Weekly schedule generated.';
     }
 
@@ -182,9 +177,6 @@ class TeamLeaderController
         try {
             $meta = self::getScheduleMetaByAssignment($assignmentId);
             Schedule::deleteAssignment($assignmentId);
-            if ($meta) {
-                self::notifyCoverageGaps($meta['week_id'], $meta['section_id']);
-            }
             return 'Assignment deleted.';
         } catch (Exception $e) {
             return 'Error: ' . $e->getMessage();
@@ -384,7 +376,6 @@ class TeamLeaderController
             if ($requestId && $requestId > 0) {
                 $user = current_user();
                 ShiftRequest::updateStatus($requestId, 'APPROVED', (int) $user['employee_id']);
-                self::notifyRequestStatus($requestId, 'APPROVED');
             }
 
             return 'Shift assigned successfully.';
@@ -560,71 +551,6 @@ class TeamLeaderController
             return 'Shifts swapped successfully.';
         } catch (Exception $e) {
             return 'Error swapping shifts: ' . $e->getMessage();
-        }
-    }
-
-    private static function notifyRequestStatus(int $requestId, string $status): void
-    {
-        try {
-            $stmt = db()->prepare(
-                'SELECT sr.employee_id, sr.request_date, sd.shift_name, sr.is_day_off
-                 FROM shift_requests sr
-                 LEFT JOIN shift_definitions sd ON sd.id = sr.shift_definition_id
-                 WHERE sr.id = :request_id'
-            );
-            $stmt->execute(['request_id' => $requestId]);
-            $request = $stmt->fetch();
-            if (!$request) {
-                return;
-            }
-
-            $employeeId = (int) $request['employee_id'];
-            $tokens = FcmToken::listTokensForEmployee($employeeId);
-            $shiftLabel = $request['is_day_off'] ? 'Day Off' : ($request['shift_name'] ?? 'Shift');
-            $title = 'Shift request update';
-            $body = sprintf('Your request for %s on %s was %s.', $shiftLabel, $request['request_date'], strtolower($status));
-            $service = new FirebaseNotificationService();
-            $service->sendToTokens($tokens, $title, $body, [
-                'type' => 'SHIFT_REQUEST_STATUS',
-                'request_id' => (string) $requestId,
-                'status' => $status,
-            ]);
-        } catch (Exception $e) {
-            error_log('FCM request status notify error: ' . $e->getMessage());
-        }
-    }
-
-    private static function notifySchedulePublished(int $weekId, int $sectionId): void
-    {
-        try {
-            $tokens = FcmToken::listTokensForRolesInSection(['Employee', 'Senior'], $sectionId);
-            $service = new FirebaseNotificationService();
-            $service->sendToTokens($tokens, 'Weekly schedule published', 'Your schedule for the upcoming week is now available.', [
-                'type' => 'SCHEDULE_PUBLISHED',
-                'week_id' => (string) $weekId,
-            ]);
-        } catch (Exception $e) {
-            error_log('FCM schedule notify error: ' . $e->getMessage());
-        }
-    }
-
-    private static function notifyCoverageGaps(int $weekId, int $sectionId): void
-    {
-        try {
-            $gaps = Schedule::getCoverageGaps($weekId, $sectionId);
-            if (empty($gaps)) {
-                return;
-            }
-
-            $tokens = FcmToken::listTokensForRoleInSection('Team Leader', $sectionId);
-            $service = new FirebaseNotificationService();
-            $service->sendToTokens($tokens, 'Coverage gaps detected', 'One or more shifts are still under-covered. Please review the schedule.', [
-                'type' => 'COVERAGE_GAP',
-                'week_id' => (string) $weekId,
-                'gap_count' => (string) count($gaps),
-            ]);
-        } catch (Exception $e) {
-            error_log('FCM coverage gap notify error: ' . $e->getMessage());
         }
     }
 

@@ -48,6 +48,7 @@ try {
 // Initialize variables
 if (!isset($error)) $error = '';
 if (!isset($dbError)) $dbError = false;
+$message = isset($_GET['message']) ? (string) $_GET['message'] : '';
 
 $title = 'Sign Up - Shift Scheduler';
 
@@ -116,9 +117,13 @@ php database/setup.php
                     Please run the database setup script. See <a href="/README.md" target="_blank" style="color: #93c5fd;">README.md</a> for instructions.
                 <?php endif; ?>
             </div>
+        <?php elseif ($message): ?>
+            <div class="alert alert-error"><?= e($message) ?></div>
         <?php endif; ?>
 
-        <form id="firebase-signup-form" class="login-form firebase-login-form" novalidate>
+        <form id="signup-form" class="login-form" method="post" action="/index.php" novalidate>
+            <input type="hidden" name="action" value="signup">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <div class="form-group">
                 <label for="signup-company-name" class="form-label">Company Name</label>
                 <div class="input-container">
@@ -173,10 +178,8 @@ php database/setup.php
                 <span class="form-error" data-error-for="signup-password"></span>
             </div>
 
-            <div id="firebase-auth-error" class="form-error form-error-block" role="alert"></div>
-
             <div class="form-actions">
-                <button type="submit" class="btn-primary firebase-submit">
+                <button type="submit" class="btn-primary">
                     <span>Create Account</span>
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                         <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -210,23 +213,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-<script>
-window.AppConfig = <?= json_encode([
-    'csrfToken' => csrf_token(),
-    'firebase' => [
-        'apiKey' => 'AIzaSyAw4EH-GEqUUpnmRJ4XfN2AFUwmd5XoaFY',
-        'authDomain' => 'shiftscheduler-37b31.firebaseapp.com',
-        'projectId' => 'shiftscheduler-37b31',
-        'storageBucket' => 'shiftscheduler-37b31.firebasestorage.app',
-        'messagingSenderId' => '461867929776',
-        'appId' => '1:461867929776:web:cfce1f8f4be7a74f51ab75',
-        'measurementId' => 'G-DKCL8P1284',
-    ],
-], JSON_UNESCAPED_SLASHES) ?>;
-</script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="/assets/js/firebase-auth.js?v=<?= @filemtime(__DIR__ . '/assets/js/firebase-auth.js') ?: time() ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

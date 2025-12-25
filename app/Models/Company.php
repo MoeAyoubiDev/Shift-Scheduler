@@ -13,7 +13,7 @@ class Company extends BaseModel
     public static function createCompany(array $data): array
     {
         $model = new Company();
-        $adminPasswordHash = null;
+        $adminPasswordHash = $data['admin_password_hash'] ?? null;
         
         try {
             // Check if stored procedure exists, if not use direct insert

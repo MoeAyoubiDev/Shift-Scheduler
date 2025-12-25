@@ -125,7 +125,6 @@ Shift-Scheduler/
 │   │   ├── Company.php                    # Company management (multi-tenant)
 │   │   ├── Employee.php                  # Employee records
 │   │   ├── EmployeeBreak.php             # Break records
-│   │   ├── FcmToken.php                   # Firebase Cloud Messaging tokens
 │   │   ├── Notification.php              # User notifications
 │   │   ├── Performance.php               # Performance reporting
 │   │   ├── Role.php                       # Role management
@@ -144,8 +143,6 @@ Shift-Scheduler/
 │   │   └── Week.php                       # Week management
 │   │
 │   ├── Services/                           # External service integrations
-│   │   ├── FirebaseAuthService.php        # Firebase authentication helper
-│   │   └── FirebaseNotificationService.php # Firebase push notifications
 │   │
 │   └── Views/                              # View Templates (Presentation Layer)
 │       ├── auth/
@@ -197,9 +194,6 @@ Shift-Scheduler/
 │   │   ├── requests.php                  # Request API
 │   │   └── schedules.php                 # Schedule API
 │   │
-│   ├── auth/                              # Auth providers
-│   │   └── firebase-login/                # Firebase login assets
-│   │
 │   ├── assets/                            # Static Assets
 │   │   ├── css/
 │   │   │   └── app.css                   # Main stylesheet
@@ -225,7 +219,6 @@ Shift-Scheduler/
 │   │
 │   ├── index.php                         # Main entry point (routing)
 │   ├── login.php                         # Login page
-│   ├── firebase-messaging-sw.js          # Firebase messaging service worker
 │   ├── onboarding.php                   # Onboarding wizard (5 steps)
 │   ├── onboarding-preview.php           # Preview before payment
 │   ├── payment.php                       # Payment processing

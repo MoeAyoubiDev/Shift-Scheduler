@@ -4,7 +4,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../Helpers/helpers.php';
 require_once __DIR__ . '/../Models/Company.php';
 require_once __DIR__ . '/../Models/User.php';
-require_once __DIR__ . '/../Services/FirebaseAuthService.php';
 
 class AuthController
 {
@@ -16,57 +15,20 @@ class AuthController
         exit;
     }
 
-    public static function handleFirebaseLogin(array $payload): array
+    public static function handleLogin(array $payload): array
     {
-        if (!verify_csrf($payload['csrf_token'] ?? null)) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
+        require_csrf($payload);
+
+        $identifier = trim($payload['username'] ?? '');
+        $password = (string) ($payload['password'] ?? '');
+
+        if ($identifier === '' || $password === '') {
+            return ['success' => false, 'message' => 'Please enter your username/email and password.', 'redirect' => '/login.php'];
         }
 
-        $idToken = self::getBearerToken();
-        if ($idToken === '') {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Missing authentication token.'];
-        }
-
-        try {
-            $service = new FirebaseAuthService();
-            $tokenData = $service->verifyIdToken($idToken);
-        } catch (Exception $e) {
-            error_log('Firebase login verification error: ' . $e->getMessage());
-            http_response_code(401);
-            return ['success' => false, 'message' => 'Unable to verify authentication token. Please sign in again.'];
-        }
-
-        $email = $tokenData['email'] ?? '';
-        $firebaseUid = $tokenData['uid'] ?? '';
-        $provider = $tokenData['provider'] ?? 'email';
-
-        if ($email === '' || $firebaseUid === '') {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Authentication payload is incomplete.'];
-        }
-
-        $user = User::findByFirebaseUid($firebaseUid);
+        $user = User::authenticate($identifier, $password);
         if (!$user) {
-            $user = User::findByEmail($email);
-            if ($user && !empty($user['firebase_uid']) && $user['firebase_uid'] !== $firebaseUid) {
-                http_response_code(409);
-                return ['success' => false, 'message' => 'This account is already linked to another sign-in.'];
-            }
-        }
-
-        if ($user) {
-            User::updateFirebaseIdentity($user['id'], $firebaseUid, $provider);
-            $user = User::findByFirebaseUid($firebaseUid) ?? $user;
-        } else {
-            http_response_code(404);
-            return ['success' => false, 'message' => 'No account found for this email. Please sign up first.'];
-        }
-
-        if (!$user) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Unable to complete sign-in.'];
+            return ['success' => false, 'message' => 'Invalid credentials. Please try again.', 'redirect' => '/login.php'];
         }
 
         self::initializeSession($user);
@@ -81,95 +43,98 @@ class AuthController
         return ['success' => true, 'redirect' => '/dashboard'];
     }
 
-    public static function handleFirebaseSignup(array $payload): array
+    public static function handleSignup(array $payload): array
     {
-        if (!verify_csrf($payload['csrf_token'] ?? null)) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
-        }
-
-        $idToken = self::getBearerToken();
-        if ($idToken === '') {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Missing authentication token.'];
-        }
+        require_csrf($payload);
 
         $companyName = trim($payload['company_name'] ?? '');
-        $timezone = $payload['timezone'] ?? 'UTC';
-        $country = trim((string) ($payload['country'] ?? ''));
-        $companySize = $payload['company_size'] ?? '';
+        $email = trim($payload['admin_email'] ?? '');
+        $password = (string) ($payload['admin_password'] ?? '');
 
         if ($companyName === '' || mb_strlen($companyName) < 2) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Company name must be at least 2 characters.'];
+            return ['success' => false, 'message' => 'Company name must be at least 2 characters.', 'redirect' => '/signup.php'];
         }
 
-        try {
-            $service = new FirebaseAuthService();
-            $tokenData = $service->verifyIdToken($idToken);
-        } catch (Exception $e) {
-            error_log('Firebase signup verification error: ' . $e->getMessage());
-            http_response_code(401);
-            return ['success' => false, 'message' => 'Unable to verify authentication token. Please try again.'];
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'Please provide a valid admin email address.', 'redirect' => '/signup.php'];
         }
 
-        $email = $tokenData['email'] ?? '';
-        $firebaseUid = $tokenData['uid'] ?? '';
-        $provider = $tokenData['provider'] ?? 'email';
-
-        if ($email === '' || $firebaseUid === '') {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Authentication payload is incomplete.'];
-        }
-
-        $payloadEmail = trim($payload['admin_email'] ?? '');
-        if ($payloadEmail !== '' && strcasecmp($payloadEmail, $email) !== 0) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Admin email does not match authentication email.'];
-        }
-
-        if (User::findByFirebaseUid($firebaseUid)) {
-            http_response_code(409);
-            return ['success' => false, 'message' => 'An account with this authentication already exists.'];
+        if (mb_strlen($password) < 8) {
+            return ['success' => false, 'message' => 'Password must be at least 8 characters long.', 'redirect' => '/signup.php'];
         }
 
         if (User::emailExists($email) || Company::findByEmail($email)) {
-            http_response_code(409);
-            return ['success' => false, 'message' => 'An account with this email already exists.'];
+            return ['success' => false, 'message' => 'An account with this email already exists.', 'redirect' => '/signup.php'];
         }
 
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $companyResult = Company::createCompany([
             'company_name' => $companyName,
             'admin_email' => $email,
-            'timezone' => $timezone,
-            'country' => $country !== '' ? $country : null,
-            'company_size' => $companySize !== '' ? $companySize : null,
+            'admin_password_hash' => $passwordHash,
+            'timezone' => $payload['timezone'] ?? 'UTC',
+            'country' => $payload['country'] ?? null,
+            'company_size' => $payload['company_size'] ?? null,
         ]);
 
         if (empty($companyResult['success'])) {
-            http_response_code(400);
-            return ['success' => false, 'message' => $companyResult['message'] ?? 'Failed to create account.'];
+            return ['success' => false, 'message' => $companyResult['message'] ?? 'Failed to create account.', 'redirect' => '/signup.php'];
         }
 
         $companyId = (int) ($companyResult['company_id'] ?? 0);
         if ($companyId <= 0) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Failed to create account.'];
+            return ['success' => false, 'message' => 'Failed to create account.', 'redirect' => '/signup.php'];
         }
 
-        $user = User::createFirebaseUser([
-            'email' => $email,
-            'firebase_uid' => $firebaseUid,
-            'provider' => $provider,
-            'company_id' => $companyId,
-            'role_name' => 'Director',
-            'name' => $tokenData['name'] ?? '',
-            'section_name' => $companyName . ' - Main',
-        ]);
+        $pdo = db();
+        $pdo->beginTransaction();
 
+        try {
+            $sectionStmt = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
+            $sectionStmt->execute([$companyName . ' - Main', $companyId]);
+            $sectionId = (int) $pdo->lastInsertId();
+
+            $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
+            $roleStmt->execute();
+            $directorRoleId = (int) ($roleStmt->fetchColumn() ?: 0);
+            if ($directorRoleId <= 0) {
+                throw new RuntimeException('Director role not found.');
+            }
+
+            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'admin'));
+            $usernameCandidate = $usernameBase ?: 'admin';
+            $suffix = 1;
+
+            while (true) {
+                $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1");
+                $checkStmt->execute([$usernameCandidate, $companyId]);
+                if (!$checkStmt->fetch(PDO::FETCH_ASSOC)) {
+                    break;
+                }
+                $usernameCandidate = $usernameBase . $suffix;
+                $suffix++;
+            }
+
+            $userStmt = $pdo->prepare("
+                INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
+                VALUES (?, ?, ?, ?, 'Director', 0, 1)
+            ");
+            $userStmt->execute([$companyId, $usernameCandidate, $passwordHash, $email]);
+            $userId = (int) $pdo->lastInsertId();
+
+            $roleAssignStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
+            $roleAssignStmt->execute([$userId, $directorRoleId, $sectionId]);
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            error_log('Signup creation error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to finish signup. Please try again.', 'redirect' => '/signup.php'];
+        }
+
+        $user = User::findByEmail($email);
         if (!$user) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Unable to complete sign-up.'];
+            return ['success' => false, 'message' => 'Unable to complete sign-up.', 'redirect' => '/signup.php'];
         }
 
         self::markCompanyOnboarding($companyId);
@@ -185,14 +150,6 @@ class AuthController
         $_SESSION['user_id'] = $user['id'] ?? null;
         $_SESSION['role'] = $user['role'] ?? null;
         $_SESSION['company_id'] = $user['company_id'] ?? null;
-    }
-
-    private static function getBearerToken(): string
-    {
-        $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-        preg_match('/Bearer\s(\S+)/', $authHeader, $matches);
-        return $matches[1] ?? '';
     }
 
     private static function getNextOnboardingStep(int $companyId): int
