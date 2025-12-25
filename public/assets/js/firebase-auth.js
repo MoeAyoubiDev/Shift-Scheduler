@@ -35,6 +35,20 @@
         }
     }
 
+    function getFriendlyFirebaseError(error) {
+        var code = error && error.code ? String(error.code) : '';
+        switch (code) {
+            case 'auth/invalid-login-credentials':
+                return 'Invalid email or password.';
+            case 'auth/email-already-in-use':
+                return 'An account with this email already exists.';
+            case 'auth/weak-password':
+                return 'Password must be at least 8 characters.';
+            default:
+                return 'Something went wrong. Please try again.';
+        }
+    }
+
     function setFieldError(fieldId, message) {
         var fieldError = document.querySelector('[data-error-for="' + fieldId + '"]');
         if (!fieldError) {
@@ -67,12 +81,18 @@
         }
     }
 
-    function sendTokenToBackend(idToken) {
+    function sendTokenToBackend(idToken, payloadOverrides) {
         var appConfig = getAppConfig();
         var payload = new FormData();
         payload.append('action', 'firebase_login');
         payload.append('id_token', idToken);
         payload.append('csrf_token', appConfig.csrfToken || '');
+
+        if (payloadOverrides) {
+            Object.keys(payloadOverrides).forEach(function (key) {
+                payload.append(key, payloadOverrides[key]);
+            });
+        }
 
         return fetch('/auth/firebase-login', {
             method: 'POST',
@@ -139,10 +159,12 @@
                         }
                         return result.user.getIdToken();
                     })
-                    .then(sendTokenToBackend)
+                    .then(function (idToken) {
+                        return sendTokenToBackend(idToken, { action: 'firebase_login' });
+                    })
                     .then(handleBackendResponse)
                     .catch(function (error) {
-                        setError(error && error.message ? error.message : 'Unable to sign in.');
+                        setError(getFriendlyFirebaseError(error));
                     })
                     .finally(function () {
                         setLoading(submitButton, false);
@@ -157,20 +179,29 @@
                 setError('');
                 clearFieldErrors(signupForm);
 
-                var emailInput = signupForm.querySelector('input[name="firebase_email"]');
-                var passwordInput = signupForm.querySelector('input[name="firebase_password"]');
+                var companyInput = signupForm.querySelector('input[name="company_name"]');
+                var emailInput = signupForm.querySelector('input[name="admin_email"]');
+                var passwordInput = signupForm.querySelector('input[name="admin_password"]');
                 var submitButton = signupForm.querySelector('.firebase-submit');
 
+                var companyName = companyInput ? companyInput.value.trim() : '';
                 var email = emailInput ? emailInput.value.trim() : '';
                 var password = passwordInput ? passwordInput.value : '';
 
                 var hasError = false;
+                if (!companyName) {
+                    setFieldError('signup-company-name', 'Company name is required.');
+                    hasError = true;
+                }
                 if (!email) {
-                    setFieldError('firebase-email', 'Email is required.');
+                    setFieldError('signup-admin-email', 'Admin email is required.');
                     hasError = true;
                 }
                 if (!password) {
-                    setFieldError('firebase-password', 'Password is required.');
+                    setFieldError('signup-password', 'Password is required.');
+                    hasError = true;
+                } else if (password.length < 8) {
+                    setFieldError('signup-password', 'Password must be at least 8 characters.');
                     hasError = true;
                 }
                 if (hasError) {
@@ -186,10 +217,17 @@
                         }
                         return result.user.getIdToken();
                     })
-                    .then(sendTokenToBackend)
+                    .then(function (idToken) {
+                        return sendTokenToBackend(idToken, {
+                            action: 'firebase_signup',
+                            company_name: companyName,
+                            admin_email: email,
+                            admin_password: password
+                        });
+                    })
                     .then(handleBackendResponse)
                     .catch(function (error) {
-                        setError(error && error.message ? error.message : 'Unable to create account.');
+                        setError(getFriendlyFirebaseError(error));
                     })
                     .finally(function () {
                         setLoading(submitButton, false);

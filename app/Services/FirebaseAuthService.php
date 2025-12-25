@@ -58,7 +58,11 @@ class FirebaseAuthService
         $firebaseData = (array) $claims->get('firebase', []);
         $signInProvider = (string) ($firebaseData['sign_in_provider'] ?? 'password');
 
-        $provider = $signInProvider === 'google.com' ? 'google' : 'email';
+        if ($signInProvider !== 'password') {
+            throw new RuntimeException('Unsupported sign-in provider.');
+        }
+
+        $provider = 'email';
         $email = $claims->get('email');
 
         if (!$email) {

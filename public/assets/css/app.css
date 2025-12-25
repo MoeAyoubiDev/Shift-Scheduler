@@ -206,31 +206,11 @@ body.login-page .login-container {
 
 /* Professional square card design for signup page */
 body.login-page .login-card.signup-card {
-    max-width: clamp(450px, 90vw, 600px);
-    max-height: 90vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    max-width: clamp(360px, 92vw, 520px);
+    min-height: clamp(420px, 70vh, 520px);
+    overflow: hidden;
     border-radius: var(--radius-xl);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-body.login-page .login-card.signup-card::-webkit-scrollbar {
-    width: 6px;
-}
-
-body.login-page .login-card.signup-card::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-full);
-}
-
-body.login-page .login-card.signup-card::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-full);
-}
-
-body.login-page .login-card.signup-card::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
 }
 
 .login-card::before {
@@ -318,6 +298,18 @@ body.login-page .login-card.signup-card::-webkit-scrollbar-thumb:hover {
     margin-top: 0.35rem;
     color: var(--color-error);
     font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.form-error-block {
+    display: none;
+    margin-top: 0.5rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--radius-md);
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: var(--color-error);
+    font-size: 0.875rem;
     line-height: 1.4;
 }
 
