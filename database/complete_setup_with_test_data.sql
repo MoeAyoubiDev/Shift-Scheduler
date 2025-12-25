@@ -1531,6 +1531,17 @@ WHERE w.id IN (@week_0, @week_1, @week_2, @week_3, @week_4, @week_5)
   AND s.id IN (@section_ops, @section_customer, @section_warehouse, @section_security, @section_maintenance)
 ORDER BY w.week_start_date, s.section_name;
 
+DROP TEMPORARY TABLE IF EXISTS tmp_limited_schedules;
+CREATE TEMPORARY TABLE tmp_limited_schedules (
+    id BIGINT PRIMARY KEY
+);
+
+INSERT INTO tmp_limited_schedules (id)
+SELECT id
+FROM schedules
+ORDER BY id
+LIMIT 10;
+
 INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id, required_count)
 SELECT
     s.id,
@@ -1539,13 +1550,15 @@ SELECT
     shift_map.required_count
 FROM schedules s
 INNER JOIN weeks w ON w.id = s.week_id
+INNER JOIN tmp_limited_schedules ON tmp_limited_schedules.id = s.id
 INNER JOIN (
     SELECT 0 AS day_offset, @def_am AS shift_definition_id, 3 AS required_count
     UNION ALL SELECT 1, @def_mid, 3
     UNION ALL SELECT 2, @def_pm, 2
 ) AS shift_map
-WHERE s.id IN (SELECT id FROM schedules ORDER BY id LIMIT 10)
 ORDER BY s.id, shift_map.day_offset;
+
+DROP TEMPORARY TABLE IF EXISTS tmp_limited_schedules;
 
 SET @emp_ops = (
     SELECT e.id FROM employees e
@@ -1682,9 +1695,9 @@ FROM (
     INNER JOIN schedule_shifts ss ON ss.id = sa.schedule_shift_id
     INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
     GROUP BY sa.employee_id, ss.shift_date
-    ORDER BY sa.employee_id, ss.shift_date
-    LIMIT 30
-) AS t;
+) AS t
+ORDER BY t.employee_id, t.shift_date
+LIMIT 30;
 
 INSERT INTO notifications (company_id, user_id, type, title, body, is_read, created_at)
 SELECT
