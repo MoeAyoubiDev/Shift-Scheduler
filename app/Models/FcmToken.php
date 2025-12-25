@@ -41,6 +41,13 @@ class FcmToken extends BaseModel
         return array_column($stmt->fetchAll(), 'token');
     }
 
+    public static function listTokensForUser(int $userId): array
+    {
+        $stmt = db()->prepare('SELECT DISTINCT token FROM fcm_tokens WHERE user_id = :user_id');
+        $stmt->execute(['user_id' => $userId]);
+        return array_column($stmt->fetchAll(), 'token');
+    }
+
     public static function listTokensForRoleInSection(string $role, int $sectionId): array
     {
         $stmt = db()->prepare(
