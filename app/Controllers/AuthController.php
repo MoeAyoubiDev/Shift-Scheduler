@@ -112,4 +112,100 @@ class AuthController
 
         return ['success' => true, 'redirect' => '/index.php'];
     }
+
+    public static function handleFirebaseSignup(array $payload): array
+    {
+        if (!verify_csrf($payload['csrf_token'] ?? null)) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Invalid request. Please try again.'];
+        }
+
+        $idToken = trim($payload['id_token'] ?? '');
+        if ($idToken === '') {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Missing authentication token.'];
+        }
+
+        $companyName = trim($payload['company_name'] ?? '');
+        $adminPassword = (string) ($payload['admin_password'] ?? '');
+        $timezone = $payload['timezone'] ?? 'UTC';
+        $country = trim((string) ($payload['country'] ?? ''));
+        $companySize = $payload['company_size'] ?? '';
+
+        if ($companyName === '' || mb_strlen($companyName) < 2) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Company name must be at least 2 characters.'];
+        }
+
+        if (strlen($adminPassword) < 8) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
+        }
+
+        try {
+            $service = new FirebaseAuthService();
+            $tokenData = $service->verifyIdToken($idToken);
+        } catch (Exception $e) {
+            http_response_code(401);
+            return ['success' => false, 'message' => 'Unable to verify authentication token.'];
+        }
+
+        $email = $tokenData['email'] ?? '';
+        $firebaseUid = $tokenData['uid'] ?? '';
+        $provider = $tokenData['provider'] ?? 'email';
+
+        if ($email === '' || $firebaseUid === '') {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Authentication payload is incomplete.'];
+        }
+
+        $payloadEmail = trim($payload['admin_email'] ?? '');
+        if ($payloadEmail !== '' && strcasecmp($payloadEmail, $email) !== 0) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Admin email does not match authentication email.'];
+        }
+
+        if (User::emailExists($email) || Company::findByEmail($email)) {
+            http_response_code(409);
+            return ['success' => false, 'message' => 'An account with this email already exists.'];
+        }
+
+        $companyResult = Company::createCompany([
+            'company_name' => $companyName,
+            'admin_email' => $email,
+            'admin_password' => $adminPassword,
+            'timezone' => $timezone,
+            'country' => $country !== '' ? $country : null,
+            'company_size' => $companySize !== '' ? $companySize : null,
+        ]);
+
+        if (empty($companyResult['success'])) {
+            http_response_code(400);
+            return ['success' => false, 'message' => $companyResult['message'] ?? 'Failed to create account.'];
+        }
+
+        $companyId = (int) ($companyResult['company_id'] ?? 0);
+        if ($companyId <= 0) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Failed to create account.'];
+        }
+
+        $user = User::createFirebaseUser([
+            'email' => $email,
+            'firebase_uid' => $firebaseUid,
+            'provider' => $provider,
+            'company_id' => $companyId,
+            'role_name' => 'Director',
+            'name' => $tokenData['name'] ?? '',
+        ]);
+
+        if (!$user) {
+            http_response_code(400);
+            return ['success' => false, 'message' => 'Unable to complete sign-up.'];
+        }
+
+        $_SESSION['user'] = $user;
+
+        return ['success' => true, 'redirect' => '/index.php'];
+    }
 }

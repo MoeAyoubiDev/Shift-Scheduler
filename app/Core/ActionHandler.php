@@ -56,6 +56,10 @@ class ActionHandler
         Router::register('firebase_login', function(array $payload) {
             return AuthController::handleFirebaseLogin($payload);
         }, [], false);
+
+        Router::register('firebase_signup', function(array $payload) {
+            return AuthController::handleFirebaseSignup($payload);
+        }, [], false);
         
         // Director actions
         Router::register('select_section', function(array $payload) {
