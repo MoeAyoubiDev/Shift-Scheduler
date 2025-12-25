@@ -81,6 +81,18 @@ This creates:
 
 **See "Quick Test Data Setup" section below for full credentials.**
 
+### 5. Seed Big Test Data (Optional)
+
+To create large, realistic multi-tenant data for full feature coverage:
+
+```bash
+php database/seed.php
+```
+
+Seeded credentials:
+- **Email (all users):** `mouhamad.ayoubi.dev@gmail.com`
+- **Password (all users):** `SeededPass123!`
+
 ## Project Structure
 
 ```
