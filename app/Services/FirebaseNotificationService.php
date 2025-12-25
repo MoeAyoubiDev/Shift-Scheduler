@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../Core/config.php';
+require_once __DIR__ . '/../Models/FcmToken.php';
 
 class FirebaseNotificationService
 {
@@ -52,6 +53,12 @@ class FirebaseNotificationService
         }
 
         return ['sent' => $sent, 'errors' => $errors];
+    }
+
+    public function sendToUser(int $userId, string $title, string $body, array $data = []): array
+    {
+        $tokens = FcmToken::listTokensForUser($userId);
+        return $this->sendToTokens($tokens, $title, $body, $data);
     }
 
     private function sendMessage(string $accessToken, string $token, string $title, string $body, array $data = []): array

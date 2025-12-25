@@ -130,6 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                     $adminEmail = $company['admin_email'];
                     $adminPassword = $company['admin_password_hash'];
                     $username = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $company['company_name'])) . '_admin';
+                    $createdAdminUser = false;
                     
                     // Check if user already exists
                     $checkUserStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1");
@@ -142,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                         $userStmt = $pdo->prepare("INSERT INTO users (username, password_hash, email, company_id) VALUES (?, ?, ?, ?)");
                         $userStmt->execute([$username, $adminPassword, $adminEmail, $companyId]);
                         $userId = (int)$pdo->lastInsertId();
+                        $createdAdminUser = true;
                     }
                     
                     if ($userId <= 0) {
@@ -251,6 +253,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                     
                     // Commit transaction
                     $pdo->commit();
+
+                    if ($createdAdminUser && empty($_SESSION['welcome_notification_user_id'])) {
+                        $_SESSION['welcome_notification_user_id'] = $userId;
+                    }
                     
                     header('Location: /onboarding-preview.php?company_id=' . $companyId);
                     exit;
@@ -519,4 +525,3 @@ document.getElementById('add-employee')?.addEventListener('click', function() {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-
