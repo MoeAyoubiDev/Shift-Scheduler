@@ -77,22 +77,24 @@
     }
 
     function sendTokenToBackend(firebaseToken, payloadOverrides) {
-        var appConfig = getAppConfig();
-        var payload = new FormData();
-        payload.append('action', 'firebase_login');
-        payload.append('firebase_token', firebaseToken);
-        payload.append('csrf_token', appConfig.csrfToken || '');
+        var payload = {
+            action: 'firebase_login'
+        };
 
         if (payloadOverrides) {
             Object.keys(payloadOverrides).forEach(function (key) {
-                payload.append(key, payloadOverrides[key]);
+                payload[key] = payloadOverrides[key];
             });
         }
 
         return fetch('/auth/firebase-login', {
             method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: payload,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Authorization': 'Bearer ' + firebaseToken
+            },
+            body: JSON.stringify(payload),
             credentials: 'same-origin'
         }).then(function (response) {
             return response.json();
@@ -170,7 +172,7 @@
                         if (!result || !result.user) {
                             throw new Error('Authentication failed.');
                         }
-                        return result.user.getIdToken();
+                        return result.user.getIdToken(true);
                     })
                     .then(function (idToken) {
                         return sendTokenToBackend(idToken, { action: 'firebase_login' });
@@ -230,7 +232,7 @@
                         if (!result || !result.user) {
                             throw new Error('Authentication failed.');
                         }
-                        return result.user.getIdToken();
+                        return result.user.getIdToken(true);
                     })
                     .then(function (idToken) {
                         return sendTokenToBackend(idToken, {

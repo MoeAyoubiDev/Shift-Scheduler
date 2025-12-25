@@ -23,7 +23,7 @@ class AuthController
             return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
         }
 
-        $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
+        $idToken = self::getBearerToken();
         if ($idToken === '') {
             http_response_code(400);
             return ['success' => false, 'message' => 'Missing authentication token.'];
@@ -88,7 +88,7 @@ class AuthController
             return ['success' => false, 'message' => 'Invalid security token. Please refresh and try again.'];
         }
 
-        $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
+        $idToken = self::getBearerToken();
         if ($idToken === '') {
             http_response_code(400);
             return ['success' => false, 'message' => 'Missing authentication token.'];
@@ -185,6 +185,14 @@ class AuthController
         $_SESSION['user_id'] = $user['id'] ?? null;
         $_SESSION['role'] = $user['role'] ?? null;
         $_SESSION['company_id'] = $user['company_id'] ?? null;
+    }
+
+    private static function getBearerToken(): string
+    {
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        preg_match('/Bearer\s(\S+)/', $authHeader, $matches);
+        return $matches[1] ?? '';
     }
 
     private static function getNextOnboardingStep(int $companyId): int
