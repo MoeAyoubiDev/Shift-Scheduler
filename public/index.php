@@ -126,6 +126,14 @@ $user = current_user();
 $role = $user['role'] ?? null;
 $sectionId = current_section_id();
 
+if ($user && $role === 'Director' && !$sectionId) {
+    $sections = $user['sections'] ?? [];
+    if (count($sections) === 1) {
+        $sectionId = (int) $sections[0]['section_id'];
+        set_current_section($sectionId);
+    }
+}
+
 if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $role === 'Team Leader') {
     $exportWeekStart = $_GET['week_start'] ?? $weekStart;
     $exportWeekEnd = $_GET['week_end'] ?? $weekEnd;
