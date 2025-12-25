@@ -14,7 +14,7 @@ declare(strict_types=1);
             <div class="card-header">
                 <div>
                     <h3>Employee Directory</h3>
-                    <p>All active employees and seniors in this section.</p>
+                    <p>All active employees in this section.</p>
                 </div>
                 <div class="card-header-meta">
                     <span class="card-meta-label">Employees</span>
@@ -29,7 +29,7 @@ declare(strict_types=1);
                             <tr>
                                 <th>Name</th>
                                 <th>Role</th>
-                                <th>Seniority</th>
+                                <th>Experience</th>
                                 <th>Employee Code</th>
                                 <th>Email</th>
                             </tr>

@@ -126,7 +126,7 @@ $user = current_user();
 $role = $user['role'] ?? null;
 $sectionId = current_section_id();
 
-if ($user && $role === 'Director' && !$sectionId) {
+if ($user && $role === 'Supervisor' && !$sectionId) {
     $sections = $user['sections'] ?? [];
     if (count($sections) === 1) {
         $sectionId = (int) $sections[0]['section_id'];
@@ -245,8 +245,8 @@ if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $ro
     exit;
 }
 
-// Handle section reset for Director
-if (isset($_GET['reset_section']) && $role === 'Director') {
+// Handle section reset for Supervisor
+if (isset($_GET['reset_section']) && $role === 'Supervisor') {
     set_current_section(0);
     header('Location: /index.php');
     exit;
@@ -274,7 +274,7 @@ if (!$user) {
 // Render dashboard based on role
 require_once __DIR__ . '/../includes/header.php';
 
-if ($role === 'Director') {
+if ($role === 'Supervisor') {
     if (!$sectionId) {
         render_view('director/choose-section', [
             'user' => $user,
@@ -381,71 +381,6 @@ if ($role === 'Director') {
         'coverageGapsList' => array_slice($coverageGaps, 0, 3),
         'activeBreaksList' => array_slice($activeBreaks, 0, 3),
         'unassignedList' => array_slice($unassignedEmployees, 0, 3),
-    ]);
-} elseif ($role === 'Supervisor') {
-    require_once __DIR__ . '/../app/Models/Employee.php';
-    require_once __DIR__ . '/../app/Models/Performance.php';
-    require_once __DIR__ . '/../app/Models/Break.php';
-    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
-    require_once __DIR__ . '/../app/Models/Role.php';
-    
-    $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
-    $employees = $sectionId ? Employee::listBySection($sectionId) : [];
-    $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
-    $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
-    $requests = $sectionId ? ShiftRequest::listByWeek($weekId, $sectionId) : [];
-    $requirements = $sectionId ? Schedule::getShiftRequirements($weekId, $sectionId) : [];
-    $roles = Role::listRoles();
-    
-    // Calculate tracking metrics
-    $totalEmployees = count($employees);
-    $totalShifts = count($schedule);
-    $pendingRequests = count(array_filter($requests, fn($r) => $r['status'] === 'PENDING'));
-    $activeBreaks = count(array_filter($breaks, fn($b) => $b['status'] === 'ON_BREAK'));
-    $totalBreakDelays = array_sum(array_column($breaks, 'delay_minutes'));
-    $avgDelay = count($breaks) > 0 ? round($totalBreakDelays / count($breaks), 1) : 0;
-    $coverageGaps = 0;
-    foreach ($requirements as $req) {
-        $assigned = count(array_filter($schedule, fn($s) => $s['shift_date'] === $req['date'] && $s['shift_name'] === $req['shift_name']));
-        if ($assigned < $req['required_count']) {
-            $coverageGaps += ($req['required_count'] - $assigned);
-        }
-    }
-
-    render_view('supervisor/dashboard', [
-        'user' => $user,
-        'weekStart' => $weekStart,
-        'weekEnd' => $weekEnd,
-        'weekId' => $weekId,
-        'schedule' => $schedule,
-        'employees' => $employees,
-        'performance' => $performance,
-        'breaks' => $breaks,
-        'requests' => $requests,
-        'requirements' => $requirements,
-        'roles' => $roles,
-        'metrics' => [
-            'total_employees' => $totalEmployees,
-            'total_shifts' => $totalShifts,
-            'pending_requests' => $pendingRequests,
-            'active_breaks' => $activeBreaks,
-            'avg_delay' => $avgDelay,
-            'coverage_gaps' => $coverageGaps,
-        ],
-    ]);
-} elseif ($role === 'Senior') {
-    require_once __DIR__ . '/../app/Models/Break.php';
-    
-    $todaySchedule = $sectionId ? Schedule::getTodaySchedule($sectionId, $today->format('Y-m-d')) : [];
-    $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
-    $weekly = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
-
-    render_view('senior/dashboard', [
-        'user' => $user,
-        'today' => $today->format('Y-m-d'),
-        'todaySchedule' => $todaySchedule,
-        'breaks' => $breaks,
-        'weekly' => $weekly,
     ]);
 } else {
     // Employee role

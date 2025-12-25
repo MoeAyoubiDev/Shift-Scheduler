@@ -127,10 +127,10 @@ class User extends BaseModel
         }
     }
 
-    public static function createDirector(array $payload): int
+    public static function createSupervisor(array $payload): int
     {
         $model = new self();
-        $rows = $model->callProcedure('sp_create_director', [
+        $rows = $model->callProcedure('sp_create_supervisor', [
             'p_company_id' => $payload['company_id'],
             'p_company_name' => $payload['company_name'],
             'p_username' => $payload['username'],

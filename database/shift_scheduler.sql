@@ -274,10 +274,8 @@ CREATE TABLE notifications (
 -- Seed Reference Data
 -- ===============================
 INSERT INTO roles (role_name, description) VALUES
-    ('Director', 'Executive oversight across sections'),
+    ('Supervisor', 'Executive oversight across sections'),
     ('Team Leader', 'Full scheduling and employee management'),
-    ('Supervisor', 'Monitoring and reporting'),
-    ('Senior', 'Shift leader for operational coverage'),
     ('Employee', 'Shift requests and schedule access')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
@@ -426,8 +424,8 @@ BEGIN
     SELECT LAST_INSERT_ID() AS company_id;
 END $$
 
-DROP PROCEDURE IF EXISTS sp_create_director $$
-CREATE PROCEDURE sp_create_director(
+DROP PROCEDURE IF EXISTS sp_create_supervisor $$
+CREATE PROCEDURE sp_create_supervisor(
     IN p_company_id INT,
     IN p_company_name VARCHAR(255),
     IN p_username VARCHAR(100),
@@ -443,7 +441,7 @@ BEGIN
     DECLARE v_username_exists INT DEFAULT 1;
     DECLARE v_suffix INT DEFAULT 0;
 
-    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Director' LIMIT 1;
+    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Supervisor' LIMIT 1;
 
     SELECT id INTO v_section_id
     FROM sections
@@ -468,7 +466,7 @@ BEGIN
     END WHILE;
 
     INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
-    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Director', 1, 1);
+    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Supervisor', 1, 1);
     SET v_user_id = LAST_INSERT_ID();
 
     INSERT INTO user_roles (user_id, role_id, section_id)
@@ -925,21 +923,10 @@ CREATE PROCEDURE sp_submit_shift_request(
 )
 BEGIN
     DECLARE v_day_of_week INT;
-    DECLARE v_role_name VARCHAR(50);
 
     SET v_day_of_week = DAYOFWEEK(p_request_date);
     IF v_day_of_week = 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Shift requests are not allowed on Sunday';
-    END IF;
-
-    SELECT r.role_name INTO v_role_name
-    FROM employees e
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN roles r ON r.id = ur.role_id
-    WHERE e.id = p_employee_id;
-
-    IF v_role_name = 'Senior' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Senior employees cannot submit shift requests';
     END IF;
 
     INSERT INTO shift_requests (employee_id, week_id, request_date, shift_definition_id, is_day_off, schedule_pattern_id, reason, importance_level)
@@ -1136,7 +1123,7 @@ BEGIN
     INNER JOIN users u ON u.id = ur.user_id
     WHERE ur.section_id = p_section_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee', 'Senior')
+      AND r.role_name IN ('Employee')
     ORDER BY e.seniority_level DESC, e.full_name;
 END $$
 
@@ -1154,7 +1141,7 @@ BEGIN
     INNER JOIN roles r ON r.id = ur.role_id
     WHERE ur.section_id = p_section_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee', 'Senior')
+      AND r.role_name IN ('Employee')
       AND NOT EXISTS (
           SELECT 1
           FROM schedule_assignments sa

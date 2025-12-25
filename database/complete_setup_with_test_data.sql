@@ -274,10 +274,8 @@ CREATE TABLE notifications (
 -- Seed Reference Data
 -- ===============================
 INSERT INTO roles (role_name, description) VALUES
-    ('Director', 'Executive oversight across sections'),
+    ('Supervisor', 'Executive oversight across sections'),
     ('Team Leader', 'Full scheduling and employee management'),
-    ('Supervisor', 'Monitoring and reporting'),
-    ('Senior', 'Shift leader for operational coverage'),
     ('Employee', 'Shift requests and schedule access')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
@@ -426,8 +424,8 @@ BEGIN
     SELECT LAST_INSERT_ID() AS company_id;
 END $$
 
-DROP PROCEDURE IF EXISTS sp_create_director $$
-CREATE PROCEDURE sp_create_director(
+DROP PROCEDURE IF EXISTS sp_create_supervisor $$
+CREATE PROCEDURE sp_create_supervisor(
     IN p_company_id INT,
     IN p_company_name VARCHAR(255),
     IN p_username VARCHAR(100),
@@ -443,7 +441,7 @@ BEGIN
     DECLARE v_username_exists INT DEFAULT 1;
     DECLARE v_suffix INT DEFAULT 0;
 
-    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Director' LIMIT 1;
+    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Supervisor' LIMIT 1;
 
     SELECT id INTO v_section_id
     FROM sections
@@ -468,7 +466,7 @@ BEGIN
     END WHILE;
 
     INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
-    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Director', 1, 1);
+    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Supervisor', 1, 1);
     SET v_user_id = LAST_INSERT_ID();
 
     INSERT INTO user_roles (user_id, role_id, section_id)
@@ -925,21 +923,10 @@ CREATE PROCEDURE sp_submit_shift_request(
 )
 BEGIN
     DECLARE v_day_of_week INT;
-    DECLARE v_role_name VARCHAR(50);
 
     SET v_day_of_week = DAYOFWEEK(p_request_date);
     IF v_day_of_week = 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Shift requests are not allowed on Sunday';
-    END IF;
-
-    SELECT r.role_name INTO v_role_name
-    FROM employees e
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN roles r ON r.id = ur.role_id
-    WHERE e.id = p_employee_id;
-
-    IF v_role_name = 'Senior' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Senior employees cannot submit shift requests';
     END IF;
 
     INSERT INTO shift_requests (employee_id, week_id, request_date, shift_definition_id, is_day_off, schedule_pattern_id, reason, importance_level)
@@ -1136,7 +1123,7 @@ BEGIN
     INNER JOIN users u ON u.id = ur.user_id
     WHERE ur.section_id = p_section_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee', 'Senior')
+      AND r.role_name IN ('Employee')
     ORDER BY e.seniority_level DESC, e.full_name;
 END $$
 
@@ -1154,7 +1141,7 @@ BEGIN
     INNER JOIN roles r ON r.id = ur.role_id
     WHERE ur.section_id = p_section_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee', 'Senior')
+      AND r.role_name IN ('Employee')
       AND NOT EXISTS (
           SELECT 1
           FROM schedule_assignments sa
@@ -1337,10 +1324,8 @@ SET @section_security = (SELECT id FROM sections WHERE company_id = @company_id 
 SET @section_maintenance = (SELECT id FROM sections WHERE company_id = @company_id AND section_name = 'Maintenance');
 SET @section_admin = (SELECT id FROM sections WHERE company_id = @company_id AND section_name = 'Administration');
 
-SET @role_director = (SELECT id FROM roles WHERE role_name = 'Director');
-SET @role_team_leader = (SELECT id FROM roles WHERE role_name = 'Team Leader');
 SET @role_supervisor = (SELECT id FROM roles WHERE role_name = 'Supervisor');
-SET @role_senior = (SELECT id FROM roles WHERE role_name = 'Senior');
+SET @role_team_leader = (SELECT id FROM roles WHERE role_name = 'Team Leader');
 SET @role_employee = (SELECT id FROM roles WHERE role_name = 'Employee');
 
 SET @pattern_5x2 = (SELECT id FROM schedule_patterns WHERE name = '5x2');
@@ -1358,16 +1343,13 @@ SET @def_mid = (SELECT id FROM shift_definitions WHERE shift_name = 'Mid Shift')
 SET @def_pm = (SELECT id FROM shift_definitions WHERE shift_name = 'PM Shift');
 
 INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active) VALUES
-    (@company_id, 'director1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'director1@acme.com', 'Director', 1, 1),
+    (@company_id, 'supervisor-admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'supervisor-admin@acme.com', 'Supervisor', 1, 1),
     (@company_id, 'lead1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'lead1@acme.com', 'Team Leader', 1, 1),
     (@company_id, 'lead2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'lead2@acme.com', 'Team Leader', 1, 1),
     (@company_id, 'lead3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'lead3@acme.com', 'Team Leader', 1, 1),
     (@company_id, 'supervisor1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'supervisor1@acme.com', 'Supervisor', 1, 1),
     (@company_id, 'supervisor2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'supervisor2@acme.com', 'Supervisor', 1, 1),
     (@company_id, 'supervisor3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'supervisor3@acme.com', 'Supervisor', 1, 1),
-    (@company_id, 'senior1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'senior1@acme.com', 'Senior', 1, 1),
-    (@company_id, 'senior2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'senior2@acme.com', 'Senior', 1, 1),
-    (@company_id, 'senior3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'senior3@acme.com', 'Senior', 1, 1),
     (@company_id, 'employee1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee1@acme.com', 'Employee', 1, 1),
     (@company_id, 'employee2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee2@acme.com', 'Employee', 1, 1),
     (@company_id, 'employee3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee3@acme.com', 'Employee', 1, 1),
@@ -1390,16 +1372,13 @@ INSERT INTO users (company_id, username, password_hash, email, role, onboarding_
     (@company_id, 'employee20', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee20@acme.com', 'Employee', 1, 1);
 
 INSERT INTO user_roles (user_id, role_id, section_id) VALUES
-    ((SELECT id FROM users WHERE username = 'director1'), @role_director, @section_admin),
+    ((SELECT id FROM users WHERE username = 'supervisor-admin'), @role_supervisor, @section_admin),
     ((SELECT id FROM users WHERE username = 'lead1'), @role_team_leader, @section_ops),
     ((SELECT id FROM users WHERE username = 'lead2'), @role_team_leader, @section_customer),
     ((SELECT id FROM users WHERE username = 'lead3'), @role_team_leader, @section_warehouse),
     ((SELECT id FROM users WHERE username = 'supervisor1'), @role_supervisor, @section_ops),
     ((SELECT id FROM users WHERE username = 'supervisor2'), @role_supervisor, @section_customer),
     ((SELECT id FROM users WHERE username = 'supervisor3'), @role_supervisor, @section_warehouse),
-    ((SELECT id FROM users WHERE username = 'senior1'), @role_senior, @section_security),
-    ((SELECT id FROM users WHERE username = 'senior2'), @role_senior, @section_maintenance),
-    ((SELECT id FROM users WHERE username = 'senior3'), @role_senior, @section_ops),
     ((SELECT id FROM users WHERE username = 'employee1'), @role_employee, @section_ops),
     ((SELECT id FROM users WHERE username = 'employee2'), @role_employee, @section_ops),
     ((SELECT id FROM users WHERE username = 'employee3'), @role_employee, @section_ops),
@@ -1422,16 +1401,13 @@ INSERT INTO user_roles (user_id, role_id, section_id) VALUES
     ((SELECT id FROM users WHERE username = 'employee20'), @role_employee, @section_maintenance);
 
 INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level, is_active) VALUES
-    ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'director1'), 'EMP0001', 'Avery Morgan', 'director1@acme.com', 0, 6, 1),
+    ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'supervisor-admin'), 'EMP0001', 'Avery Morgan', 'supervisor-admin@acme.com', 0, 6, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'lead1'), 'EMP0002', 'Jordan Lee', 'lead1@acme.com', 0, 5, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'lead2'), 'EMP0003', 'Casey Patel', 'lead2@acme.com', 0, 5, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'lead3'), 'EMP0004', 'Riley Chen', 'lead3@acme.com', 0, 5, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'supervisor1'), 'EMP0005', 'Morgan Diaz', 'supervisor1@acme.com', 0, 4, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'supervisor2'), 'EMP0006', 'Jamie Brooks', 'supervisor2@acme.com', 0, 4, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'supervisor3'), 'EMP0007', 'Taylor Nguyen', 'supervisor3@acme.com', 0, 4, 1),
-    ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'senior1'), 'EMP0008', 'Samira Johnson', 'senior1@acme.com', 1, 3, 1),
-    ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'senior2'), 'EMP0009', 'Logan Rivera', 'senior2@acme.com', 1, 3, 1),
-    ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'senior3'), 'EMP0010', 'Peyton Kim', 'senior3@acme.com', 1, 3, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'employee1'), 'EMP0011', 'Harper Scott', 'employee1@acme.com', 0, 2, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'employee2'), 'EMP0012', 'Rowan Kelly', 'employee2@acme.com', 0, 2, 1),
     ((SELECT ur.id FROM user_roles ur INNER JOIN users u ON u.id = ur.user_id WHERE u.username = 'employee3'), 'EMP0013', 'Kai Phillips', 'employee3@acme.com', 0, 2, 1),
@@ -1508,12 +1484,12 @@ INSERT INTO shift_requirements (company_id, week_id, section_id, shift_date, shi
     (@company_id, @week_5, @section_security, DATE_ADD(@week_start, INTERVAL 38 DAY), @shift_midnight, 2),
     (@company_id, @week_5, @section_maintenance, DATE_ADD(@week_start, INTERVAL 39 DAY), @shift_pm, 2);
 
-SET @director_employee_id = (
+SET @supervisor_employee_id = (
     SELECT e.id
     FROM employees e
     INNER JOIN user_roles ur ON ur.id = e.user_role_id
     INNER JOIN users u ON u.id = ur.user_id
-    WHERE u.username = 'director1'
+    WHERE u.username = 'supervisor-admin'
     LIMIT 1
 );
 
@@ -1522,7 +1498,7 @@ SELECT
     @company_id,
     w.id,
     s.id,
-    @director_employee_id,
+    @supervisor_employee_id,
     CASE WHEN w.id IN (@week_0, @week_1, @week_2) THEN 'FINAL' ELSE 'DRAFT' END,
     CONCAT('Schedule for ', s.section_name, ' - Week of ', w.week_start_date)
 FROM weeks w

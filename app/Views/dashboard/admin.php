@@ -89,7 +89,7 @@ declare(strict_types=1);
 <?php if (is_primary_admin($user)): ?>
     <section class="card">
         <div class="section-title">
-            <h2>Shift Requirements &amp; Senior Staff</h2>
+            <h2>Shift Requirements &amp; Experience Coverage</h2>
             <span>Define weekly coverage targets</span>
         </div>
         <form method="post" class="grid">
@@ -107,8 +107,8 @@ declare(strict_types=1);
                 <input type="number" name="mid_required" value="<?= (int) $requirements['mid_required'] ?>" min="0">
             </div>
             <div class="span-full">
-                <label>Senior staff (notes)</label>
-                <textarea name="senior_staff" placeholder="List senior staff or team leaders"><?= e($requirements['senior_staff'] ?? '') ?></textarea>
+                <label>Experience coverage notes</label>
+                <textarea name="senior_staff" placeholder="List experienced staff or team leaders"><?= e($requirements['senior_staff'] ?? '') ?></textarea>
             </div>
             <div class="span-full">
                 <button class="btn" type="submit">Save requirements</button>
