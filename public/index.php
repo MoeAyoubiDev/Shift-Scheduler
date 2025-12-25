@@ -40,6 +40,26 @@ if ($user && isset($user['company_id']) && $user['company_id']) {
         if ($weekId <= 0) {
             throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
         }
+    } catch (RuntimeException $e) {
+        // Handle invalid company ID - log out user and redirect to login
+        $errorMsg = $e->getMessage();
+        if (strpos($errorMsg, 'Invalid company ID') !== false || strpos($errorMsg, 'session may be invalid') !== false) {
+            error_log("Invalid company ID in session for user: " . ($user['id'] ?? 'unknown'));
+            unset($_SESSION['user'], $_SESSION['user_id'], $_SESSION['role'], $_SESSION['company_id']);
+            header('Location: /login.php?message=' . urlencode('Your session has expired. Please log in again.'));
+            exit;
+        }
+        error_log("Runtime error in Schedule::upsertWeek: " . $errorMsg);
+        $errorMsg = htmlspecialchars($errorMsg, ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Runtime Error:</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
     } catch (PDOException $e) {
         error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
         $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
@@ -48,18 +68,6 @@ if ($user && isset($user['company_id']) && $user['company_id']) {
                 "<strong>Database Error (PDOException):</strong>\n" .
                 "Message: " . $errorMsg . "\n" .
                 "SQL State: " . $e->getCode() . "\n" .
-                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-                "</pre>");
-        }
-        die("Database error. Please check server logs. Error: " . $errorMsg);
-    } catch (RuntimeException $e) {
-        error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
-        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-        if ($appEnv === 'development') {
-            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-                "<strong>Runtime Error:</strong>\n" .
-                "Message: " . $errorMsg . "\n" .
                 "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
                 "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
                 "</pre>");

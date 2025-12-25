@@ -20,6 +20,21 @@ class Schedule extends BaseModel
             }
         }
         
+        // Validate that company exists in database
+        try {
+            require_once __DIR__ . '/../Core/config.php';
+            $pdo = db();
+            $stmt = $pdo->prepare('SELECT id FROM companies WHERE id = ? LIMIT 1');
+            $stmt->execute([$companyId]);
+            $company = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$company) {
+                throw new RuntimeException('Invalid company ID. The company does not exist in the database.');
+            }
+        } catch (PDOException $e) {
+            error_log("Company validation failed: " . $e->getMessage());
+            throw new RuntimeException('Unable to validate company. Please try logging in again.');
+        }
+        
         try {
             $rows = $model->callProcedure('sp_upsert_week', [
                 'p_company_id' => $companyId,
@@ -30,6 +45,12 @@ class Schedule extends BaseModel
             return (int) ($rows[0]['week_id'] ?? 0);
         } catch (PDOException $e) {
             $errorMsg = $e->getMessage();
+            // Check if it's a foreign key constraint violation
+            if (strpos($errorMsg, '1452') !== false || strpos($errorMsg, 'foreign key constraint fails') !== false) {
+                throw new RuntimeException(
+                    'Invalid company ID. Your session may be invalid. Please log out and log in again.'
+                );
+            }
             throw new RuntimeException(
                 "Stored procedure failure in sp_upsert_week. Please run: mysql < database/shift_scheduler.sql. Error: " . $errorMsg
             );
