@@ -355,6 +355,21 @@ if ($role === 'Supervisor') {
         }
     }
 
+    $teamleaderPage = $_GET['page'] ?? 'overview';
+    $allowedTeamleaderPages = [
+        'overview',
+        'create-employee',
+        'manage-employees',
+        'shift-requirements',
+        'shift-requests',
+        'weekly-schedule',
+        'break-monitoring',
+        'performance',
+    ];
+    if (!in_array($teamleaderPage, $allowedTeamleaderPages, true)) {
+        $teamleaderPage = 'overview';
+    }
+
     render_view('teamleader/dashboard', [
         'user' => $user,
         'weekStart' => $weekStart,
@@ -381,6 +396,7 @@ if ($role === 'Supervisor') {
         'coverageGapsList' => array_slice($coverageGaps, 0, 3),
         'activeBreaksList' => array_slice($activeBreaks, 0, 3),
         'unassignedList' => array_slice($unassignedEmployees, 0, 3),
+        'teamleaderPage' => $teamleaderPage,
     ]);
 } else {
     // Employee role
