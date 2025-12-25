@@ -30,25 +30,34 @@
     --color-text-secondary: #a0aec0;
     --color-text-muted: #718096;
     
-    /* Semantic Colors */
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
+    /* Semantic Colors - Muted & Professional */
+    --color-success: #22c55e;
+    --color-success-muted: rgba(34, 197, 94, 0.15);
+    --color-warning: #eab308;
+    --color-warning-muted: rgba(234, 179, 8, 0.15);
     --color-error: #ef4444;
+    --color-error-muted: rgba(239, 68, 68, 0.15);
     --color-info: #3b82f6;
+    --color-info-muted: rgba(59, 130, 246, 0.15);
     
-    /* Glassmorphism */
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.18);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    --glass-backdrop: blur(10px);
+    /* Glassmorphism - Professional & Subtle */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-bg-hover: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-hover: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --glass-shadow-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    --glass-backdrop: blur(16px);
+    --glass-backdrop-strong: blur(20px);
     
-    /* Shadows & Glows */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
-    --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.25);
-    --shadow-glow: 0 0 20px var(--color-primary-glow);
-    --shadow-glow-strong: 0 0 40px var(--color-primary-glow);
+    /* Shadows & Glows - Professional & Subtle */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 16px rgba(99, 102, 241, 0.2);
+    --shadow-glow-strong: 0 0 24px rgba(99, 102, 241, 0.3);
+    --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     
     /* Spacing - Enhanced for better breathing room */
     --space-xs: 0.5rem;
@@ -620,6 +629,7 @@ main {
     box-sizing: border-box;
 }
 
+/* Nav Card - Card-based navigation component */
 .nav-card {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-backdrop);
@@ -632,7 +642,7 @@ main {
     position: relative;
     overflow: visible;
     text-align: center;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
     animation: cardFadeIn 0.5s ease-out both;
     width: 100%;
     max-width: 100%;
@@ -644,6 +654,19 @@ main {
     justify-content: center;
     min-height: clamp(120px, 18vw, 180px);
     gap: clamp(0.75rem, 1.5vw, 1rem);
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
 }
 
 .nav-card:nth-child(1) { animation-delay: 0.1s; }
@@ -677,9 +700,10 @@ main {
 }
 
 .nav-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--color-primary);
-    box-shadow: var(--shadow-glow), var(--shadow-lg);
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
+    transform: translateY(-3px);
     z-index: 1;
 }
 
@@ -689,10 +713,10 @@ main {
 
 .nav-card.active {
     background: linear-gradient(135deg, 
-        rgba(99, 102, 241, 0.2), 
-        rgba(139, 92, 246, 0.2));
+        rgba(99, 102, 241, 0.15), 
+        rgba(139, 92, 246, 0.15));
     border-color: var(--color-primary);
-    box-shadow: var(--shadow-glow), var(--shadow-lg);
+    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
     transform: translateY(-2px);
 }
 
@@ -1671,18 +1695,58 @@ main {
 }
 
 /* ============================================
-   UNIFIED CARD SYSTEM - Base Design
+   REUSABLE COMPONENT SYSTEM - Enterprise SaaS
    ============================================ */
-/* Base card class - all cards inherit from this */
-.card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+
+/* Glass Card - Base reusable component */
+.glass-card {
+    background: var(--glass-bg);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.glass-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
+    transform: translateY(-2px);
+}
+
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+/* Base card class - all cards inherit from this */
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     padding: clamp(1.5rem, 3vw, 2.25rem);
     margin-bottom: clamp(1.5rem, 3vw, 2rem);
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(148, 163, 184, 0.05);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
     transition: all var(--transition-base);
     position: relative;
     overflow: visible;
@@ -1749,37 +1813,182 @@ main {
 .card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        var(--color-primary), 
-        transparent);
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
     opacity: 0;
     transition: opacity var(--transition-base);
 }
 
 .card:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
     transform: translateY(-2px);
-    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.4);
-    border-color: rgba(148, 163, 184, 0.35);
 }
 
 .card:hover::before {
     opacity: 1;
 }
 
+/* Metric Card - Reusable component */
+.metric-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(140px, 20vw, 180px);
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    text-align: center;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.metric-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
+    transform: translateY(-3px);
+}
+
+.metric-card:hover::before {
+    opacity: 1;
+}
+
+/* Form Card - Reusable component */
+.form-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.form-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
 /* Professional card variants */
 .analytics-card,
-.quick-action-card,
+.quick-action-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    transition: all var(--transition-base);
+    position: relative;
+}
+
+.analytics-card::before,
+.quick-action-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.analytics-card:hover,
+.quick-action-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
+    transform: translateY(-2px);
+}
+
+.analytics-card:hover::before,
+.quick-action-card:hover::before {
+    opacity: 1;
+}
+
 .metric {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.35));
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(140px, 20vw, 180px);
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    text-align: center;
+}
+
+.metric::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.metric:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
+    transform: translateY(-3px);
+}
+
+.metric:hover::before {
+    opacity: 1;
 }
 
 .analytics-card {
@@ -2050,17 +2259,47 @@ main {
 }
 
 /* Modal alignment for generic modals */
-.modal {
+/* Modal Glass - Reusable component */
+.modal-glass {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-backdrop-strong);
+    -webkit-backdrop-filter: var(--glass-backdrop-strong);
     z-index: var(--z-modal-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-lg);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-glass .modal-content {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-backdrop-strong);
+    -webkit-backdrop-filter: var(--glass-backdrop-strong);
+    z-index: var(--z-modal-backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    animation: fadeIn 0.2s ease-out;
 }
 
 /* Compact hero row for cards */
@@ -2344,6 +2583,21 @@ textarea.form-input {
     box-shadow: var(--shadow-md);
 }
 
+/* Table Glass - Reusable component */
+.table-glass {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    min-width: 600px; /* Minimum width for desktop */
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
+}
+
 /* Compact table design */
 table {
     width: 100%;
@@ -2356,6 +2610,7 @@ table {
     border-radius: var(--radius-xl);
     overflow: hidden;
     min-width: 600px; /* Minimum width for desktop */
+    box-shadow: var(--glass-shadow), var(--shadow-inset);
 }
 
 table th {
@@ -2516,12 +2771,30 @@ table tbody tr:last-child td {
 /* ============================================
    MODAL - Glassmorphism
    ============================================ */
+/* Modal Glass - Enhanced */
+/* Modal Glass - Enhanced */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-backdrop-strong);
+    -webkit-backdrop-filter: var(--glass-backdrop-strong);
+    z-index: var(--z-modal-backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Apply modal-glass class to existing modals */
+.modal-glass,
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-backdrop-strong);
+    -webkit-backdrop-filter: var(--glass-backdrop-strong);
     z-index: var(--z-modal-backdrop);
     display: flex;
     align-items: center;
@@ -2535,25 +2808,83 @@ table tbody tr:last-child td {
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-2xl);
-    padding: var(--space-xl);
-    max-width: 500px;
+    border-radius: var(--radius-xl);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    max-width: 90vw;
     width: 100%;
+    max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-xl), var(--shadow-glow);
+    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
+    position: relative;
     animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0.3;
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(20px);
+        transform: scale(0.95) translateY(20px);
     }
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading State - Reusable component */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(2rem, 4vw, 3rem);
+    gap: var(--space-md);
+    color: var(--color-text-secondary);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--glass-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-state-text {
+    font-size: clamp(0.9375rem, 1.6vw, 1.0625rem);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
 }
 
 .modal-header {
@@ -2723,15 +3054,28 @@ table tbody tr:last-child td {
 /* ============================================
    EMPTY STATES
    ============================================ */
+/* Empty State - Reusable component */
 .empty-state {
     text-align: center;
-    padding: var(--space-2xl);
+    padding: clamp(2rem, 4vw, 3rem);
     background: var(--glass-bg);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
     border: 2px dashed var(--glass-border);
     border-radius: var(--radius-xl);
     color: var(--color-text-secondary);
+    box-shadow: var(--shadow-inset);
+    position: relative;
+}
+
+.empty-state::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: var(--shadow-inset);
+    opacity: 0.5;
 }
 
 .empty-state-title {
