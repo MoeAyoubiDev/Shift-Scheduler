@@ -8,129 +8,16 @@ for ($i = 0; $i < 7; $i++) {
 }
 ?>
 <div class="dashboard-container teamleader-dashboard">
-    <!-- Modern Navigation Cards -->
-    <div class="dashboard-nav-cards">
-        <button type="button" class="nav-card active" data-section="overview">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Overview</div>
-                <div class="nav-card-subtitle">Control center</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="create-employee">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Create Employee</div>
-                <div class="nav-card-subtitle">Add team members</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="manage-employees">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Manage Employees</div>
-                <div class="nav-card-subtitle">View, update, delete</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="shift-requirements">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 5C9 4.46957 9.21071 3.96086 9.58579 3.58579C9.96086 3.21071 10.4696 3 11 3H13C13.5304 3 14.0391 3.21071 14.4142 3.58579C14.7893 3.96086 15 4.46957 15 5C15 5.53043 14.7893 6.03914 14.4142 6.41421C14.0391 6.78929 13.5304 7 13 7H11C10.4696 7 9.96086 6.78929 9.58579 6.41421C9.21071 6.03914 9 5.53043 9 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 12H15M9 16H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Shift Requirements</div>
-                <div class="nav-card-subtitle">Define coverage</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="shift-requests">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Shift Requests</div>
-                <div class="nav-card-subtitle">Review & approve</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="weekly-schedule">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Weekly Schedule</div>
-                <div class="nav-card-subtitle">Generate & manage</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="break-monitoring">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Break Monitoring</div>
-                <div class="nav-card-subtitle">Track breaks</div>
-            </div>
-        </button>
-        
-        <button type="button" class="nav-card" data-section="performance">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M21 10V3H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Performance</div>
-                <div class="nav-card-subtitle">Analytics & metrics</div>
-            </div>
-        </button>
-    </div>
-
     <!-- Main Content Area -->
     <main class="dashboard-content">
         <!-- Overview Section -->
-        <section class="dashboard-section active" data-section="overview">
+        <section class="dashboard-section" id="overview">
             <section class="dashboard-surface teamleader-dashboard-page">
                 <div class="dashboard-inner">
                     <div class="dashboard-hero">
                         <div>
                             <h1>Team Leader Control Center</h1>
-                            <p class="muted">Run your section, track coverage, and keep schedules aligned.</p>
+                            <p class="muted">Run your team, track coverage, and keep schedules aligned.</p>
                         </div>
                         <div class="dashboard-hero-actions">
                             <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
@@ -195,23 +82,23 @@ for ($i = 0; $i < 7; $i++) {
                         <h3>Quick Actions</h3>
                     </div>
                     <div class="quick-action-grid">
-                        <button type="button" class="dashboard-card quick-action-card" data-section="shift-requests">
+                        <a class="dashboard-card quick-action-card" href="#shift-requests">
                             <span class="quick-action-icon accent-purple">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                     <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </span>
                             <span>Review Requests</span>
-                        </button>
-                        <button type="button" class="dashboard-card quick-action-card" data-section="weekly-schedule">
+                        </a>
+                        <a class="dashboard-card quick-action-card" href="#weekly-schedule">
                             <span class="quick-action-icon accent-teal">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                     <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </span>
                             <span>Manage Schedule</span>
-                        </button>
-                        <button type="button" class="dashboard-card quick-action-card" data-section="manage-employees">
+                        </a>
+                        <a class="dashboard-card quick-action-card" href="#manage-employees">
                             <span class="quick-action-icon accent-green">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                     <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -219,8 +106,8 @@ for ($i = 0; $i < 7; $i++) {
                                 </svg>
                             </span>
                             <span>View Team</span>
-                        </button>
-                        <button type="button" class="dashboard-card quick-action-card" data-section="performance">
+                        </a>
+                        <a class="dashboard-card quick-action-card" href="#performance">
                             <span class="quick-action-icon accent-purple">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                     <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -228,30 +115,30 @@ for ($i = 0; $i < 7; $i++) {
                                 </svg>
                             </span>
                             <span>View Analytics</span>
-                        </button>
+                        </a>
                     </div>
 
                     <div class="dashboard-lower-grid teamleader-overview-grid">
                         <div class="dashboard-card">
                             <div class="card-header">
                                 <h3>Pending Requests</h3>
-                                <button type="button" class="btn ghost small" data-section="shift-requests">View all</button>
+                                <a class="btn ghost small" href="#shift-requests">View all</a>
                             </div>
                             <div class="activity-list">
                                 <?php if (!empty($pendingRequestsList)): ?>
                                     <?php foreach ($pendingRequestsList as $request): ?>
                                         <?php
-                                        $importance = strtolower((string) ($request['importance_level'] ?? 'medium'));
+                            $importance = strtolower((string) ($request['importance_level'] ?? ''));
                                         $iconClass = $importance === 'high' ? 'warning' : 'info';
                                         ?>
                                         <div class="activity-item">
                                             <span class="activity-icon <?= e($iconClass) ?>"></span>
                                             <div>
-                                                <div class="request-title"><?= e($request['employee_name'] ?? 'Employee') ?> · <?= e($request['shift_name'] ?? 'Shift') ?></div>
+                                                <div class="request-title"><?= e($request['employee_name'] ?? '') ?> · <?= e($request['shift_name'] ?? '') ?></div>
                                                 <div class="request-meta"><?= e($request['request_date'] ?? '') ?></div>
                                             </div>
-                                            <span class="status-pill <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>">
-                                                <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>
+                                            <span class="status-pill <?= e(strtolower((string) ($request['status'] ?? ''))) ?>">
+                                                <?= e(strtolower((string) ($request['status'] ?? ''))) ?>
                                             </span>
                                         </div>
                                     <?php endforeach; ?>
@@ -297,7 +184,7 @@ for ($i = 0; $i < 7; $i++) {
                                             <div class="activity-item">
                                                 <span class="activity-icon <?= e($delay > 0 ? 'warning' : 'success') ?>"></span>
                                                 <div>
-                                                    <div class="request-title"><?= e($break['employee_name'] ?? 'Employee') ?></div>
+                                                    <div class="request-title"><?= e($break['employee_name'] ?? '') ?></div>
                                                     <div class="request-meta"><?= e($break['break_start'] ?? '') ?> · <?= e($break['shift_name'] ?? '') ?></div>
                                                 </div>
                                                 <?php if ($delay > 0): ?>
@@ -324,7 +211,7 @@ for ($i = 0; $i < 7; $i++) {
                                     <div class="this-week-grid">
                                         <?php foreach ($unassignedList as $employee): ?>
                                             <div>
-                                                <span><?= e($employee['full_name'] ?? 'Employee') ?></span>
+                                                <span><?= e($employee['full_name'] ?? '') ?></span>
                                                 <strong><?= e($employee['employee_code'] ?? '') ?></strong>
                                             </div>
                                         <?php endforeach; ?>
@@ -343,16 +230,15 @@ for ($i = 0; $i < 7; $i++) {
         </section>
 
         <!-- Create Employee Section -->
-        <section class="dashboard-section" data-section="create-employee">
+        <section class="dashboard-section" id="create-employee">
             <div class="card">
     <div class="section-title">
         <h3>Create Employee</h3>
-        <span>Add employees to this section</span>
+        <span>Add employees to your company</span>
     </div>
     <form method="post" action="/index.php" class="grid">
         <input type="hidden" name="action" value="create_employee">
         <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-        <input type="hidden" name="section_id" value="<?= e((string) $user['section_id']) ?>">
         <label>
             Full Name
             <input type="text" name="full_name" required>
@@ -377,7 +263,7 @@ for ($i = 0; $i < 7; $i++) {
             Role
             <select name="role_id" required>
                 <?php foreach ($roles as $role): ?>
-                                <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
+                                <?php if (in_array($role['role_name'], ['Employee'], true)): ?>
                                     <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -402,11 +288,11 @@ for ($i = 0; $i < 7; $i++) {
             $roleIdByName[$role['role_name']] = (int) $role['id'];
         }
         ?>
-        <section class="dashboard-section" data-section="manage-employees">
+        <section class="dashboard-section" id="manage-employees">
             <div class="card">
                 <div class="section-title">
                     <h3>Manage Employees</h3>
-                    <span><?= e(count($employees ?? [])) ?> employees in this section</span>
+                    <span><?= e(count($employees ?? [])) ?> employees in your company</span>
                 </div>
                 <?php if (!empty($employees)): ?>
                     <table>
@@ -426,7 +312,7 @@ for ($i = 0; $i < 7; $i++) {
                                 <td><?= e($employee['full_name']) ?></td>
                                 <td><?= e($employee['employee_code']) ?></td>
                                 <td><?= e($employee['username']) ?></td>
-                                <td><?= e($employee['email'] ?? '-') ?></td>
+                                <td><?= e($employee['email'] ?? '') ?></td>
                                 <td><span class="pill"><?= e($employee['role_name']) ?></span></td>
                                 <td class="table-actions">
                                     <button
@@ -481,7 +367,7 @@ for ($i = 0; $i < 7; $i++) {
                                 <label for="update-role" class="form-label">Role</label>
                                 <select id="update-role" name="role_id" class="form-input" required>
                                     <?php foreach ($roles as $role): ?>
-                                        <?php if (in_array($role['role_name'], ['Employee', 'Senior'], true)): ?>
+                                        <?php if (in_array($role['role_name'], ['Employee'], true)): ?>
                                             <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
@@ -502,7 +388,7 @@ for ($i = 0; $i < 7; $i++) {
 </section>
 
         <!-- Shift Requirements Section -->
-        <section class="dashboard-section" data-section="shift-requirements">
+        <section class="dashboard-section" id="shift-requirements">
             <div class="card">
     <div class="section-title">
         <h3>Shift Requirements</h3>
@@ -552,7 +438,7 @@ for ($i = 0; $i < 7; $i++) {
 </section>
 
         <!-- Shift Requests Section -->
-        <section class="dashboard-section" data-section="shift-requests">
+        <section class="dashboard-section" id="shift-requests">
             <div class="card">
     <div class="section-title">
         <h3>Shift Requests</h3>
@@ -603,7 +489,7 @@ for ($i = 0; $i < 7; $i++) {
 </section>
 
         <!-- Weekly Schedule Section -->
-        <section class="dashboard-section" data-section="weekly-schedule">
+        <section class="dashboard-section" id="weekly-schedule">
             <!-- Shift Requests Panel -->
             <div class="card requests-panel">
                 <div class="section-title">
@@ -631,7 +517,7 @@ for ($i = 0; $i < 7; $i++) {
                             <?php 
                             $firstRequest = reset($employeeRequests);
                             $firstRequest = reset($firstRequest);
-                            $employeeName = $firstRequest['employee_name'] ?? 'Unknown';
+                            $employeeName = $firstRequest['employee_name'] ?? '';
                             ?>
                             <div class="request-group" data-employee-id="<?= e((string) $empId) ?>">
                                 <div class="request-employee-header">
@@ -645,7 +531,7 @@ for ($i = 0; $i < 7; $i++) {
                                                 <div class="request-info">
                                                     <div class="request-date-shift">
                                                         <span class="request-date"><?= e((new DateTimeImmutable($date))->format('D, M j')) ?></span>
-                                                        <span class="request-shift"><?= e($request['shift_name'] ?? 'Day Off') ?></span>
+                                                        <span class="request-shift"><?= e($request['shift_name'] ?? '') ?></span>
                                                         <?php if (!empty($request['importance_level']) && $request['importance_level'] !== 'MEDIUM'): ?>
                                                             <span class="pill importance-<?= strtolower($request['importance_level']) ?>"><?= e($request['importance_level']) ?></span>
                                                         <?php endif; ?>
@@ -760,7 +646,7 @@ for ($i = 0; $i < 7; $i++) {
                                     if (($start1Time < $end2Time && $end1Time > $start2Time)) {
                                         $conflicts[] = [
                                             'employee_id' => $empId,
-                                            'employee_name' => $shift1['employee_name'] ?? 'Unknown',
+                                            'employee_name' => $shift1['employee_name'] ?? '',
                                             'date' => $date,
                                             'shift1' => $shift1['shift_name'] ?? '',
                                             'shift2' => $shift2['shift_name'] ?? '',
@@ -917,7 +803,7 @@ for ($i = 0; $i < 7; $i++) {
                     }
                 }
                 
-                // Also include all employees from the section
+                    // Also include all employees from the company
                 foreach ($employees as $emp) {
                     $empId = (int) $emp['id'];
                     if (!isset($uniqueEmployees[$empId])) {
@@ -967,7 +853,7 @@ for ($i = 0; $i < 7; $i++) {
                     if (!isset($employeeHours[$empId])) {
                         $employeeHours[$empId] = 0;
                     }
-                    $duration = $shiftDef['duration_hours'] ?? 8.0;
+                    $duration = $shiftDef['duration_hours'] ?? 0.0;
                     $employeeHours[$empId] += (float) $duration;
                 }
                 
@@ -1257,7 +1143,7 @@ for ($i = 0; $i < 7; $i++) {
 </section>
 
         <!-- Break Monitoring Section -->
-        <section class="dashboard-section" data-section="break-monitoring">
+        <section class="dashboard-section" id="break-monitoring">
             <div class="card">
     <div class="section-title">
         <h3>Break Monitoring</h3>
@@ -1291,7 +1177,7 @@ for ($i = 0; $i < 7; $i++) {
 </section>
 
         <!-- Performance Analytics Section -->
-        <section class="dashboard-section" data-section="performance">
+        <section class="dashboard-section" id="performance">
             <div class="card">
     <div class="section-title">
         <h3>Performance Analytics</h3>

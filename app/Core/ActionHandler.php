@@ -8,10 +8,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../Helpers/helpers.php';
 require_once __DIR__ . '/../Controllers/AuthController.php';
-require_once __DIR__ . '/../Controllers/DirectorController.php';
 require_once __DIR__ . '/../Controllers/TeamLeaderController.php';
 require_once __DIR__ . '/../Controllers/EmployeeController.php';
-require_once __DIR__ . '/../Controllers/SeniorController.php';
 require_once __DIR__ . '/../Controllers/SupervisorController.php';
 require_once __DIR__ . '/Router.php';
 
@@ -36,17 +34,6 @@ class ActionHandler
             return AuthController::handleSignup($payload);
         }, [], true);
         
-        // Director actions
-        Router::register('select_section', function(array $payload) {
-            DirectorController::handleSelectSection($payload);
-            return ['redirect' => '/index.php'];
-        }, ['Director'], true);
-        
-        Router::register('create_leader', function(array $payload) {
-            $result = DirectorController::handleCreateLeader($payload);
-            return ['message' => $result ?? 'Leader created successfully.'];
-        }, ['Director'], true);
-        
         // Team Leader actions
         Router::register('create_employee', function(array $payload) {
             $result = TeamLeaderController::handleCreateEmployee($payload);
@@ -69,29 +56,32 @@ class ActionHandler
         }, ['Team Leader'], true);
         
         Router::register('save_requirements', function(array $payload, array $context) use ($weekId) {
-            $sectionId = current_section_id();
-            if (!$sectionId) {
-                return ['success' => false, 'message' => 'Section not selected.'];
+            $user = current_user();
+            $companyId = (int) ($user['company_id'] ?? 0);
+            if ($companyId <= 0) {
+                return ['success' => false, 'message' => 'Company context unavailable.'];
             }
-            $result = TeamLeaderController::handleSaveRequirements($payload, $weekId, $sectionId);
+            $result = TeamLeaderController::handleSaveRequirements($payload, $weekId, $companyId);
             return ['message' => $result];
         }, ['Team Leader'], true);
         
         Router::register('generate_schedule', function(array $payload, array $context) use ($weekId) {
-            $sectionId = current_section_id();
-            if (!$sectionId) {
-                return ['success' => false, 'message' => 'Section not selected.'];
+            $user = current_user();
+            $companyId = (int) ($user['company_id'] ?? 0);
+            if ($companyId <= 0) {
+                return ['success' => false, 'message' => 'Company context unavailable.'];
             }
-            $result = TeamLeaderController::handleGenerateSchedule($weekId, $sectionId);
+            $result = TeamLeaderController::handleGenerateSchedule($weekId, $companyId);
             return ['message' => $result];
         }, ['Team Leader'], false);
         
         Router::register('assign_shift', function(array $payload, array $context) use ($weekId) {
-            $sectionId = current_section_id();
-            if (!$sectionId) {
-                return ['success' => false, 'message' => 'Section not selected.'];
+            $user = current_user();
+            $companyId = (int) ($user['company_id'] ?? 0);
+            if ($companyId <= 0) {
+                return ['success' => false, 'message' => 'Company context unavailable.'];
             }
-            $result = TeamLeaderController::handleAssignShift($payload, $weekId, $sectionId);
+            $result = TeamLeaderController::handleAssignShift($payload, $weekId, $companyId);
             
             // Check if this is an AJAX request
             $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
@@ -119,11 +109,12 @@ class ActionHandler
         }, ['Team Leader'], true);
         
         Router::register('swap_shifts', function(array $payload, array $context) use ($weekId) {
-            $sectionId = current_section_id();
-            if (!$sectionId) {
-                return ['success' => false, 'message' => 'Section not selected.'];
+            $user = current_user();
+            $companyId = (int) ($user['company_id'] ?? 0);
+            if ($companyId <= 0) {
+                return ['success' => false, 'message' => 'Company context unavailable.'];
             }
-            $result = TeamLeaderController::handleSwapShifts($payload, $weekId, $sectionId);
+            $result = TeamLeaderController::handleSwapShifts($payload, $weekId, $companyId);
             return ['message' => $result ?? 'Shifts swapped successfully.'];
         }, ['Team Leader'], true);
         
@@ -134,24 +125,14 @@ class ActionHandler
         }, ['Employee'], true);
         
         Router::register('start_break', function(array $payload) {
-            $role = current_role();
-            if ($role === 'Senior') {
-                $result = SeniorController::handleBreakAction($payload, 'start');
-            } else {
-                $result = EmployeeController::handleBreakAction($payload, 'start');
-            }
+            $result = EmployeeController::handleBreakAction($payload, 'start');
             return ['message' => $result];
-        }, ['Employee', 'Senior'], true);
+        }, ['Employee'], true);
         
         Router::register('end_break', function(array $payload) {
-            $role = current_role();
-            if ($role === 'Senior') {
-                $result = SeniorController::handleBreakAction($payload, 'end');
-            } else {
-                $result = EmployeeController::handleBreakAction($payload, 'end');
-            }
+            $result = EmployeeController::handleBreakAction($payload, 'end');
             return ['message' => $result];
-        }, ['Employee', 'Senior'], true);
+        }, ['Employee'], true);
 
     }
     

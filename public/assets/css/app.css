@@ -958,7 +958,7 @@ main {
 }
 
 .dashboard-section {
-    display: none;
+    display: block;
     animation: sectionSlideIn 0.4s ease-out;
 }
 
@@ -986,20 +986,20 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
-/* Director dashboard refinements */
+/* Supervisor dashboard refinements */
 .director-dashboard .dashboard-content {
     width: 100%;
     max-width: none;
 }
 
-/* Director dashboard layout update: sidebar + dedicated pages */
+/* Supervisor dashboard layout update: sidebar + dedicated pages */
 .director-dashboard .dashboard-shell {
     display: flex;
     gap: clamp(1.5rem, 3vw, 2.25rem);
     align-items: flex-start;
 }
 
-/* Director Sidebar - Card-based navigation (matching Team Leader style) */
+/* Supervisor Sidebar - Card-based navigation (matching Team Leader style) */
 /* Professional Sidebar with Enhanced Glassmorphism */
 .director-dashboard .director-sidebar {
     position: sticky;
@@ -1123,7 +1123,7 @@ main {
     opacity: 0.8;
 }
 
-/* Director sidebar navigation cards - card-based layout */
+/* Supervisor sidebar navigation cards - card-based layout */
 .director-dashboard .director-sidebar-nav-cards {
     display: flex;
     flex-direction: column;
@@ -3441,7 +3441,7 @@ table tbody tr:last-child td {
     color: var(--color-text-secondary);
 }
 
-/* Director-specific empty state improvements */
+/* Supervisor-specific empty state improvements */
 .director-dashboard .empty-state {
     padding: clamp(2.5rem, 5vw, 4rem);
     background: rgba(15, 23, 42, 0.25);
@@ -7361,7 +7361,7 @@ a.btn:hover::before {
    ============================================ */
 
 /* ============================================
-   Director + Employee Dashboard Rebuild
+   Supervisor + Employee Dashboard Rebuild
    ============================================ */
 .dashboard-topbar {
     position: sticky;

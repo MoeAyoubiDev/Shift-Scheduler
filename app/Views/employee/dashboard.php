@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$displayName = $user['full_name'] ?? $user['name'] ?? 'Employee';
+$displayName = $user['full_name'] ?? $user['username'] ?? '';
 $firstName = explode(' ', trim($displayName))[0] ?: $displayName;
 
 $mySchedule = array_values(array_filter($schedule ?? [], function($entry) use ($user) {
@@ -16,8 +16,6 @@ $weekHours = 0.0;
 foreach ($mySchedule as $entry) {
     $weekHours += (float) ($entry['duration_hours'] ?? 0);
 }
-$weekHours = $weekHours > 0 ? $weekHours : 38;
-$monthHours = $weekHours > 0 ? round($weekHours * 4) : 156;
 
 $nextShift = null;
 foreach ($mySchedule as $entry) {
@@ -26,13 +24,9 @@ foreach ($mySchedule as $entry) {
         break;
     }
 }
-$nextShiftTime = '3:00 PM';
-if ($nextShift && !empty($nextShift['start_time'])) {
-    $nextShiftTime = date('g:i A', strtotime($nextShift['start_time']));
-}
-
-$estimatedPay = $monthHours > 0 ? $monthHours * 15.5 : 2400;
-$earnedLabel = '$' . number_format($estimatedPay / 1000, 1) . 'k';
+$nextShiftTime = $nextShift && !empty($nextShift['start_time'])
+    ? date('g:i A', strtotime($nextShift['start_time']))
+    : '';
 
 $recentRequests = $myRequests ?? [];
 usort($recentRequests, function($a, $b) {
@@ -43,29 +37,16 @@ $recentRequests = array_slice($recentRequests, 0, 2);
 $notifications = [];
 if (!empty($recentRequests)) {
     foreach ($recentRequests as $request) {
+        $status = $request['status'] ?? '';
+        $title = $status !== '' ? $status . ' request' : '';
+        $body = trim(($request['shift_name'] ?? '') . ($request['request_date'] ? ' on ' . $request['request_date'] : ''));
         $notifications[] = [
-            'title' => ($request['status'] ?? 'Update') . ' request',
-            'body' => ($request['shift_name'] ?? 'Shift') . ' on ' . ($request['request_date'] ?? ''),
-            'tone' => strtolower((string) ($request['status'] ?? 'info')),
+            'title' => $title,
+            'body' => $body,
+            'tone' => strtolower((string) ($status !== '' ? $status : 'info')),
         ];
     }
-} else {
-    $notifications = [
-        [
-            'title' => 'Schedule Updated',
-            'body' => 'Your Dec 28 shift time changed',
-            'tone' => 'info',
-        ],
-        [
-            'title' => 'Request Approved',
-            'body' => 'Shift swap for Dec 20 approved',
-            'tone' => 'success',
-        ],
-    ];
 }
-
-$overtimeHours = max(0, $weekHours - 40);
-$regularHours = max(0, $monthHours - $overtimeHours);
 ?>
 
 <section class="dashboard-surface employee-dashboard-page">
@@ -89,16 +70,6 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 <div class="metric-value"><?= e(number_format($weekHours, 0)) ?> hrs</div>
             </div>
             <div class="dashboard-card metric-card">
-                <div class="metric-icon accent-teal">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M8 2V6M16 2V6M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="metric-label">This Month</div>
-                <div class="metric-value"><?= e(number_format($monthHours, 0)) ?> hrs</div>
-            </div>
-            <div class="dashboard-card metric-card">
                 <div class="metric-icon accent-green">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -107,16 +78,6 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 </div>
                 <div class="metric-label">Next Shift</div>
                 <div class="metric-value"><?= e($nextShiftTime) ?></div>
-            </div>
-            <div class="dashboard-card metric-card">
-                <div class="metric-icon accent-purple">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 1V23" stroke="currentColor" stroke-width="2"/>
-                        <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5C7 8.88071 8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5C17 13.8807 15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <div class="metric-label">Earned</div>
-                <div class="metric-value"><?= e($earnedLabel) ?></div>
             </div>
         </div>
 
@@ -153,15 +114,6 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 </span>
                 <span>View Timesheet</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="#employee-summary">
-                <span class="quick-action-icon accent-purple">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 1V23" stroke="currentColor" stroke-width="2"/>
-                        <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5C7 8.88071 8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5C17 13.8807 15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span>Pay Stubs</span>
-            </a>
         </div>
 
         <div class="dashboard-lower-grid employee-lower-grid">
@@ -175,13 +127,13 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                             <?php
                             $shiftDate = $entry['shift_date'] ?? '';
                             $dateObj = $shiftDate ? new DateTimeImmutable($shiftDate) : null;
-                            $dayLabel = $dateObj ? $dateObj->format('D') : 'Day';
-                            $dateLabel = $dateObj ? $dateObj->format('M j') : 'TBD';
-                            $timeLabel = 'OFF';
+                            $dayLabel = $dateObj ? $dateObj->format('D') : '';
+                            $dateLabel = $dateObj ? $dateObj->format('M j') : '';
+                            $timeLabel = '';
                             if (!empty($entry['start_time']) && !empty($entry['end_time'])) {
                                 $timeLabel = date('g:i A', strtotime($entry['start_time'])) . ' - ' . date('g:i A', strtotime($entry['end_time']));
                             }
-                            $statusRaw = strtolower((string) ($entry['assignment_source'] ?? 'confirmed'));
+                            $statusRaw = strtolower((string) ($entry['assignment_source'] ?? ''));
                             $statusClass = in_array($statusRaw, ['pending', 'confirmed', 'approved'], true) ? $statusRaw : 'confirmed';
                             ?>
                             <div class="schedule-row <?= $shiftDate === $today ? 'is-today' : '' ?>">
@@ -191,7 +143,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                                 </div>
                                 <div class="schedule-details">
                                     <div class="schedule-time"><?= e($timeLabel) ?></div>
-                                    <div class="schedule-meta"><?= e($entry['shift_name'] ?? 'Floor 3') ?></div>
+                                    <div class="schedule-meta"><?= e($entry['shift_name'] ?? '') ?></div>
                                 </div>
                                 <div class="schedule-status <?= e($statusClass) ?>">
                                     <?= e(ucfirst($statusClass)) ?>
@@ -219,11 +171,11 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                             <?php foreach ($recentRequests as $request): ?>
                                 <div class="request-item">
                                     <div>
-                                        <div class="request-title"><?= e($request['shift_name'] ?? 'Time Off') ?></div>
+                                        <div class="request-title"><?= e($request['shift_name'] ?? '') ?></div>
                                         <div class="request-meta"><?= e($request['request_date'] ?? '') ?></div>
                                     </div>
-                                    <span class="status-pill <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>">
-                                        <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>
+                                    <span class="status-pill <?= e(strtolower((string) ($request['status'] ?? ''))) ?>">
+                                        <?= e(strtolower((string) ($request['status'] ?? ''))) ?>
                                     </span>
                                 </div>
                             <?php endforeach; ?>
@@ -236,30 +188,24 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                     </div>
                 </div>
 
-                <div class="dashboard-card summary-card" id="employee-summary">
-                    <div class="card-header">
-                        <h3>December Summary</h3>
-                    </div>
-                    <div class="summary-grid">
-                        <div><span>Total Hours</span><strong><?= e(number_format($monthHours)) ?></strong></div>
-                        <div><span>Regular Hours</span><strong><?= e(number_format($regularHours)) ?></strong></div>
-                        <div><span>Overtime</span><strong><?= e(number_format($overtimeHours)) ?></strong></div>
-                        <div><span>Days Worked</span><strong><?= e(count($mySchedule)) ?></strong></div>
-                        <div><span>Gross Pay</span><strong class="summary-highlight"><?= e('$' . number_format($estimatedPay)) ?></strong></div>
-                    </div>
-                </div>
-
                 <div class="dashboard-card notifications-card" id="employee-notifications">
                     <div class="card-header">
                         <h3>Notifications</h3>
                     </div>
                     <div class="notification-list">
-                        <?php foreach ($notifications as $note): ?>
-                            <div class="notification-item <?= e($note['tone']) ?>">
-                                <div class="notification-title"><?= e($note['title']) ?></div>
-                                <div class="notification-body"><?= e($note['body']) ?></div>
+                        <?php if ($notifications): ?>
+                            <?php foreach ($notifications as $note): ?>
+                                <div class="notification-item <?= e($note['tone']) ?>">
+                                    <div class="notification-title"><?= e($note['title']) ?></div>
+                                    <div class="notification-body"><?= e($note['body']) ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No notifications yet</div>
+                                <p class="empty-state-text">Updates will appear here when requests are submitted.</p>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                     <a class="activity-link" href="#employee-requests">View All</a>
                 </div>

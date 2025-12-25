@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 
 header('Content-Type: application/json');
 require_login();
-require_role(['Team Leader', 'Director']);
+require_role(['Team Leader', 'Supervisor']);
 
 // API endpoint logic here
 http_response_code(501);

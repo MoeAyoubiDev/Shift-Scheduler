@@ -29,7 +29,7 @@ mysql < database/shift_scheduler.sql
 **This script will:**
 - ✅ Drop the existing database completely
 - ✅ Create a fresh database with utf8mb4_unicode_ci collation
-- ✅ Create all base tables (roles, sections, users, employees, etc.)
+- ✅ Create all base tables (roles, users, employees, schedules, etc.)
 - ✅ Add multi-tenant tables (companies, company_onboarding)
 - ✅ Add company_id columns to all relevant tables
 - ✅ Create essential stored procedures (sp_verify_login, sp_create_company, etc.)
@@ -80,13 +80,10 @@ mysql < database/shift_scheduler.sql
 Shift-Scheduler/
 ├── app/                                    # Application Core (MVC Architecture)
 │   ├── Controllers/                        # Request Handlers & Business Logic
-│   │   ├── AdminController.php            # Admin operations
 │   │   ├── AuthController.php             # Authentication (login/logout)
-│   │   ├── DirectorController.php         # Director role actions
 │   │   ├── EmployeeController.php         # Employee actions (requests, breaks)
 │   │   ├── NotificationController.php     # Notification endpoints
 │   │   ├── RequestController.php          # Shift request management
-│   │   ├── SeniorController.php           # Senior role actions
 │   │   ├── SupervisorController.php       # Supervisor monitoring actions
 │   │   └── TeamLeaderController.php       # Team Leader scheduling actions
 │   │
@@ -97,7 +94,6 @@ Shift-Scheduler/
 │   │
 │   ├── Helpers/                            # Utility Functions
 │   │   ├── helpers.php                    # General helpers (auth, CSRF, etc.)
-│   │   ├── schedule.php                   # Schedule-related utilities
 │   │   └── view.php                        # View rendering helpers
 │   │
 │   ├── Models/                             # Data Models (Database Abstraction)
@@ -113,7 +109,6 @@ Shift-Scheduler/
 │   │   ├── ScheduleAssignment.php        # Shift assignments
 │   │   ├── SchedulePattern.php           # Work patterns
 │   │   ├── ScheduleShift.php              # Individual shifts
-│   │   ├── Section.php                    # Department/section management
 │   │   ├── ShiftDefinition.php           # Shift templates
 │   │   ├── ShiftRequest.php              # Shift requests
 │   │   ├── ShiftRequirement.php          # Shift requirements
@@ -128,20 +123,11 @@ Shift-Scheduler/
 │   └── Views/                              # View Templates (Presentation Layer)
 │       ├── auth/
 │       │   └── login.php                  # Login form view
-│       ├── dashboard/
-│       │   ├── admin.php                  # Admin dashboard
-│       │   ├── employee.php               # Employee dashboard
-│       │   └── overview.php               # Overview dashboard
-│       ├── director/
-│       │   ├── choose-section.php         # Section selection
-│       │   └── dashboard.php              # Director dashboard
 │       ├── employee/
 │       │   └── dashboard.php              # Employee dashboard
 │       ├── partials/                      # Reusable view components
 │       ├── public/
 │       │   └── landing.php               # Public landing page
-│       ├── senior/
-│       │   └── dashboard.php             # Senior dashboard
 │       ├── shifts/
 │       │   ├── admin-schedule.php         # Admin schedule view
 │       │   └── employee-schedule.php     # Employee schedule view
@@ -182,9 +168,6 @@ Shift-Scheduler/
 │   │       ├── calendar.js               # Calendar functionality
 │   │       ├── dashboard.js              # Dashboard interactions
 │   │       └── enhanced.js               # Enhanced features
-│   │
-│   ├── dashboard/                        # Dashboard routes
-│   │   └── index.php                      # Dashboard entry point
 │   │
 │   ├── notifications/                    # Notification tooling
 │   │   └── test.php                       # Notification test endpoint
@@ -263,10 +246,9 @@ Shift-Scheduler/
 - `company_onboarding` - Onboarding progress
 
 ### Core Tables
-- `roles` - System roles (Director, Team Leader, etc.)
-- `sections` - Company departments (company-scoped)
+- `roles` - System roles (Supervisor, Team Leader, Employee)
 - `users` - User accounts (company-scoped)
-- `user_roles` - User-role-section assignments
+- `user_roles` - User-role assignments (company-scoped)
 - `employees` - Employee records
 - `weeks` - Week definitions (company-scoped)
 - `shift_types` - Shift type definitions
@@ -298,7 +280,7 @@ Shift-Scheduler/
    - **Step 3**: Employees setup (add employees)
    - **Step 4**: Scheduling preferences
    - **Step 5**: Review and confirm
-   - Creates initial section, admin user, and employees
+   - Creates supervisor user and employees
    - Updates status to: `ONBOARDING`
 
 4. **Preview** (`/onboarding-preview.php`)
@@ -320,16 +302,15 @@ Shift-Scheduler/
 
 ## Roles & Permissions
 
-### Director
-- **Access**: Read-only access to all sections
+### Supervisor
+- **Access**: Full visibility across the company
 - **Features**:
-  - View all sections (can switch between sections)
   - View schedules, requests, performance reports
-  - View analytics and metrics
-  - No editing capabilities
+  - Monitor break status and coverage gaps
+  - Create Team Leaders and Employees
 
 ### Team Leader
-- **Access**: Full CRUD for assigned section
+- **Access**: Full CRUD for company schedules and staffing
 - **Features**:
   - Create and manage schedules
   - Approve/decline shift requests
@@ -338,23 +319,6 @@ Shift-Scheduler/
   - Generate weekly schedules
   - View performance reports
   - Manage employees
-
-### Supervisor
-- **Access**: Read-only monitoring for assigned section
-- **Features**:
-  - View schedules and assignments
-  - Monitor break status
-  - View shift requests (read-only)
-  - Track employee performance
-  - View coverage gaps
-
-### Senior
-- **Access**: Real-time shift management for assigned section
-- **Features**:
-  - View today's schedule
-  - Monitor active breaks
-  - View weekly schedule
-  - Cannot submit shift requests
 
 ### Employee
 - **Access**: Self-service for own data
@@ -487,7 +451,7 @@ define('DB_PASS', 'your_password');
 
 ### Multi-Tenant Architecture
 - Complete data isolation per company
-- Company-specific sections, users, schedules
+- Company-specific users and schedules
 - Secure tenant separation
 
 ### Scheduling System
@@ -685,7 +649,7 @@ When you add employees in Step 3 of onboarding, they are automatically created w
 Employee Name: John Doe
 Username: johndoe_1
 Password: TempPass123!
-Role: Employee (or Senior, Team Leader based on selection)
+Role: Employee (or Team Leader based on selection)
 ```
 
 ### Creating Multiple Test Companies
@@ -713,11 +677,9 @@ Company 2:
 
 After onboarding, users are created with different roles:
 
-- **Director**: Full read-only access to all sections, analytics, and reports
-- **Team Leader**: Full CRUD for assigned section, schedule management
-- **Supervisor**: Read-only monitoring, performance tracking
-- **Senior**: Real-time shift management, break monitoring
-- **Employee**: Self-service shift requests, view own schedule
+- **Supervisor**: Full system visibility, analytics, and reports
+- **Team Leader**: Schedule management and employee administration
+- **Employee**: Self-service shift requests and schedule access
 
 ### Quick Test Setup
 
@@ -742,18 +704,16 @@ Password: Demo123!
 ### Dashboard Access
 
 After successful login:
-- **Director**: Full dashboard with all sections visible
-- **Team Leader**: Dashboard for assigned section only
-- **Supervisor**: Monitoring dashboard
-- **Senior**: Shift management dashboard
+- **Supervisor**: Full company dashboard with all operational data
+- **Team Leader**: Team operations dashboard
 - **Employee**: Personal schedule and requests dashboard
 
 ### Quick Start Data Workflow
 
 To generate data quickly:
-1. Sign up once to create a Director account.
-2. Use the Director dashboard to add Team Leaders or Supervisors.
-3. Have Team Leaders or Supervisors add Employees and Seniors.
+1. Sign up once to create a Supervisor account.
+2. Use the Supervisor dashboard to add Team Leaders.
+3. Have Team Leaders or Supervisors add Employees.
 
 The database script already includes robust reference data (roles, shift types, patterns, and settings) for immediate use.
 

@@ -15,9 +15,9 @@ class EmployeeController
 
         $user = current_user();
         
-        // Check if user is Senior (Seniors cannot submit requests)
-        if ($user['role'] === 'Senior' || ($user['is_senior'] ?? 0) === 1) {
-            return 'Senior employees cannot submit shift requests.';
+        $companyId = (int) ($user['company_id'] ?? 0);
+        if ($companyId <= 0) {
+            return 'Company context unavailable.';
         }
 
         // Validate submission window: can only submit during current week, but NOT on Sunday
@@ -61,7 +61,7 @@ class EmployeeController
 
         // Get the correct week_id for next week
         require_once __DIR__ . '/../Models/Schedule.php';
-        $nextWeekId = Schedule::upsertWeek($nextWeekStart->format('Y-m-d'), $nextWeekEnd->format('Y-m-d'));
+        $nextWeekId = Schedule::upsertWeek($companyId, $nextWeekStart->format('Y-m-d'), $nextWeekEnd->format('Y-m-d'));
 
         $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
         $isDayOff = $shiftDefinitionId === 0;

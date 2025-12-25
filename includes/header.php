@@ -8,8 +8,6 @@ $brandYear = function_exists('app_config') ? app_config('brand_year', '2026') : 
 $user = function_exists('current_user') ? current_user() : null;
 $role = ($user && isset($user['role'])) ? $user['role'] : null;
 $bodyRoleClass = $role ? 'role-' . strtolower(str_replace(' ', '-', $role)) : '';
-$sectionName = ($user && isset($user['section_name'])) ? $user['section_name'] : null;
-$currentSectionId = function_exists('current_section_id') ? current_section_id() : null;
 ?>
 <!doctype html>
 <html lang="en">
@@ -28,11 +26,11 @@ $currentSectionId = function_exists('current_section_id') ? current_section_id()
     </head>
 <body class="page-shell <?= !$user ? 'login-page' : '' ?> <?= $bodyRoleClass ?>">
 <?php if ($user): ?>
-    <?php if (in_array($role, ['Director', 'Employee'], true)): ?>
+    <?php if (in_array($role, ['Supervisor', 'Employee'], true)): ?>
         <?php
-        $companyLabel = $user['company_name'] ?? $sectionName ?? 'Acme Corporation';
-        $dashboardSubtitle = $role === 'Director' ? 'Director Dashboard' : 'My Schedule';
-        $notificationAnchor = $role === 'Director' ? '#director-activity' : '#employee-notifications';
+        $companyLabel = $user['company_name'] ?? 'Company';
+        $dashboardSubtitle = $role === 'Supervisor' ? 'Supervisor Workspace' : 'My Schedule';
+        $notificationAnchor = $role === 'Supervisor' ? '#supervisor-activity' : '#employee-notifications';
         ?>
         <header class="dashboard-topbar">
             <div class="dashboard-topbar-inner">
@@ -91,9 +89,6 @@ $currentSectionId = function_exists('current_section_id') ? current_section_id()
                 </div>
                 <div class="header-actions">
                     <div class="pill"><?= function_exists('e') ? e($role) : htmlspecialchars($role ?? '', ENT_QUOTES, 'UTF-8') ?></div>
-                    <?php if ($sectionName || $currentSectionId): ?>
-                        <div class="pill">Section: <?= function_exists('e') ? e($sectionName ?? 'Selected') : htmlspecialchars($sectionName ?? 'Selected', ENT_QUOTES, 'UTF-8') ?></div>
-                    <?php endif; ?>
                     <form method="post" class="inline" action="/index.php">
                         <input type="hidden" name="action" value="logout">
                         <input type="hidden" name="csrf_token" value="<?= function_exists('csrf_token') ? (function_exists('e') ? e(csrf_token()) : htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')) : '' ?>">

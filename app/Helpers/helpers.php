@@ -16,33 +16,19 @@ function current_role(): ?string
     return $user['role'] ?? null;
 }
 
-function current_section_id(): ?int
+function current_company_id(): ?int
 {
     $user = current_user();
     if (!$user) {
         return null;
     }
 
-    if ($user['role'] === 'Director') {
-        return $_SESSION['selected_section_id'] ?? null;
-    }
-
-    return $user['section_id'] ?? null;
-}
-
-function set_current_section(int $sectionId): void
-{
-    if ($sectionId <= 0) {
-        unset($_SESSION['selected_section_id']);
-        return;
-    }
-
-    $_SESSION['selected_section_id'] = $sectionId;
+    return $user['company_id'] ?? null;
 }
 
 function logout(): void
 {
-    unset($_SESSION['user'], $_SESSION['selected_section_id']);
+    unset($_SESSION['user']);
 }
 
 function require_login(): void

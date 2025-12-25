@@ -34,7 +34,7 @@ if (!$company) {
 
 // Company is auto-verified on signup, allow onboarding if status is VERIFIED or ONBOARDING
 if ($company['status'] === 'ACTIVE' || !empty($user['onboarding_completed'])) {
-    header('Location: /dashboard');
+    header('Location: /index.php');
     exit;
 }
 
@@ -119,32 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                 $pdo->beginTransaction();
 
                 try {
-                    $sectionName = $progress['step_1']['data']['company_name'] ?? $company['company_name'];
-                    $sectionNameFull = $sectionName . ' - Main';
-
-                    $checkSectionStmt = $pdo->prepare("SELECT id FROM sections WHERE section_name = ? AND company_id = ? LIMIT 1");
-                    $checkSectionStmt->execute([$sectionNameFull, $companyId]);
-                    $existingSection = $checkSectionStmt->fetch(PDO::FETCH_ASSOC);
-
-                    if ($existingSection) {
-                        $sectionId = (int) $existingSection['id'];
-                    } else {
-                        $sectionStmt = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
-                        $sectionStmt->execute([$sectionNameFull, $companyId]);
-                        $sectionId = (int) $pdo->lastInsertId();
-                    }
-
-                    if ($sectionId <= 0) {
-                        throw new RuntimeException('Failed to create section.');
-                    }
-
-                    $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
+                    $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Supervisor' LIMIT 1");
                     $roleStmt->execute();
                     $roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
-                    $directorRoleId = (int) ($roleRow['id'] ?? 0);
-                    if ($directorRoleId === 0) {
+                    $supervisorRoleId = (int) ($roleRow['id'] ?? 0);
+                    if ($supervisorRoleId === 0) {
                         throw new RuntimeException(
-                            'Director role not found. Database seed data is missing. Please run: mysql < database/shift_scheduler.sql'
+                            'Supervisor role not found. Database seed data is missing. Please run: mysql < database/shift_scheduler.sql'
                         );
                     }
 
@@ -153,26 +134,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                         throw new RuntimeException('Unable to identify admin user.');
                     }
 
-                    $adminRoleStmt = $pdo->prepare("SELECT id, section_id FROM user_roles WHERE user_id = ? AND role_id = ? LIMIT 1");
-                    $adminRoleStmt->execute([$userId, $directorRoleId]);
+                    $adminRoleStmt = $pdo->prepare("SELECT id FROM user_roles WHERE user_id = ? AND role_id = ? AND company_id = ? LIMIT 1");
+                    $adminRoleStmt->execute([$userId, $supervisorRoleId, $companyId]);
                     $adminRoleRow = $adminRoleStmt->fetch(PDO::FETCH_ASSOC);
 
                     if ($adminRoleRow) {
-                        $existingRoleSection = (int) $adminRoleRow['section_id'];
-                        if ($existingRoleSection !== $sectionId) {
-                            $updateRoleStmt = $pdo->prepare("UPDATE user_roles SET section_id = ? WHERE id = ?");
-                            $updateRoleStmt->execute([$sectionId, (int) $adminRoleRow['id']]);
-                        }
+                        $updateRoleStmt = $pdo->prepare("UPDATE user_roles SET company_id = ? WHERE id = ?");
+                        $updateRoleStmt->execute([$companyId, (int) $adminRoleRow['id']]);
                     } else {
-                        $userRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
-                        $userRoleStmt->execute([$userId, $directorRoleId, $sectionId]);
+                        $userRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, company_id) VALUES (?, ?, ?)");
+                        $userRoleStmt->execute([$userId, $supervisorRoleId, $companyId]);
                     }
 
-                    $updateAdminStmt = $pdo->prepare("UPDATE users SET company_id = ?, role = 'Director', onboarding_completed = 1 WHERE id = ?");
+                    $updateAdminStmt = $pdo->prepare("UPDATE users SET company_id = ?, role = 'Supervisor', onboarding_completed = 1 WHERE id = ?");
                     $updateAdminStmt->execute([$companyId, $userId]);
 
                     $employeesData = $progress['step_3']['data']['employees'] ?? [];
-                    $empRoleMap = ['Employee' => 'Employee', 'Senior' => 'Senior', 'Team Leader' => 'Team Leader'];
+                    $empRoleMap = ['Employee' => 'Employee', 'Team Leader' => 'Team Leader'];
 
                     foreach ($employeesData as $idx => $emp) {
                         if (empty($emp['full_name'])) {
@@ -234,19 +212,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                             throw new RuntimeException('Failed to create employee user.');
                         }
 
-                        $empUserRoleStmt = $pdo->prepare("SELECT id FROM user_roles WHERE user_id = ? AND role_id = ? AND section_id = ? LIMIT 1");
-                        $empUserRoleStmt->execute([$existingUserId, $empRoleId, $sectionId]);
+                        $empUserRoleStmt = $pdo->prepare("SELECT id FROM user_roles WHERE user_id = ? AND role_id = ? AND company_id = ? LIMIT 1");
+                        $empUserRoleStmt->execute([$existingUserId, $empRoleId, $companyId]);
                         $empUserRoleRow = $empUserRoleStmt->fetch(PDO::FETCH_ASSOC);
 
                         if ($empUserRoleRow) {
                             $empUserRoleId = (int) $empUserRoleRow['id'];
                         } else {
-                            $insertUserRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
-                            $insertUserRoleStmt->execute([$existingUserId, $empRoleId, $sectionId]);
+                            $insertUserRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, company_id) VALUES (?, ?, ?)");
+                            $insertUserRoleStmt->execute([$existingUserId, $empRoleId, $companyId]);
                             $empUserRoleId = (int) $pdo->lastInsertId();
                         }
 
-                        if (in_array($empRoleName, ['Employee', 'Senior'], true) && $empUserRoleId > 0) {
+                        if (in_array($empRoleName, ['Employee', 'Team Leader'], true) && $empUserRoleId > 0) {
                             $checkEmployeeStmt = $pdo->prepare("SELECT id FROM employees WHERE user_role_id = ? LIMIT 1");
                             $checkEmployeeStmt->execute([$empUserRoleId]);
                             $existingEmployee = $checkEmployeeStmt->fetch(PDO::FETCH_ASSOC);
@@ -262,7 +240,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                                     $empCode = 'EMP' . str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
                                 }
 
-                                $isSenior = $empRoleName === 'Senior';
                                 $employeeStmt = $pdo->prepare("
                                     INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level)
                                     VALUES (?, ?, ?, ?, ?, ?)
@@ -272,8 +249,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                                     $empCode,
                                     $emp['full_name'],
                                     $email !== '' ? $email : null,
-                                    $isSenior ? 1 : 0,
-                                    $isSenior ? 5 : 0,
+                                    0,
+                                    0,
                                 ]);
                             }
                         }
@@ -296,7 +273,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                         $_SESSION['role'] = $freshUser['role'];
                         $_SESSION['company_id'] = $freshUser['company_id'];
                     }
-                    $_SESSION['selected_section_id'] = $sectionId;
                     unset($_SESSION['onboarding_company_id']);
 
                     header('Location: /index.php?message=' . urlencode('Your account has been created successfully.'));
@@ -435,7 +411,6 @@ require_once __DIR__ . '/../includes/header.php';
                                 <label class="form-label">Role</label>
                                 <select name="employees[<?= $idx ?>][role]" class="form-input" required>
                                     <option value="Employee" <?= ($emp['role'] ?? 'Employee') === 'Employee' ? 'selected' : '' ?>>Employee</option>
-                                    <option value="Senior" <?= ($emp['role'] ?? '') === 'Senior' ? 'selected' : '' ?>>Senior</option>
                                     <option value="Team Leader" <?= ($emp['role'] ?? '') === 'Team Leader' ? 'selected' : '' ?>>Team Leader</option>
                                 </select>
                             </div>
@@ -653,7 +628,6 @@ document.getElementById('add-employee')?.addEventListener('click', function() {
             <label class="form-label">Role</label>
             <select name="employees[${employeeCount}][role]" class="form-input" required>
                 <option value="Employee">Employee</option>
-                <option value="Senior">Senior</option>
                 <option value="Team Leader">Team Leader</option>
             </select>
         </div>

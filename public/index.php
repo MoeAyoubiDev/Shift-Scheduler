@@ -30,50 +30,55 @@ require_once __DIR__ . '/../app/Models/Schedule.php';
 $today = new DateTimeImmutable();
 $weekStart = $today->modify('monday this week')->format('Y-m-d');
 $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
+$user = current_user();
+$companyId = $user ? (int) ($user['company_id'] ?? 0) : 0;
+$weekId = 0;
 
-try {
-    $weekId = Schedule::upsertWeek($weekStart, $weekEnd);
-    if ($weekId <= 0) {
-        throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
+if ($companyId > 0) {
+    try {
+        $weekId = Schedule::upsertWeek($companyId, $weekStart, $weekEnd);
+        if ($weekId <= 0) {
+            throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
+        }
+    } catch (PDOException $e) {
+        error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Database Error (PDOException):</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "SQL State: " . $e->getCode() . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
+    } catch (RuntimeException $e) {
+        error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Runtime Error:</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
+    } catch (Exception $e) {
+        error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Error:</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "Type: " . get_class($e) . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
     }
-} catch (PDOException $e) {
-    error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Database Error (PDOException):</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "SQL State: " . $e->getCode() . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
-} catch (RuntimeException $e) {
-    error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Runtime Error:</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
-} catch (Exception $e) {
-    error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Error:</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "Type: " . get_class($e) . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
 }
 
 // Initialize action handlers
@@ -122,26 +127,16 @@ if (empty($message) && isset($_GET['message'])) {
             }
 
 // Handle CSV export
-$user = current_user();
 $role = $user['role'] ?? null;
-$sectionId = current_section_id();
-
-if ($user && $role === 'Director' && !$sectionId) {
-    $sections = $user['sections'] ?? [];
-    if (count($sections) === 1) {
-        $sectionId = (int) $sections[0]['section_id'];
-        set_current_section($sectionId);
-    }
-}
 
 if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $role === 'Team Leader') {
     $exportWeekStart = $_GET['week_start'] ?? $weekStart;
     $exportWeekEnd = $_GET['week_end'] ?? $weekEnd;
-    $exportWeekId = Schedule::upsertWeek($exportWeekStart, $exportWeekEnd);
-    $scheduleRows = $sectionId ? Schedule::getWeeklySchedule($exportWeekId, $sectionId) : [];
+    $exportWeekId = Schedule::upsertWeek($companyId, $exportWeekStart, $exportWeekEnd);
+    $scheduleRows = $companyId ? Schedule::getWeeklySchedule($exportWeekId, $companyId) : [];
     
     require_once __DIR__ . '/../app/Models/Employee.php';
-    $allEmployees = $sectionId ? Employee::listBySection($sectionId) : [];
+    $allEmployees = $companyId ? Employee::listByCompany($companyId) : [];
     
     // Transform to employee-based format
     $employeeSchedule = [];
@@ -245,13 +240,6 @@ if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $ro
     exit;
 }
 
-// Handle section reset for Director
-if (isset($_GET['reset_section']) && $role === 'Director') {
-    set_current_section(0);
-    header('Location: /index.php');
-    exit;
-}
-
 // Render landing page or login if not authenticated
 if (!$user) {
     header('Cache-Control: no-cache, no-store, must-revalidate');
@@ -274,48 +262,59 @@ if (!$user) {
 // Render dashboard based on role
 require_once __DIR__ . '/../includes/header.php';
 
-if ($role === 'Director') {
-    if (!$sectionId) {
-        render_view('director/choose-section', [
-            'user' => $user,
-        ]);
-    } else {
-        require_once __DIR__ . '/../app/Models/Section.php';
-        require_once __DIR__ . '/../app/Models/Role.php';
-        require_once __DIR__ . '/../app/Models/Performance.php';
-        require_once __DIR__ . '/../app/Models/ShiftRequest.php';
-        require_once __DIR__ . '/../app/Models/Employee.php';
-        
-        $dashboard = Performance::directorDashboard($sectionId, $weekId);
-        $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
-        $requests = ShiftRequest::listByWeek($weekId, $sectionId);
-        $performance = Performance::report($weekStart, $weekEnd, $sectionId, null);
-        $sections = Section::getAll();
-        $roles = Role::listRoles();
-        $employees = Employee::listBySection($sectionId);
-        $admins = Employee::listAdmins();
+if ($role === 'Supervisor') {
+    require_once __DIR__ . '/../app/Models/Employee.php';
+    require_once __DIR__ . '/../app/Models/Performance.php';
+    require_once __DIR__ . '/../app/Models/Break.php';
+    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
+    require_once __DIR__ . '/../app/Models/Role.php';
 
-        $directorPage = $_GET['page'] ?? 'overview';
-        $allowedDirectorPages = ['overview', 'employees', 'departments', 'attendance', 'reports', 'settings'];
-        if (!in_array($directorPage, $allowedDirectorPages, true)) {
-            $directorPage = 'overview';
+    $schedule = $companyId ? Schedule::getWeeklySchedule($weekId, $companyId) : [];
+    $employees = $companyId ? Employee::listByCompany($companyId) : [];
+    $performance = $companyId ? Performance::report($weekStart, $weekEnd, $companyId, null) : [];
+    $breaks = $companyId ? BreakModel::currentBreaks($companyId, $today->format('Y-m-d')) : [];
+    $requests = $companyId ? ShiftRequest::listByWeek($weekId, $companyId) : [];
+    $requirements = $companyId ? Schedule::getShiftRequirements($weekId, $companyId) : [];
+    $roles = Role::listRoles();
+
+    $dashboard = $companyId ? Performance::supervisorDashboard($companyId, $weekId) : [];
+
+    $totalEmployees = count($employees);
+    $totalShifts = count($schedule);
+    $pendingRequests = count(array_filter($requests, fn($r) => $r['status'] === 'PENDING'));
+    $activeBreaks = count(array_filter($breaks, fn($b) => $b['status'] === 'ON_BREAK'));
+    $totalBreakDelays = array_sum(array_column($breaks, 'delay_minutes'));
+    $avgDelay = count($breaks) > 0 ? round($totalBreakDelays / count($breaks), 1) : 0;
+    $coverageGaps = 0;
+    foreach ($requirements as $req) {
+        $assigned = count(array_filter($schedule, fn($s) => $s['shift_date'] === $req['date'] && $s['shift_name'] === $req['shift_name']));
+        if ($assigned < $req['required_count']) {
+            $coverageGaps += ($req['required_count'] - $assigned);
         }
-
-        render_view('director/dashboard', [
-            'user' => $user,
-            'weekStart' => $weekStart,
-            'weekEnd' => $weekEnd,
-            'dashboard' => $dashboard,
-            'schedule' => $schedule,
-            'requests' => $requests,
-            'performance' => $performance,
-            'sections' => $sections,
-            'roles' => $roles,
-            'employees' => $employees,
-            'admins' => $admins,
-            'directorPage' => $directorPage,
-        ]);
     }
+
+    render_view('supervisor/dashboard', [
+        'user' => $user,
+        'weekStart' => $weekStart,
+        'weekEnd' => $weekEnd,
+        'weekId' => $weekId,
+        'schedule' => $schedule,
+        'employees' => $employees,
+        'performance' => $performance,
+        'breaks' => $breaks,
+        'requests' => $requests,
+        'requirements' => $requirements,
+        'roles' => $roles,
+        'dashboard' => $dashboard[0] ?? [],
+        'metrics' => [
+            'total_employees' => $totalEmployees,
+            'total_shifts' => $totalShifts,
+            'pending_requests' => $pendingRequests,
+            'active_breaks' => $activeBreaks,
+            'avg_delay' => $avgDelay,
+            'coverage_gaps' => $coverageGaps,
+        ],
+    ]);
 } elseif ($role === 'Team Leader') {
     require_once __DIR__ . '/../app/Models/Employee.php';
     require_once __DIR__ . '/../app/Models/ShiftRequest.php';
@@ -326,13 +325,13 @@ if ($role === 'Director') {
     $shiftDefinitions = Schedule::getShiftDefinitions();
     $shiftTypes = Schedule::getShiftTypes();
     $roles = Role::listRoles();
-    $requirements = $sectionId ? Schedule::getShiftRequirements($weekId, $sectionId) : [];
-    $requests = $sectionId ? ShiftRequest::listByWeek($weekId, $sectionId) : [];
-    $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
-    $employees = $sectionId ? Employee::listBySection($sectionId) : [];
+    $requirements = $companyId ? Schedule::getShiftRequirements($weekId, $companyId) : [];
+    $requests = $companyId ? ShiftRequest::listByWeek($weekId, $companyId) : [];
+    $schedule = $companyId ? Schedule::getWeeklySchedule($weekId, $companyId) : [];
+    $employees = $companyId ? Employee::listByCompany($companyId) : [];
     $patterns = Schedule::getSchedulePatterns();
-    $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
-    $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
+    $performance = $companyId ? Performance::report($weekStart, $weekEnd, $companyId, null) : [];
+    $breaks = $companyId ? BreakModel::currentBreaks($companyId, $today->format('Y-m-d')) : [];
     
     // Calculate metrics for overview
     $pendingRequests = array_filter($requests, fn($r) => $r['status'] === 'PENDING');
@@ -382,81 +381,16 @@ if ($role === 'Director') {
         'activeBreaksList' => array_slice($activeBreaks, 0, 3),
         'unassignedList' => array_slice($unassignedEmployees, 0, 3),
     ]);
-} elseif ($role === 'Supervisor') {
-    require_once __DIR__ . '/../app/Models/Employee.php';
-    require_once __DIR__ . '/../app/Models/Performance.php';
-    require_once __DIR__ . '/../app/Models/Break.php';
-    require_once __DIR__ . '/../app/Models/ShiftRequest.php';
-    require_once __DIR__ . '/../app/Models/Role.php';
-    
-    $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
-    $employees = $sectionId ? Employee::listBySection($sectionId) : [];
-    $performance = $sectionId ? Performance::report($weekStart, $weekEnd, $sectionId, null) : [];
-    $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
-    $requests = $sectionId ? ShiftRequest::listByWeek($weekId, $sectionId) : [];
-    $requirements = $sectionId ? Schedule::getShiftRequirements($weekId, $sectionId) : [];
-    $roles = Role::listRoles();
-    
-    // Calculate tracking metrics
-    $totalEmployees = count($employees);
-    $totalShifts = count($schedule);
-    $pendingRequests = count(array_filter($requests, fn($r) => $r['status'] === 'PENDING'));
-    $activeBreaks = count(array_filter($breaks, fn($b) => $b['status'] === 'ON_BREAK'));
-    $totalBreakDelays = array_sum(array_column($breaks, 'delay_minutes'));
-    $avgDelay = count($breaks) > 0 ? round($totalBreakDelays / count($breaks), 1) : 0;
-    $coverageGaps = 0;
-    foreach ($requirements as $req) {
-        $assigned = count(array_filter($schedule, fn($s) => $s['shift_date'] === $req['date'] && $s['shift_name'] === $req['shift_name']));
-        if ($assigned < $req['required_count']) {
-            $coverageGaps += ($req['required_count'] - $assigned);
-        }
-    }
-
-    render_view('supervisor/dashboard', [
-        'user' => $user,
-        'weekStart' => $weekStart,
-        'weekEnd' => $weekEnd,
-        'weekId' => $weekId,
-        'schedule' => $schedule,
-        'employees' => $employees,
-        'performance' => $performance,
-        'breaks' => $breaks,
-        'requests' => $requests,
-        'requirements' => $requirements,
-        'roles' => $roles,
-        'metrics' => [
-            'total_employees' => $totalEmployees,
-            'total_shifts' => $totalShifts,
-            'pending_requests' => $pendingRequests,
-            'active_breaks' => $activeBreaks,
-            'avg_delay' => $avgDelay,
-            'coverage_gaps' => $coverageGaps,
-        ],
-    ]);
-} elseif ($role === 'Senior') {
-    require_once __DIR__ . '/../app/Models/Break.php';
-    
-    $todaySchedule = $sectionId ? Schedule::getTodaySchedule($sectionId, $today->format('Y-m-d')) : [];
-    $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
-    $weekly = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
-
-    render_view('senior/dashboard', [
-        'user' => $user,
-        'today' => $today->format('Y-m-d'),
-        'todaySchedule' => $todaySchedule,
-        'breaks' => $breaks,
-        'weekly' => $weekly,
-    ]);
 } else {
     // Employee role
     require_once __DIR__ . '/../app/Models/ShiftRequest.php';
     require_once __DIR__ . '/../app/Models/Break.php';
     
-    $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
+    $schedule = $companyId ? Schedule::getWeeklySchedule($weekId, $companyId) : [];
     $patterns = Schedule::getSchedulePatterns();
     $shiftDefinitions = Schedule::getShiftDefinitions();
-    $myRequests = $sectionId && isset($user['employee_id']) 
-        ? ShiftRequest::listByWeek($weekId, $sectionId, (int) $user['employee_id']) 
+    $myRequests = $companyId && isset($user['employee_id']) 
+        ? ShiftRequest::listByWeek($weekId, $companyId, (int) $user['employee_id']) 
         : [];
     $myBreak = isset($user['employee_id']) 
         ? BreakModel::getEmployeeBreak((int) $user['employee_id'], $today->format('Y-m-d'))

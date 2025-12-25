@@ -24,12 +24,12 @@ class ShiftRequest extends BaseModel
         return (int) ($rows[0]['request_id'] ?? 0);
     }
 
-    public static function listByWeek(int $weekId, int $sectionId, ?int $employeeId = null): array
+    public static function listByWeek(int $weekId, int $companyId, ?int $employeeId = null): array
     {
         $model = new self();
         return $model->callProcedure('sp_get_shift_requests', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_employee_id' => $employeeId,
         ]);
     }

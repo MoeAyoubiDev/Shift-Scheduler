@@ -23,7 +23,7 @@ if (!$companyId) {
 $company = Company::findById((int)$companyId);
 if (!$company || $company['status'] !== 'PAYMENT_PENDING') {
     if ($company && $company['status'] === 'ACTIVE') {
-        header('Location: /dashboard');
+        header('Location: /index.php');
         exit;
     }
     header('Location: /onboarding/step-1');
@@ -43,30 +43,26 @@ $onboardingData = Company::getOnboardingProgress((int)$companyId);
 
 // Get actual data created during onboarding
 $pdo = db();
-$sections = [];
 $employees = [];
 
 try {
-    $sectionStmt = $pdo->prepare("SELECT id, section_name FROM sections WHERE company_id = ?");
-    $sectionStmt->execute([$companyId]);
-    $sections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    if (!empty($sections)) {
-        $sectionId = (int)$sections[0]['id'];
-        $empStmt = $pdo->prepare("
-            SELECT e.id, e.full_name, e.email, e.employee_code, r.role_name
-            FROM employees e
-            INNER JOIN user_roles ur ON ur.id = e.user_role_id
-            INNER JOIN roles r ON r.id = ur.role_id
-            WHERE ur.section_id = ? AND e.is_active = 1
-            LIMIT 5
-        ");
-        $empStmt->execute([$sectionId]);
-        $employees = $empStmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $empStmt = $pdo->prepare("
+        SELECT e.id, e.full_name, e.email, e.employee_code, r.role_name
+        FROM employees e
+        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        INNER JOIN roles r ON r.id = ur.role_id
+        WHERE ur.company_id = ? AND e.is_active = 1
+        LIMIT 5
+    ");
+    $empStmt->execute([$companyId]);
+    $employees = $empStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // Data might not be created yet, use onboarding data
 }
+
+$employeeCount = count($employees);
+$workDays = $onboardingData['step_2']['data']['work_days_per_week'] ?? null;
+$shiftHours = $onboardingData['step_2']['data']['default_shift_hours'] ?? null;
 
 $title = 'Preview Your Dashboard - Shift Scheduler';
 require_once __DIR__ . '/../includes/header.php';
@@ -94,7 +90,7 @@ require_once __DIR__ . '/../includes/header.php';
                         </svg>
                     </div>
                     <h4>Total Employees</h4>
-                    <div class="metric-value"><?= e(count($employees) ?: count($onboardingData['step_3']['data']['employees'] ?? [])) ?></div>
+                    <div class="metric-value"><?= e((string) $employeeCount) ?></div>
                 </div>
                 
                 <div class="preview-metric">
@@ -104,7 +100,7 @@ require_once __DIR__ . '/../includes/header.php';
                         </svg>
                     </div>
                     <h4>Weekly Shifts</h4>
-                    <div class="metric-value"><?= e($onboardingData['step_2']['data']['work_days_per_week'] ?? '5') ?> days</div>
+                    <div class="metric-value"><?= e($workDays !== null ? (string) $workDays : '') ?><?= $workDays !== null ? ' days' : '' ?></div>
                 </div>
                 
                 <div class="preview-metric">
@@ -115,7 +111,7 @@ require_once __DIR__ . '/../includes/header.php';
                         </svg>
                     </div>
                     <h4>Shift Duration</h4>
-                    <div class="metric-value"><?= e($onboardingData['step_2']['data']['default_shift_hours'] ?? '8') ?> hrs</div>
+                    <div class="metric-value"><?= e($shiftHours !== null ? (string) $shiftHours : '') ?><?= $shiftHours !== null ? ' hrs' : '' ?></div>
                 </div>
             </div>
         </div>

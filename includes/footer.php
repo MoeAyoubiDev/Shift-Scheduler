@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $user = function_exists('current_user') ? current_user() : null;
 $role = ($user && isset($user['role'])) ? $user['role'] : null;
-$isDashboard = $role && in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervisor', 'Senior'], true);
+$isDashboard = $role && in_array($role, ['Employee', 'Team Leader', 'Supervisor'], true);
 ?>
 </main>
 <?php if ($user): ?>

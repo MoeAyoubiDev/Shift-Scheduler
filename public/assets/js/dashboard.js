@@ -9,6 +9,7 @@
     // Global flags
     window.dashboardScriptLoaded = true;
     let currentSection = 'overview';
+    let sectionNavEnabled = false;
     let bulkSelectActive = false;
     
     // ============================================
@@ -16,6 +17,7 @@
     // ============================================
     
     function showSection(sectionName) {
+        if (!sectionNavEnabled) return;
         if (!sectionName) return;
         
         // Hide all sections immediately
@@ -42,6 +44,7 @@
     }
     
     function setActiveNavCard(sectionName) {
+        if (!sectionNavEnabled) return;
         // Remove active from all nav cards with animation
         document.querySelectorAll('.nav-card').forEach(card => {
             if (card.classList.contains('active')) {
@@ -60,6 +63,7 @@
     }
     
     function navigateToSection(sectionName) {
+        if (!sectionNavEnabled) return;
         if (!sectionName) return;
         
         // Add haptic feedback if available
@@ -782,37 +786,42 @@
     // ============================================
     
     function initialize() {
-        // First, ensure all sections are hidden except the one with 'active' class
-        document.querySelectorAll('.dashboard-section').forEach(section => {
-            const isActive = section.classList.contains('active');
-            if (isActive) {
-                section.style.display = 'block';
-                section.style.opacity = '1';
+        sectionNavEnabled = document.querySelectorAll('.dashboard-section[data-section]').length > 0
+            && document.querySelectorAll('.nav-card[data-section]').length > 0;
+
+        if (sectionNavEnabled) {
+            // First, ensure all sections are hidden except the one with 'active' class
+            document.querySelectorAll('.dashboard-section').forEach(section => {
+                const isActive = section.classList.contains('active');
+                if (isActive) {
+                    section.style.display = 'block';
+                    section.style.opacity = '1';
+                } else {
+                    section.style.display = 'none';
+                    section.style.opacity = '0';
+                }
+            });
+            
+            // Initialize from URL hash
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.querySelector(`.dashboard-section[data-section="${hash}"]`)) {
+                navigateToSection(hash);
             } else {
-                section.style.display = 'none';
-                section.style.opacity = '0';
-            }
-        });
-        
-        // Initialize from URL hash
-        const hash = window.location.hash.replace('#', '');
-        if (hash && document.querySelector(`.dashboard-section[data-section="${hash}"]`)) {
-            navigateToSection(hash);
-        } else {
-            // Show overview by default - ensure it's visible immediately
-            const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
-            if (overviewSection) {
-                overviewSection.style.display = 'block';
-                overviewSection.style.opacity = '1';
-                overviewSection.classList.add('active');
-                setActiveNavCard('overview');
-                currentSection = 'overview';
-            } else {
-                // Fallback: show first section if overview doesn't exist
-                const firstSection = document.querySelector('.dashboard-section');
-                if (firstSection) {
-                    const sectionName = firstSection.getAttribute('data-section');
-                    navigateToSection(sectionName);
+                // Show overview by default - ensure it's visible immediately
+                const overviewSection = document.querySelector('.dashboard-section[data-section="overview"]');
+                if (overviewSection) {
+                    overviewSection.style.display = 'block';
+                    overviewSection.style.opacity = '1';
+                    overviewSection.classList.add('active');
+                    setActiveNavCard('overview');
+                    currentSection = 'overview';
+                } else {
+                    // Fallback: show first section if overview doesn't exist
+                    const firstSection = document.querySelector('.dashboard-section');
+                    if (firstSection) {
+                        const sectionName = firstSection.getAttribute('data-section');
+                        navigateToSection(sectionName);
+                    }
                 }
             }
         }
@@ -821,12 +830,14 @@
         initScheduleTable();
         
         // Handle hash changes
-        window.addEventListener('hashchange', function() {
-            const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                navigateToSection(hash);
-            }
-        });
+        if (sectionNavEnabled) {
+            window.addEventListener('hashchange', function() {
+                const hash = window.location.hash.replace('#', '');
+                if (hash) {
+                    navigateToSection(hash);
+                }
+            });
+        }
         
         // Add smooth scroll behavior
         document.documentElement.style.scrollBehavior = 'smooth';

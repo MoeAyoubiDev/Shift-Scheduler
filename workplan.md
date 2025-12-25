@@ -138,7 +138,7 @@ This document outlines the complete workplan and progress for the Shift Schedule
 **Step 3: Employees Setup**
 - Employee creation
 - Role assignment
-- Section/department assignment
+- company/department assignment
 
 **Step 4: Scheduling Preferences**
 - Schedule generation rules
@@ -226,7 +226,7 @@ This document outlines the complete workplan and progress for the Shift Schedule
 
 - **Navigation Systems:**
   - **Team Leader Dashboard:** Card-based navigation
-  - **Director Dashboard:** Card-based navigation (recently redesigned)
+  - **Supervisor Dashboard:** Card-based navigation (recently redesigned)
   - Consistent navigation patterns
   - Clear visual hierarchy
 
@@ -238,7 +238,7 @@ This document outlines the complete workplan and progress for the Shift Schedule
   - Empty states
   - Loading states
 
-### 2.9 Director Dashboard Redesign ✅
+### 2.9 Supervisor Dashboard Redesign ✅
 
 **Status:** Recently Completed
 
@@ -247,7 +247,7 @@ This document outlines the complete workplan and progress for the Shift Schedule
 - Increased navigation spacing and visual hierarchy
 - Enhanced active states with stronger glow effects
 - Improved icon sizing (24px) for better readability
-- Added clear section grouping (Primary nav + Management)
+- Added clear company grouping (Primary nav + Management)
 - Strengthened page headers with better typography
 - Improved empty states with subtle visual elements
 - Enhanced hover and interaction feedback
@@ -265,15 +265,15 @@ This document outlines the complete workplan and progress for the Shift Schedule
 **Status:** Fully Implemented
 
 - **Roles Supported:**
-  - Director (Company admin)
+  - Supervisor (Company admin)
   - Team Leader
   - Supervisor
-  - Senior Employee
+  - Employee Employee
   - Employee
 
 - **Access Control:**
   - Role-based permissions
-  - Section-based data filtering
+  - company-based data filtering
   - Feature access by role
   - Secure route protection
 
@@ -385,7 +385,7 @@ Shift-Scheduler/
 - `companies` - Company information
 - `users` - User accounts
 - `roles` - System roles
-- `sections` - Departments/sections
+- `companies` - Departments/companies
 - `user_roles` - User-role assignments
 - `employees` - Employee records
 - `weeks` - Week tracking
@@ -409,27 +409,27 @@ Shift-Scheduler/
 
 ## 5. User Roles & Permissions
 
-### 5.1 Director
+### 5.1 Supervisor
 - Full company access
-- All sections view
+- All companies view
 - Employee management
 - Department management
 - Reports and analytics
 - Settings and configuration
 
 ### 5.2 Team Leader
-- Section-specific access
-- Employee management (within section)
+- company-specific access
+- Employee management (within company)
 - Shift request approval
 - Schedule generation
 - Performance monitoring
 
 ### 5.3 Supervisor
-- Section oversight
+- company oversight
 - Read-only shift requests
 - Monitoring capabilities
 
-### 5.4 Senior Employee
+### 5.4 Employee Employee
 - Shift coverage view
 - Request submission
 - Limited schedule view
@@ -443,7 +443,7 @@ Shift-Scheduler/
 
 ## 6. Recent Improvements & Enhancements
 
-### 6.1 Director Dashboard Redesign (Latest)
+### 6.1 Supervisor Dashboard Redesign (Latest)
 - **Navigation:** Converted to card-based system
 - **Visual Hierarchy:** Improved typography and spacing
 - **Interactivity:** Enhanced hover and active states
@@ -551,7 +551,7 @@ Shift-Scheduler/
 - Payment integration hooks
 - Database architecture
 - Responsive design
-- Director dashboard redesign
+- Supervisor dashboard redesign
 - Role-based access control
 - Core scheduling features
 

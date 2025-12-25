@@ -33,7 +33,7 @@ Shift Scheduler is a **multi-tenant SaaS platform** for workforce management and
 ### 1.2 Core Principles
 - **Multi-tenant isolation**: Every data record belongs to a company (`company_id`)
 - **Role-based access control**: Permissions based on user roles
-- **Section-based organization**: Employees belong to sections/departments
+- **company-based organization**: Employees belong to companies/departments
 - **Week-based scheduling**: All schedules operate on weekly cycles
 - **Request-driven workflow**: Employees submit requests, Team Leaders approve/decline
 
@@ -62,19 +62,19 @@ Every company operates in complete isolation. All data queries must filter by `c
 #### 2.2.2 Data Filtering
 **All queries MUST include `company_id` filter:**
 ```sql
-SELECT * FROM employees WHERE company_id = :company_id AND section_id = :section_id
+SELECT * FROM employees WHERE company_id = :company_id AND company_id = :company_id
 ```
 
 **Stored procedures enforce company isolation:**
 - `sp_verify_login(p_username, p_company_id)` - Authenticates within company context
 - `sp_create_employee(...)` - Creates employee for specific company
-- `sp_get_employees_by_section(p_section_id)` - Returns only company's employees
+- `sp_get_employees_by_company(p_company_id)` - Returns only company's employees
 
 #### 2.2.3 Foreign Key Constraints
 All tables with `company_id` have foreign key constraints:
 - `employees.company_id` → `companies.id`
 - `users.company_id` → `companies.id`
-- `sections.company_id` → `companies.id`
+- `companies.company_id` → `companies.id`
 - `schedules.company_id` → `companies.id`
 - `shift_requests.company_id` → `companies.id`
 
@@ -114,13 +114,13 @@ SIGNUP → VERIFIED → ONBOARDING → PAYMENT_PENDING → ACTIVE
 #### 3.2.1 Role-Based Access Control (RBAC)
 All routes and actions check user role:
 ```php
-require_role(['Team Leader', 'Director']);
+require_role(['Team Leader', 'Supervisor']);
 ```
 
-#### 3.2.2 Section-Based Access
-- Team Leaders, Supervisors, Employees: Limited to their section
-- Directors: Access to all sections in their company
-- Section ID stored in session: `current_section_id()`
+#### 3.2.2 company-Based Access
+- Team Leaders, Supervisors, Employees: Limited to their company
+- Supervisors: Access to all companies in their company
+- company ID stored in session: `current_company_id()`
 
 #### 3.2.3 CSRF Protection
 All state-changing operations require CSRF token:
@@ -130,7 +130,7 @@ require_csrf($_POST);
 
 ### 3.3 Session Management
 - Session stored in PHP `$_SESSION`
-- Contains: `user_id`, `company_id`, `section_id`, `role`, `employee_id`
+- Contains: `user_id`, `company_id`, `company_id`, `role`, `employee_id`
 - Session timeout: PHP default (typically 24 minutes)
 - Logout clears all session data
 
@@ -141,34 +141,34 @@ require_csrf($_POST);
 ### 4.1 Role Hierarchy
 
 ```
-Director (Highest Authority)
+Supervisor (Highest Authority)
     ↓
 Team Leader
     ↓
 Supervisor
     ↓
-Senior Employee
+Employee Employee
     ↓
 Employee (Base Level)
 ```
 
 ### 4.2 Role Definitions & Capabilities
 
-#### 4.2.1 Director
+#### 4.2.1 Supervisor
 **Access Level:** Company-wide  
 **Primary Responsibilities:**
 - Full company oversight
-- View all sections and departments
+- View all companies and departments
 - Manage company settings
 - View company-wide reports and analytics
-- Manage all employees across sections
+- Manage all employees across companies
 - Access payment and billing information
 
 **Permissions:**
-- ✅ Create/edit/delete employees (all sections)
-- ✅ Create/edit/delete sections/departments
-- ✅ View all schedules (all sections)
-- ✅ View all shift requests (all sections)
+- ✅ Create/edit/delete employees (all companies)
+- ✅ Create/edit/delete companies/departments
+- ✅ View all schedules (all companies)
+- ✅ View all shift requests (all companies)
 - ✅ View company-wide performance metrics
 - ✅ Manage company configuration
 - ✅ Access payment dashboard
@@ -177,15 +177,15 @@ Employee (Base Level)
 
 **Dashboard Features:**
 - Company overview with KPIs
-- Employee directory (all sections)
+- Employee directory (all companies)
 - Department management
 - Company-wide reports
 - Settings and configuration
 
 #### 4.2.2 Team Leader
-**Access Level:** Section-specific  
+**Access Level:** company-specific  
 **Primary Responsibilities:**
-- Manage employees in their section
+- Manage employees in their company
 - Create and manage schedules
 - Approve/decline shift requests
 - Monitor break times and attendance
@@ -193,21 +193,21 @@ Employee (Base Level)
 - Track performance metrics
 
 **Permissions:**
-- ✅ Create/edit employees (within section)
+- ✅ Create/edit employees (within company)
 - ✅ Generate weekly schedules
 - ✅ Set shift requirements
 - ✅ Approve/decline shift requests
 - ✅ Assign shifts to employees
 - ✅ Swap shifts between employees
 - ✅ View break monitoring
-- ✅ View performance reports (section)
+- ✅ View performance reports (company)
 - ✅ Export schedules (CSV)
-- ❌ Cannot create sections
-- ❌ Cannot access other sections
+- ❌ Cannot create companies
+- ❌ Cannot access other companies
 - ❌ Cannot submit shift requests
 
 **Dashboard Features:**
-- Section overview
+- company overview
 - Schedule management
 - Shift request approval queue
 - Break monitoring
@@ -215,16 +215,16 @@ Employee (Base Level)
 - Employee management
 
 #### 4.2.3 Supervisor
-**Access Level:** Section-specific (Read-only for requests)  
+**Access Level:** company-specific (Read-only for requests)  
 **Primary Responsibilities:**
-- Monitor section operations
+- Monitor company operations
 - View shift requests (read-only)
 - Monitor break times
 - View schedules
 - Track attendance
 
 **Permissions:**
-- ✅ View schedules (section)
+- ✅ View schedules (company)
 - ✅ View shift requests (read-only, cannot approve/decline)
 - ✅ Monitor breaks
 - ✅ View performance metrics
@@ -234,22 +234,22 @@ Employee (Base Level)
 - ❌ Cannot submit shift requests
 
 **Dashboard Features:**
-- Section monitoring
+- company monitoring
 - Request overview (read-only)
 - Break monitoring
 - Schedule view
 
-#### 4.2.4 Senior Employee
-**Access Level:** Section-specific (Limited)  
+#### 4.2.4 Employee Employee
+**Access Level:** company-specific (Limited)  
 **Primary Responsibilities:**
 - View shift coverage
-- Monitor section activity
+- Monitor company activity
 - Cannot submit shift requests
 
 **Permissions:**
-- ✅ View schedules (section)
+- ✅ View schedules (company)
 - ✅ View shift coverage
-- ✅ View section activity
+- ✅ View company activity
 - ❌ Cannot submit shift requests
 - ❌ Cannot take breaks (system limitation)
 - ❌ Cannot manage schedules
@@ -257,7 +257,7 @@ Employee (Base Level)
 **Dashboard Features:**
 - Schedule view
 - Coverage overview
-- Section activity
+- company activity
 
 #### 4.2.5 Employee
 **Access Level:** Personal  
@@ -284,17 +284,17 @@ Employee (Base Level)
 
 ### 4.3 Permission Matrix
 
-| Action | Director | Team Leader | Supervisor | Senior | Employee |
+| Action | Supervisor | Team Leader | Supervisor | Employee | Employee |
 |--------|----------|-------------|------------|-------|----------|
-| View all sections | ✅ | ❌ | ❌ | ❌ | ❌ |
-| View own section | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Create employees | ✅ | ✅ (section) | ❌ | ❌ | ❌ |
-| Generate schedules | ✅ | ✅ (section) | ❌ | ❌ | ❌ |
-| Approve requests | ✅ | ✅ (section) | ❌ | ❌ | ❌ |
+| View all companies | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View own company | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Create employees | ✅ | ✅ (company) | ❌ | ❌ | ❌ |
+| Generate schedules | ✅ | ✅ (company) | ❌ | ❌ | ❌ |
+| Approve requests | ✅ | ✅ (company) | ❌ | ❌ | ❌ |
 | Submit requests | ❌ | ❌ | ❌ | ❌ | ✅ |
-| View breaks | ✅ | ✅ (section) | ✅ (section) | ❌ | ✅ (own) |
-| View performance | ✅ (all) | ✅ (section) | ✅ (section) | ❌ | ❌ |
-| Manage sections | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View breaks | ✅ | ✅ (company) | ✅ (company) | ❌ | ✅ (own) |
+| View performance | ✅ (all) | ✅ (company) | ✅ (company) | ❌ | ❌ |
+| Manage companies | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Payment access | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 ---
@@ -354,22 +354,22 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 - Full name (required)
 - Employee code (required, unique)
 - Email (optional)
-- Role (Employee or Senior)
-- Seniority level (0-10, optional)
+- Role (Employee or Employee)
+- Employeeity level (0-10, optional)
 
 **Business Rules:**
 - At least one employee must be created
 - Employee codes must be unique within company
 - First employee typically becomes Team Leader
-- Employees can be marked as "Senior" (cannot submit requests)
-- Seniority level affects scheduling priority
+- Employees can be marked as "Employee" (cannot submit requests)
+- Employeeity level affects scheduling priority
 
 **Validation:**
 - Full name: 2-255 characters
 - Employee code: Unique within company
 - Email: Valid email format (if provided)
-- Role: Must be "Employee" or "Senior"
-- Seniority level: Integer 0-10
+- Role: Must be "Employee" or "Employee"
+- Employeeity level: Integer 0-10
 
 #### Step 4: Scheduling Preferences
 **Purpose:** Configure schedule generation rules
@@ -434,9 +434,9 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 
 **When Step 5 is confirmed:**
 1. Validate all step data
-2. Create initial sections (if not created)
+2. Create initial companies (if not created)
 3. Create initial users for employees
-4. Assign Director role to company admin
+4. Assign Supervisor role to company admin
 5. Update company status to `PAYMENT_PENDING`
 6. Redirect to payment page
 
@@ -452,27 +452,27 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 ### 6.1 Employee Creation
 
 #### 6.1.1 Who Can Create Employees
-- **Director**: Can create employees in any section
-- **Team Leader**: Can create employees in their section only
+- **Supervisor**: Can create employees in any company
+- **Team Leader**: Can create employees in their company only
 - **Supervisor**: Cannot create employees
-- **Senior/Employee**: Cannot create employees
+- **Employee/Employee**: Cannot create employees
 
 #### 6.1.2 Required Fields
 - **Username** (unique within company)
 - **Email** (unique within company, optional)
 - **Employee Code** (unique within company)
 - **Full Name** (required)
-- **Role** (Employee or Senior)
-- **Section** (assigned automatically for Team Leaders)
+- **Role** (Employee or Employee)
+- **company** (assigned automatically for Team Leaders)
 - **Password** (min 8 characters)
-- **Seniority Level** (0-10, optional)
+- **Employeeity Level** (0-10, optional)
 
 #### 6.1.3 Business Rules
 - Username must be unique within company
 - Email must be unique within company (if provided)
 - Employee code must be unique within company
 - Password hashed with Bcrypt before storage
-- Employee automatically assigned to creator's section (Team Leader)
+- Employee automatically assigned to creator's company (Team Leader)
 - User account created in `users` table
 - Employee record created in `employees` table
 - Role assigned via `user_roles` table
@@ -484,8 +484,8 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 - Employee Code: 3-20 characters, alphanumeric
 - Full Name: 2-255 characters
 - Password: Minimum 8 characters
-- Role: Must be "Employee" or "Senior"
-- Seniority Level: Integer 0-10
+- Role: Must be "Employee" or "Employee"
+- Employeeity Level: Integer 0-10
 ```
 
 ### 6.2 Employee Updates
@@ -493,15 +493,15 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 #### 6.2.1 Editable Fields
 - Full Name
 - Email
-- Role (Employee ↔ Senior)
-- Seniority Level
-- Section (Director only)
+- Role (Employee ↔ Employee)
+- Employeeity Level
+- company (Supervisor only)
 
 #### 6.2.2 Business Rules
 - Cannot change username (immutable)
 - Cannot change employee code (immutable)
 - Role changes affect permissions immediately
-- Section changes require Director approval
+- company changes require Supervisor approval
 - Updates logged in audit trail
 
 ### 6.3 Employee Deletion
@@ -516,10 +516,10 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 
 ### 6.4 Employee Listing
 
-#### 6.4.1 By Section
-- Team Leaders: See employees in their section
-- Directors: See all employees (all sections)
-- Filtered by `section_id` and `company_id`
+#### 6.4.1 By company
+- Team Leaders: See employees in their company
+- Supervisors: See all employees (all companies)
+- Filtered by `company_id` and `company_id`
 
 #### 6.4.2 Available Employees
 - Employees available for specific date
@@ -574,7 +574,7 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 **Business Rules:**
 - Shift definitions are company-specific
 - Used as templates for schedule generation
-- Can be modified by Directors/Team Leaders
+- Can be modified by Supervisors/Team Leaders
 
 ### 7.4 Schedule Patterns
 
@@ -595,7 +595,7 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 #### 7.5.1 Setting Requirements
 - Team Leaders set coverage requirements per shift
 - Requirements stored in `shift_requirements` table
-- Fields: `week_id`, `section_id`, `date`, `shift_type_id`, `required_count`
+- Fields: `week_id`, `company_id`, `date`, `shift_type_id`, `required_count`
 
 #### 7.5.2 Business Rules
 - Requirements set before schedule generation
@@ -610,7 +610,7 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 3. System calls `sp_generate_weekly_schedule`
 4. Algorithm assigns employees based on:
    - Availability
-   - Seniority level
+   - Employeeity level
    - Previous week assignments
    - Shift requests (approved)
    - Work patterns
@@ -618,7 +618,7 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 #### 7.6.2 Generation Algorithm
 **Priority Order:**
 1. Approved shift requests
-2. Seniority level (higher = priority)
+2. Employeeity level (higher = priority)
 3. Previous week balance (avoid over-assignment)
 4. Work pattern preferences
 5. Random assignment (if needed)
@@ -661,7 +661,7 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 ### 7.8 Schedule Viewing
 
 #### 7.8.1 Team Leader View
-- Full weekly schedule for section
+- Full weekly schedule for company
 - All employees visible
 - Color-coded by shift type
 - Coverage gaps highlighted
@@ -673,8 +673,8 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 - Shows approved requests
 - Shows pending requests
 
-#### 7.8.3 Director View
-- All sections visible
+#### 7.8.3 Supervisor View
+- All companies visible
 - Company-wide overview
 - Aggregated metrics
 
@@ -686,9 +686,9 @@ New companies complete a 5-step onboarding wizard to configure their account bef
 
 #### 8.1.1 Who Can Submit
 - **Employees**: Can submit requests
-- **Senior Employees**: Cannot submit requests (system restriction)
+- **Employee Employees**: Cannot submit requests (system restriction)
 - **Team Leaders**: Cannot submit requests
-- **Directors**: Cannot submit requests
+- **Supervisors**: Cannot submit requests
 
 #### 8.1.2 Submission Window
 **Business Rules:**
@@ -764,8 +764,8 @@ SUBMITTED → PENDING → APPROVED/DECLINED
 ### 8.3 Request Approval/Decline
 
 #### 8.3.1 Who Can Approve
-- **Team Leader**: Can approve/decline requests in their section
-- **Director**: Can approve/decline requests (all sections)
+- **Team Leader**: Can approve/decline requests in their company
+- **Supervisor**: Can approve/decline requests (all companies)
 - **Supervisor**: Cannot approve (read-only access)
 
 #### 8.3.2 Approval Process
@@ -784,9 +784,9 @@ SUBMITTED → PENDING → APPROVED/DECLINED
 ### 8.4 Request Listing
 
 #### 8.4.1 By Week
-- Team Leaders: See all requests for section
+- Team Leaders: See all requests for company
 - Employees: See own requests only
-- Filtered by `week_id` and `section_id`
+- Filtered by `week_id` and `company_id`
 
 #### 8.4.2 By Status
 - Pending requests (priority queue)
@@ -824,7 +824,7 @@ NOT_STARTED → ON_BREAK → COMPLETED → DELAYED (if late)
 
 #### 9.2.1 Who Can Submit
 - **Employees**: Can start/end breaks
-- **Senior Employees**: Cannot submit breaks (system limitation)
+- **Employee Employees**: Cannot submit breaks (system limitation)
 - **Team Leaders**: Cannot submit breaks (not employees)
 
 #### 9.2.2 Break Start
@@ -846,14 +846,14 @@ NOT_STARTED → ON_BREAK → COMPLETED → DELAYED (if late)
 ### 9.3 Break Monitoring
 
 #### 9.3.1 Team Leader View
-- Real-time break status for section
+- Real-time break status for company
 - Shows employees currently on break
 - Shows break duration
 - Highlights delayed breaks
 
 #### 9.3.2 Supervisor View
 - Read-only break monitoring
-- Section-wide view
+- company-wide view
 - Real-time updates
 
 #### 9.3.3 Break Delays
@@ -880,7 +880,7 @@ NOT_STARTED → ON_BREAK → COMPLETED → DELAYED (if late)
 - **Break Compliance**: Adherence to break schedules
 - **Request Approval Rate**: Percentage of approved requests
 
-#### 10.1.2 Section Metrics
+#### 10.1.2 company Metrics
 - **Coverage Rate**: Percentage of required shifts filled
 - **Request Volume**: Number of requests per week
 - **Approval Rate**: Percentage of approved requests
@@ -918,7 +918,7 @@ Coverage Rate = (Filled Shifts / Required Shifts) × 100
 
 #### 10.3.2 Report Types
 - Employee performance report
-- Section performance report
+- company performance report
 - Company-wide performance report
 - Comparative reports (week-over-week)
 
@@ -1000,7 +1000,7 @@ Coverage Rate = (Filled Shifts / Required Shifts) × 100
 #### 12.1.3 Employee
 - Employee code: 3-20 characters, alphanumeric, unique within company
 - Full name: 2-255 characters
-- Seniority level: Integer 0-10
+- Employeeity level: Integer 0-10
 
 #### 12.1.4 Shift Request
 - Request date: Must be in next week (Monday-Sunday)
@@ -1020,19 +1020,19 @@ Coverage Rate = (Filled Shifts / Required Shifts) × 100
 - One request per employee per day (next week)
 - Cannot submit requests on Sunday
 - Cannot submit requests outside current week
-- Senior employees cannot submit requests
+- Employee employees cannot submit requests
 
 #### 12.2.3 Access Constraints
 - Employees can only view own schedule
-- Team Leaders limited to their section
-- Directors have company-wide access
+- Team Leaders limited to their company
+- Supervisors have company-wide access
 - Supervisors have read-only access
 
 ### 12.3 Data Integrity Rules
 
 #### 12.3.1 Foreign Key Constraints
 - All `company_id` references must exist
-- All `section_id` references must exist
+- All `company_id` references must exist
 - All `employee_id` references must exist
 - All `user_id` references must exist
 
@@ -1044,7 +1044,7 @@ Coverage Rate = (Filled Shifts / Required Shifts) × 100
 
 #### 12.3.3 Cascade Rules
 - Deleting company cascades to all related data (if implemented)
-- Deleting section requires employee reassignment
+- Deleting company requires employee reassignment
 - Deleting employee preserves historical data (soft delete)
 
 ### 12.4 Workflow Constraints
@@ -1110,7 +1110,7 @@ employees
 ├── id (PK)
 ├── company_id (FK → companies.id)
 ├── user_id (FK → users.id)
-├── section_id (FK → sections.id)
+├── company_id (FK → companies.id)
 ├── employee_code (UNIQUE within company)
 ├── full_name
 ├── is_senior (boolean)
@@ -1119,12 +1119,12 @@ employees
 └── updated_at
 ```
 
-#### 13.1.4 Section
+#### 13.1.4 company
 ```
-sections
+companies
 ├── id (PK)
 ├── company_id (FK → companies.id)
-├── section_name
+├── company_name
 ├── created_at
 └── updated_at
 ```
@@ -1145,7 +1145,7 @@ schedules
 ├── id (PK)
 ├── company_id (FK → companies.id)
 ├── week_id (FK → weeks.id)
-├── section_id (FK → sections.id)
+├── company_id (FK → companies.id)
 ├── generated_by_employee_id (FK → employees.id)
 ├── created_at
 └── updated_at
@@ -1188,7 +1188,7 @@ shift_requests
 shift_requirements
 ├── id (PK)
 ├── week_id (FK → weeks.id)
-├── section_id (FK → sections.id)
+├── company_id (FK → companies.id)
 ├── date (DATE)
 ├── shift_type_id (FK → shift_types.id)
 ├── required_count (INT)
@@ -1217,7 +1217,7 @@ employee_breaks
 ```
 companies (1) ──< (N) users
 companies (1) ──< (N) employees
-companies (1) ──< (N) sections
+companies (1) ──< (N) companies
 companies (1) ──< (N) schedules
 companies (1) ──< (N) shift_requests
 companies (1) ──< (N) employee_breaks
@@ -1225,8 +1225,8 @@ companies (1) ──< (N) employee_breaks
 users (1) ──< (1) employees
 users (1) ──< (N) user_roles
 
-sections (1) ──< (N) employees
-sections (1) ──< (N) schedules
+companies (1) ──< (N) employees
+companies (1) ──< (N) schedules
 
 weeks (1) ──< (N) schedules
 weeks (1) ──< (N) shift_requests
@@ -1328,7 +1328,7 @@ schedule_patterns (1) ──< (N) shift_requests
     2. Load available employees
     3. Assign based on priority:
        - Approved requests
-       - Seniority level
+       - Employeeity level
        - Work patterns
        - Previous week balance
     ↓
@@ -1392,7 +1392,7 @@ schedule_patterns (1) ──< (N) shift_requests
 [Session Created]
     - user_id
     - company_id
-    - section_id
+    - company_id
     - role
     - employee_id
     ↓
@@ -1426,20 +1426,20 @@ schedule_patterns (1) ──< (N) shift_requests
 - `sp_get_shift_types` - Get all shift types
 - `sp_get_shift_definitions` - Get shift definitions
 - `sp_get_schedule_patterns` - Get work patterns
-- `sp_get_shift_requirements` - Get requirements for week/section
+- `sp_get_shift_requirements` - Get requirements for week/company
 - `sp_set_shift_requirement` - Set requirement
 - `sp_generate_weekly_schedule` - Generate schedule
-- `sp_get_weekly_schedule` - Get schedule for week/section
+- `sp_get_weekly_schedule` - Get schedule for week/company
 - `sp_get_today_shift` - Get today's shifts
 - `sp_get_coverage_gaps` - Calculate coverage gaps
 
 ### 15.4 Request Procedures
 - `sp_submit_shift_request` - Submit new request
-- `sp_get_shift_requests` - Get requests for week/section
+- `sp_get_shift_requests` - Get requests for week/company
 - `sp_update_shift_request_status` - Approve/decline request
 
 ### 15.5 Employee Procedures
-- `sp_get_employees_by_section` - List employees in section
+- `sp_get_employees_by_company` - List employees in company
 - `sp_get_available_employees` - Get available employees for date
 - `sp_update_employee` - Update employee details
 
@@ -1505,7 +1505,7 @@ schedule_patterns (1) ──< (N) shift_requests
 
 ### 18.2 Access Security
 - Role-based access control
-- Section-based data filtering
+- company-based data filtering
 - Company data isolation
 - Session management
 
@@ -1557,4 +1557,3 @@ schedule_patterns (1) ──< (N) shift_requests
 **Document End**
 
 This document provides a comprehensive overview of all business logic, workflows, and functionality in the Shift Scheduler platform. For implementation details, refer to the source code and database schema.
-

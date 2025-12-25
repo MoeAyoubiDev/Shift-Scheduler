@@ -26,11 +26,11 @@ class BreakModel extends BaseModel
         ]);
     }
 
-    public static function currentBreaks(int $sectionId, string $date): array
+    public static function currentBreaks(int $companyId, string $date): array
     {
         $model = new self();
         return $model->callProcedure('sp_get_break_status', [
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_today' => $date,
         ]);
     }

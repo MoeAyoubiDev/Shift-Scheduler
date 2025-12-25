@@ -16,9 +16,10 @@ class TeamLeaderController
         require_role(['Team Leader', 'Supervisor']);
         require_csrf($payload);
 
-        $sectionId = current_section_id();
-        if (!$sectionId) {
-            return 'Section not selected.';
+        $user = current_user();
+        $companyId = (int) ($user['company_id'] ?? 0);
+        if ($companyId <= 0) {
+            return 'Company context unavailable.';
         }
 
         // Validate required fields
@@ -50,19 +51,24 @@ class TeamLeaderController
             }
         }
 
-        if (!in_array($roleName, ['Employee', 'Senior'], true)) {
+        $allowedRoles = ['Employee'];
+        if (current_role() === 'Supervisor') {
+            $allowedRoles[] = 'Team Leader';
+        }
+
+        if (!in_array($roleName, $allowedRoles, true)) {
             return 'Invalid role selected.';
         }
 
-        $isSenior = $roleName === 'Senior';
+        $isSenior = 0;
 
         try {
             $employeeId = User::createEmployee([
+                'company_id' => $companyId,
                 'username' => $username,
                 'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => $email,
                 'role_id' => $roleId,
-                'section_id' => $sectionId,
                 'employee_code' => $employeeCode,
                 'full_name' => $fullName,
                 'is_senior' => $isSenior ? 1 : 0,
@@ -113,7 +119,7 @@ class TeamLeaderController
         return 'Request status updated.';
     }
 
-    public static function handleSaveRequirements(array $payload, int $weekId, int $sectionId): string
+    public static function handleSaveRequirements(array $payload, int $weekId, int $companyId): string
     {
         require_login();
         require_role(['Team Leader']);
@@ -125,7 +131,7 @@ class TeamLeaderController
             foreach ($payload['requirements'][$shiftTypeId] ?? [] as $date => $count) {
                 Schedule::saveShiftRequirement(
                     $weekId,
-                    $sectionId,
+                    $companyId,
                     $date,
                     $shiftTypeId,
                     (int) $count
@@ -136,13 +142,13 @@ class TeamLeaderController
         return 'Shift requirements saved.';
     }
 
-    public static function handleGenerateSchedule(int $weekId, int $sectionId): string
+    public static function handleGenerateSchedule(int $weekId, int $companyId): string
     {
         require_login();
         require_role(['Team Leader']);
 
         $user = current_user();
-        Schedule::generateWeekly($weekId, $sectionId, (int) $user['employee_id']);
+        Schedule::generateWeekly($weekId, $companyId, (int) $user['employee_id']);
         return 'Weekly schedule generated.';
     }
 
@@ -199,9 +205,10 @@ class TeamLeaderController
             return 'Invalid employee ID.';
         }
 
-        $sectionId = current_section_id();
-        if (!$sectionId) {
-            return 'Section not selected.';
+        $user = current_user();
+        $companyId = (int) ($user['company_id'] ?? 0);
+        if ($companyId <= 0) {
+            return 'Company context unavailable.';
         }
 
         $fullName = trim($payload['full_name'] ?? '');
@@ -223,17 +230,17 @@ class TeamLeaderController
             }
         }
 
-        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Employee', 'Senior'], true)) {
+        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Employee'], true)) {
             return 'Invalid role selection.';
         }
 
-        $isSenior = $selectedRole['role_name'] === 'Senior' ? 1 : 0;
+        $isSenior = 0;
 
         try {
             require_once __DIR__ . '/../Models/Employee.php';
-            $updated = Employee::updateInSection(
+            $updated = Employee::updateInCompany(
                 $employeeId,
-                (int) $sectionId,
+                $companyId,
                 $fullName,
                 $email,
                 $roleId,
@@ -258,9 +265,10 @@ class TeamLeaderController
             return 'Invalid employee ID.';
         }
 
-        $sectionId = current_section_id();
-        if (!$sectionId) {
-            return 'Section not selected.';
+        $user = current_user();
+        $companyId = (int) ($user['company_id'] ?? 0);
+        if ($companyId <= 0) {
+            return 'Company context unavailable.';
         }
 
         try {
@@ -269,10 +277,10 @@ class TeamLeaderController
             $stmt = db()->prepare('UPDATE employees e 
                 INNER JOIN user_roles ur ON ur.id = e.user_role_id 
                 SET e.is_active = 0 
-                WHERE e.id = :employee_id AND ur.section_id = :section_id');
+                WHERE e.id = :employee_id AND ur.company_id = :company_id');
             $stmt->execute([
                 'employee_id' => $employeeId,
-                'section_id' => $sectionId,
+                'company_id' => $companyId,
             ]);
 
             return 'Employee deleted successfully.';
@@ -281,7 +289,7 @@ class TeamLeaderController
         }
     }
 
-    public static function handleAssignShift(array $payload, int $weekId, int $sectionId): string
+    public static function handleAssignShift(array $payload, int $weekId, int $companyId): string
     {
         require_login();
         require_role(['Team Leader']);
@@ -304,17 +312,17 @@ class TeamLeaderController
             require_once __DIR__ . '/../Core/config.php';
             
             // Get or create schedule for this week
-            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND section_id = :section_id');
-            $stmt->execute(['week_id' => $weekId, 'section_id' => $sectionId]);
+            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND company_id = :company_id');
+            $stmt->execute(['week_id' => $weekId, 'company_id' => $companyId]);
             $schedule = $stmt->fetch();
             
             if (!$schedule) {
                 // Create schedule
                 $user = current_user();
-                $stmt = db()->prepare('INSERT INTO schedules (week_id, section_id, generated_by_admin_id) VALUES (:week_id, :section_id, :admin_id)');
+                $stmt = db()->prepare('INSERT INTO schedules (week_id, company_id, generated_by_admin_id) VALUES (:week_id, :company_id, :admin_id)');
                 $stmt->execute([
                     'week_id' => $weekId,
-                    'section_id' => $sectionId,
+                    'company_id' => $companyId,
                     'admin_id' => (int) $user['employee_id']
                 ]);
                 $scheduleId = (int) db()->lastInsertId();
@@ -389,13 +397,13 @@ class TeamLeaderController
         }
     }
 
-    public static function getScheduleData(int $weekId, int $sectionId): array
+    public static function getScheduleData(int $weekId, int $companyId): array
     {
         require_once __DIR__ . '/../Core/config.php';
         
         // Get schedule entries
-        $schedule = Schedule::getWeeklySchedule($weekId, $sectionId);
-        $employees = Employee::listBySection($sectionId);
+        $schedule = Schedule::getWeeklySchedule($weekId, $companyId);
+        $employees = Employee::listByCompany($companyId);
         $shiftDefinitions = Schedule::getShiftDefinitions();
         
         // Transform to employee-based format
@@ -476,7 +484,7 @@ class TeamLeaderController
         ];
     }
 
-    public static function handleSwapShifts(array $payload, int $weekId, int $sectionId): string
+    public static function handleSwapShifts(array $payload, int $weekId, int $companyId): string
     {
         require_login();
         require_role(['Team Leader']);
@@ -500,8 +508,8 @@ class TeamLeaderController
             require_once __DIR__ . '/../Core/config.php';
             
             // Get schedule for this week
-            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND section_id = :section_id');
-            $stmt->execute(['week_id' => $weekId, 'section_id' => $sectionId]);
+            $stmt = db()->prepare('SELECT id FROM schedules WHERE week_id = :week_id AND company_id = :company_id');
+            $stmt->execute(['week_id' => $weekId, 'company_id' => $companyId]);
             $schedule = $stmt->fetch();
             
             if (!$schedule) {
@@ -562,7 +570,7 @@ class TeamLeaderController
     private static function getScheduleMetaByAssignment(int $assignmentId): ?array
     {
         $stmt = db()->prepare(
-            'SELECT s.week_id, s.section_id
+            'SELECT s.week_id, s.company_id
              FROM schedule_assignments sa
              INNER JOIN schedule_shifts ss ON ss.id = sa.schedule_shift_id
              INNER JOIN schedules s ON s.id = ss.schedule_id
@@ -576,7 +584,7 @@ class TeamLeaderController
 
         return [
             'week_id' => (int) $row['week_id'],
-            'section_id' => (int) $row['section_id'],
+            'company_id' => (int) $row['company_id'],
         ];
     }
 }

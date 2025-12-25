@@ -7,19 +7,19 @@ class Employee extends BaseModel
 {
     protected string $table = 'employees';
 
-    public static function listBySection(int $sectionId): array
+    public static function listByCompany(int $companyId): array
     {
         $model = new self();
-        return $model->callProcedure('sp_get_employees_by_section', [
-            'p_section_id' => $sectionId,
+        return $model->callProcedure('sp_get_employees_by_company', [
+            'p_company_id' => $companyId,
         ]);
     }
 
-    public static function availableForDate(int $sectionId, string $date): array
+    public static function availableForDate(int $companyId, string $date): array
     {
         $model = new self();
         return $model->callProcedure('sp_get_available_employees', [
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_date' => $date,
         ]);
     }
@@ -30,9 +30,9 @@ class Employee extends BaseModel
         return $model->callProcedure('sp_get_admin_directory');
     }
 
-    public static function updateInSection(
+    public static function updateInCompany(
         int $employeeId,
-        int $sectionId,
+        int $companyId,
         string $fullName,
         ?string $email,
         int $roleId,
@@ -42,7 +42,7 @@ class Employee extends BaseModel
         $model = new self();
         $rows = $model->callProcedure('sp_update_employee', [
             'p_employee_id' => $employeeId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_full_name' => $fullName,
             'p_email' => $email,
             'p_role_id' => $roleId,
