@@ -54,7 +54,7 @@ class AuthController
             return ['success' => false, 'message' => 'Invalid request. Please try again.'];
         }
 
-        $idToken = trim($payload['id_token'] ?? '');
+        $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
         if ($idToken === '') {
             http_response_code(400);
             return ['success' => false, 'message' => 'Missing authentication token.'];
@@ -120,14 +120,13 @@ class AuthController
             return ['success' => false, 'message' => 'Invalid request. Please try again.'];
         }
 
-        $idToken = trim($payload['id_token'] ?? '');
+        $idToken = trim($payload['firebase_token'] ?? $payload['id_token'] ?? '');
         if ($idToken === '') {
             http_response_code(400);
             return ['success' => false, 'message' => 'Missing authentication token.'];
         }
 
         $companyName = trim($payload['company_name'] ?? '');
-        $adminPassword = (string) ($payload['admin_password'] ?? '');
         $timezone = $payload['timezone'] ?? 'UTC';
         $country = trim((string) ($payload['country'] ?? ''));
         $companySize = $payload['company_size'] ?? '';
@@ -135,11 +134,6 @@ class AuthController
         if ($companyName === '' || mb_strlen($companyName) < 2) {
             http_response_code(400);
             return ['success' => false, 'message' => 'Company name must be at least 2 characters.'];
-        }
-
-        if (strlen($adminPassword) < 8) {
-            http_response_code(400);
-            return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
         }
 
         try {
@@ -165,6 +159,11 @@ class AuthController
             return ['success' => false, 'message' => 'Admin email does not match authentication email.'];
         }
 
+        if (User::findByFirebaseUid($firebaseUid)) {
+            http_response_code(409);
+            return ['success' => false, 'message' => 'An account with this authentication already exists.'];
+        }
+
         if (User::emailExists($email) || Company::findByEmail($email)) {
             http_response_code(409);
             return ['success' => false, 'message' => 'An account with this email already exists.'];
@@ -173,7 +172,6 @@ class AuthController
         $companyResult = Company::createCompany([
             'company_name' => $companyName,
             'admin_email' => $email,
-            'admin_password' => $adminPassword,
             'timezone' => $timezone,
             'country' => $country !== '' ? $country : null,
             'company_size' => $companySize !== '' ? $companySize : null,
@@ -205,7 +203,11 @@ class AuthController
         }
 
         $_SESSION['user'] = $user;
+        $_SESSION['user_id'] = $user['id'] ?? null;
+        $_SESSION['role'] = $user['role'] ?? null;
+        $_SESSION['company_id'] = $user['company_id'] ?? $companyId;
+        $_SESSION['onboarding_company_id'] = $companyId;
 
-        return ['success' => true, 'redirect' => '/index.php'];
+        return ['success' => true, 'redirect' => '/dashboard'];
     }
 }

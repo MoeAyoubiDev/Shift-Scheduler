@@ -26,6 +26,7 @@ class User extends BaseModel
             'id' => (int) $primary['user_id'],
             'username' => $primary['username'],
             'email' => $primary['email'],
+            'company_id' => $primary['company_id'] ? (int) $primary['company_id'] : null,
             'role' => $primary['role_name'],
             'section_id' => $primary['section_id'] ? (int) $primary['section_id'] : null,
             'section_name' => $primary['section_name'],
