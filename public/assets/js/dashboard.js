@@ -197,17 +197,18 @@
         }
 
         // Navigation cards - Enhanced with animations
-        if (button && button.classList.contains('nav-card')) {
+        const navCard = target.closest('.nav-card[data-section]');
+        if (navCard) {
             e.preventDefault();
             e.stopPropagation();
             
             // Add click animation
-            button.style.transform = 'scale(0.95)';
+            navCard.style.transform = 'scale(0.95)';
             setTimeout(() => {
-                button.style.transform = '';
+                navCard.style.transform = '';
             }, 150);
             
-            const sectionName = button.getAttribute('data-section');
+            const sectionName = navCard.getAttribute('data-section');
             if (sectionName) {
                 navigateToSection(sectionName);
             }
