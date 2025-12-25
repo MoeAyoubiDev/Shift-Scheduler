@@ -100,14 +100,12 @@ try {
         <?php if ($dbError && empty($error)): ?>
             <div class="alert alert-error">
                 <strong>⚠️ Database Setup Required</strong><br><br>
-                The companies table doesn't exist yet. Please run the database migrations first.<br><br>
+                The companies table doesn't exist yet. Please run the database setup script first.<br><br>
                 <strong>Quick Fix:</strong><br>
                 <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; margin: 8px 0; font-family: monospace; white-space: pre-wrap;">
-mysql -u root -p ShiftSchedulerDB &lt; database/migrations/001_add_companies_table.sql
-mysql -u root -p ShiftSchedulerDB &lt; database/migrations/002_add_company_id_to_tables.sql
-mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_procedures.sql
+php database/setup.php
                 </code>
-                <small>See <a href="/QUICK_FIX.md" target="_blank" style="color: #93c5fd; text-decoration: underline;">QUICK_FIX.md</a> for detailed instructions.</small>
+                <small>See <a href="/README.md" target="_blank" style="color: #93c5fd; text-decoration: underline;">README.md</a> for detailed instructions.</small>
             </div>
         <?php elseif ($error): ?>
             <div class="alert alert-error">
@@ -115,7 +113,7 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
                 <?php if ($dbError): ?>
                     <br><br>
                     <strong>Database Setup Required:</strong><br>
-                    Please run the database migrations. See <a href="/QUICK_FIX.md" target="_blank" style="color: #93c5fd;">QUICK_FIX.md</a> for instructions.
+                    Please run the database setup script. See <a href="/README.md" target="_blank" style="color: #93c5fd;">README.md</a> for instructions.
                 <?php endif; ?>
             </div>
         <?php endif; ?>
