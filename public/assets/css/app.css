@@ -756,8 +756,218 @@ main {
 /* Director dashboard refinements */
 .director-dashboard .dashboard-content {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: none;
+}
+
+/* Director dashboard layout update: sidebar + dedicated pages */
+.director-dashboard .dashboard-shell {
+    display: flex;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+    align-items: flex-start;
+}
+
+.director-dashboard .dashboard-sidebar {
+    position: sticky;
+    top: clamp(1rem, 2vw, 1.5rem);
+    min-width: 240px;
+    max-width: 280px;
+    width: 100%;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border-radius: var(--radius-xl);
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.director-dashboard .sidebar-brand {
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.director-dashboard .sidebar-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.director-dashboard .sidebar-subtitle {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.25rem;
+}
+
+.director-dashboard .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.director-dashboard .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    background: rgba(15, 23, 42, 0.35);
+    border: 1px solid transparent;
+    transition: all var(--transition-base);
+}
+
+.director-dashboard .sidebar-link:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.director-dashboard .sidebar-link.active {
+    border-color: rgba(99, 102, 241, 0.6);
+    background: rgba(99, 102, 241, 0.2);
+    box-shadow: var(--shadow-glow);
+}
+
+.director-dashboard .sidebar-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+}
+
+.director-dashboard .sidebar-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.director-dashboard .sidebar-link-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.director-dashboard .sidebar-link-subtitle {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.director-dashboard .sidebar-group {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.director-dashboard .sidebar-group summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.director-dashboard .sidebar-group summary::-webkit-details-marker {
+    display: none;
+}
+
+.director-dashboard .sidebar-chevron {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.director-dashboard .sidebar-subnav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.25rem 0 0.25rem 1.25rem;
+}
+
+.director-dashboard .dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.director-dashboard .dashboard-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.director-dashboard .overview-card-grid {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.5rem);
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+}
+
+.director-dashboard .overview-card {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+.director-dashboard .overview-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.director-dashboard .overview-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.director-dashboard .overview-card-metric {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.director-dashboard .overview-card-subtext {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.director-dashboard .overview-mini-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.director-dashboard .overview-mini-card {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.director-dashboard .mini-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.director-dashboard .mini-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.director-dashboard .dashboard-panel-grid {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .director-dashboard .overview-card {
