@@ -7,7 +7,7 @@ for ($i = 0; $i < 7; $i++) {
     $weekDates[] = $weekStartDate->modify('+' . $i . ' day')->format('Y-m-d');
 }
 ?>
-<div class="dashboard-container">
+<div class="dashboard-container teamleader-dashboard">
     <!-- Modern Navigation Cards -->
     <div class="dashboard-nav-cards">
         <button type="button" class="nav-card active" data-section="overview">
@@ -125,105 +125,222 @@ for ($i = 0; $i < 7; $i++) {
     <main class="dashboard-content">
         <!-- Overview Section -->
         <section class="dashboard-section active" data-section="overview">
-            <div class="card">
-    <div class="hero-row">
-        <div>
-            <h2>Team Leader Control Center</h2>
-        </div>
-        <div class="meta-row">
-            <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
-            </button>
-            <a class="btn secondary small" href="/index.php?download=schedule">Export CSV</a>
-                    </div>
-                </div>
-            </div>
-                <!-- Metrics Grid -->
-                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-top: var(--space-xl);">
-                    <div class="metric">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+            <section class="dashboard-surface teamleader-dashboard-page">
+                <div class="dashboard-inner">
+                    <div class="dashboard-hero">
+                        <div>
+                            <h1>Team Leader Control Center</h1>
+                            <p class="muted">Run your section, track coverage, and keep schedules aligned.</p>
                         </div>
-                        <h3>Pending Requests</h3>
-                        <div class="metric-value"><?= e((string) ($metrics['pending_requests'] ?? 0)) ?></div>
-                        <span class="muted"><?= e((string) ($metrics['high_priority'] ?? 0)) ?> high priority</span>
-                    </div>
-                    
-                    <div class="metric">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                        <div class="dashboard-hero-actions">
+                            <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Week <?= e($weekStart) ?> → <?= e($weekEnd) ?></span>
+                            </button>
+                            <a class="btn ghost small" href="/index.php?download=schedule&week_start=<?= e($weekStart) ?>&week_end=<?= e($weekEnd) ?>">Export CSV</a>
                         </div>
-                        <h3>Coverage Gaps</h3>
-                        <div class="metric-value"><?= e((string) ($metrics['coverage_gaps'] ?? 0)) ?></div>
-                        <span class="muted">Understaffed shifts</span>
                     </div>
-                    
-                    <div class="metric">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 6V12L16 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <h3>Active Breaks</h3>
-                        <div class="metric-value"><?= e((string) ($metrics['active_breaks'] ?? 0)) ?></div>
-                        <span class="muted">Currently on break</span>
-                    </div>
-                    
-                    <div class="metric">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <h3>Unassigned</h3>
-                        <div class="metric-value"><?= e((string) ($metrics['unassigned'] ?? 0)) ?></div>
-                        <span class="muted">No shifts this week</span>
-                    </div>
-                </div>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions-section">
-                <h3>Quick Actions</h3>
-                <div class="quick-actions-grid">
-                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('shift-requests')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Review Requests</span>
-                    </button>
-                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Manage Schedule</span>
-                    </button>
-                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('manage-employees')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>View Team</span>
-                    </button>
-                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('performance')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>View Analytics</span>
-                    </button>
-        </div>
-    </div>
-</section>
+                    <div class="metric-grid teamleader-metric-grid">
+                        <div class="dashboard-card metric-card">
+                            <div class="metric-icon accent-purple">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="metric-label">Pending Requests</div>
+                            <div class="metric-value"><?= e((string) ($metrics['pending_requests'] ?? 0)) ?></div>
+                            <div class="metric-label"><?= e((string) ($metrics['high_priority'] ?? 0)) ?> high priority</div>
+                        </div>
+
+                        <div class="dashboard-card metric-card">
+                            <div class="metric-icon accent-teal">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="metric-label">Coverage Gaps</div>
+                            <div class="metric-value"><?= e((string) ($metrics['coverage_gaps'] ?? 0)) ?></div>
+                            <div class="metric-label">Understaffed shifts</div>
+                        </div>
+
+                        <div class="dashboard-card metric-card">
+                            <div class="metric-icon accent-green">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="metric-label">Active Breaks</div>
+                            <div class="metric-value"><?= e((string) ($metrics['active_breaks'] ?? 0)) ?></div>
+                            <div class="metric-label">Currently on break</div>
+                        </div>
+
+                        <div class="dashboard-card metric-card">
+                            <div class="metric-icon accent-purple">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="metric-label">Unassigned</div>
+                            <div class="metric-value"><?= e((string) ($metrics['unassigned'] ?? 0)) ?></div>
+                            <div class="metric-label">No shifts this week</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="quick-action-grid">
+                        <button type="button" class="dashboard-card quick-action-card" data-section="shift-requests">
+                            <span class="quick-action-icon accent-purple">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>Review Requests</span>
+                        </button>
+                        <button type="button" class="dashboard-card quick-action-card" data-section="weekly-schedule">
+                            <span class="quick-action-icon accent-teal">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>Manage Schedule</span>
+                        </button>
+                        <button type="button" class="dashboard-card quick-action-card" data-section="manage-employees">
+                            <span class="quick-action-icon accent-green">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>View Team</span>
+                        </button>
+                        <button type="button" class="dashboard-card quick-action-card" data-section="performance">
+                            <span class="quick-action-icon accent-purple">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>View Analytics</span>
+                        </button>
+                    </div>
+
+                    <div class="dashboard-lower-grid teamleader-overview-grid">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3>Pending Requests</h3>
+                                <button type="button" class="btn ghost small" data-section="shift-requests">View all</button>
+                            </div>
+                            <div class="activity-list">
+                                <?php if (!empty($pendingRequestsList)): ?>
+                                    <?php foreach ($pendingRequestsList as $request): ?>
+                                        <?php
+                                        $importance = strtolower((string) ($request['importance_level'] ?? 'medium'));
+                                        $iconClass = $importance === 'high' ? 'warning' : 'info';
+                                        ?>
+                                        <div class="activity-item">
+                                            <span class="activity-icon <?= e($iconClass) ?>"></span>
+                                            <div>
+                                                <div class="request-title"><?= e($request['employee_name'] ?? 'Employee') ?> · <?= e($request['shift_name'] ?? 'Shift') ?></div>
+                                                <div class="request-meta"><?= e($request['request_date'] ?? '') ?></div>
+                                            </div>
+                                            <span class="status-pill <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>">
+                                                <?= e(strtolower((string) ($request['status'] ?? 'pending'))) ?>
+                                            </span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="empty-state">
+                                        <div class="empty-state-title">No pending requests</div>
+                                        <p class="empty-state-text">You're all caught up for this week.</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-side-stack">
+                            <div class="dashboard-card">
+                                <div class="card-header">
+                                    <h3>Coverage Gaps</h3>
+                                </div>
+                                <?php if (!empty($coverageGapsList)): ?>
+                                    <div class="this-week-grid">
+                                        <?php foreach ($coverageGapsList as $gap): ?>
+                                            <div>
+                                                <span><?= e($gap['date'] ?? '') ?> · <?= e($gap['shift_name'] ?? '') ?></span>
+                                                <strong><?= e((string) ($gap['assigned'] ?? 0)) ?> / <?= e((string) ($gap['required'] ?? 0)) ?> covered</strong>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="empty-state">
+                                        <div class="empty-state-title">Coverage looks good</div>
+                                        <p class="empty-state-text">No gaps detected for this week.</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="dashboard-card">
+                                <div class="card-header">
+                                    <h3>Active Breaks</h3>
+                                </div>
+                                <div class="activity-list">
+                                    <?php if (!empty($activeBreaksList)): ?>
+                                        <?php foreach ($activeBreaksList as $break): ?>
+                                            <?php $delay = (int) ($break['delay_minutes'] ?? 0); ?>
+                                            <div class="activity-item">
+                                                <span class="activity-icon <?= e($delay > 0 ? 'warning' : 'success') ?>"></span>
+                                                <div>
+                                                    <div class="request-title"><?= e($break['employee_name'] ?? 'Employee') ?></div>
+                                                    <div class="request-meta"><?= e($break['break_start'] ?? '') ?> · <?= e($break['shift_name'] ?? '') ?></div>
+                                                </div>
+                                                <?php if ($delay > 0): ?>
+                                                    <span class="status-pill pending"><?= e($delay) ?>m late</span>
+                                                <?php else: ?>
+                                                    <span class="status-pill approved">On time</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div class="empty-state">
+                                            <div class="empty-state-title">No active breaks</div>
+                                            <p class="empty-state-text">Everyone is on schedule.</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-card">
+                                <div class="card-header">
+                                    <h3>Unassigned Team</h3>
+                                </div>
+                                <?php if (!empty($unassignedList)): ?>
+                                    <div class="this-week-grid">
+                                        <?php foreach ($unassignedList as $employee): ?>
+                                            <div>
+                                                <span><?= e($employee['full_name'] ?? 'Employee') ?></span>
+                                                <strong><?= e($employee['employee_code'] ?? '') ?></strong>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="empty-state">
+                                        <div class="empty-state-title">Everyone assigned</div>
+                                        <p class="empty-state-text">All team members have shifts.</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
 
         <!-- Create Employee Section -->
         <section class="dashboard-section" data-section="create-employee">
@@ -763,6 +880,13 @@ for ($i = 0; $i < 7; $i++) {
                             </svg>
                             Assign Shifts
                         </button>
+                        <button type="button" class="btn ghost" id="swap-shifts-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 7H20M20 7L16 3M20 7L16 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17 17H4M4 17L8 21M4 17L8 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Swap Shifts
+                        </button>
                         <a href="/index.php?download=schedule&week_start=<?= e($weekStart) ?>&week_end=<?= e($weekEnd) ?>" class="btn secondary">
                             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M15 11.25V15C15 15.3978 14.842 15.7794 14.5607 16.0607C14.2794 16.342 13.8978 16.5 13.5 16.5H4.5C4.10218 16.5 3.72064 16.342 3.43934 16.0607C3.15804 15.7794 3 15.3978 3 15V11.25M12 7.5L9 4.5M9 4.5L6 7.5M9 4.5V11.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1012,9 +1136,10 @@ for ($i = 0; $i < 7; $i++) {
                             <h3>Assign Shift</h3>
                             <button type="button" class="modal-close">&times;</button>
                         </div>
-                        <form id="assign-shift-form" method="post" action="/index.php" data-ajax="true">
-                            <input type="hidden" name="action" value="assign_shift">
+                        <form id="assign-shift-form" method="post" action="/index.php" data-ajax="true" data-close-modal="assign-modal">
+                            <input type="hidden" name="action" id="assign-action" value="assign_shift">
                             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                            <input type="hidden" name="assignment_id" id="assign-assignment-id">
                             <div class="form-group">
                                 <label for="assign-date">Date</label>
                                 <select name="date" id="assign-date" class="form-input" required>
@@ -1069,7 +1194,15 @@ for ($i = 0; $i < 7; $i++) {
                             
                             <div class="form-actions">
                                 <button type="button" class="btn secondary modal-cancel">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Assign Shift</button>
+                                <button type="submit" class="btn btn-primary" id="assign-submit-btn">Assign Shift</button>
+                            </div>
+                        </form>
+                        <form id="delete-assignment-form" method="post" action="/index.php" data-ajax="true" data-close-modal="assign-modal" style="display: none;">
+                            <input type="hidden" name="action" value="delete_assignment">
+                            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                            <input type="hidden" name="assignment_id" id="delete-assignment-id">
+                            <div class="form-actions modal-delete-actions">
+                                <button type="submit" class="btn danger">Delete Shift</button>
                             </div>
                         </form>
                     </div>
@@ -1083,7 +1216,7 @@ for ($i = 0; $i < 7; $i++) {
                         <h3>Swap Shifts</h3>
                         <button type="button" class="modal-close">&times;</button>
                     </div>
-                    <form id="swap-shift-form" method="post" action="/index.php">
+                    <form id="swap-shift-form" method="post" action="/index.php" data-ajax="true" data-close-modal="swap-modal">
                         <input type="hidden" name="action" value="swap_shifts">
                         <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                         <input type="hidden" name="assignment1_id" id="swap-assignment1-id">
