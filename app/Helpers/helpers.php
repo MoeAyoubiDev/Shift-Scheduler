@@ -78,6 +78,10 @@ function csrf_token(): string
 
 function verify_csrf(?string $token): bool
 {
+    if (is_csrf_exempt()) {
+        return true;
+    }
+
     return $token !== null && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
@@ -92,6 +96,17 @@ function require_csrf(array $payload): void
         require_once __DIR__ . '/../../includes/footer.php';
         exit;
     }
+}
+
+function is_csrf_exempt(): bool
+{
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+
+    if ($path === '/auth/firebase-login') {
+        return true;
+    }
+
+    return str_starts_with($path, '/api/');
 }
 
 function submission_window_open(DateTimeImmutable $date): bool
