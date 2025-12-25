@@ -1683,7 +1683,7 @@ SELECT
     t.schedule_shift_id,
     t.shift_date,
     DATE_ADD(CONCAT(t.shift_date, ' ', t.start_time), INTERVAL 2 HOUR),
-    DATE_ADD(CONCAT(t.shift_date, ' ', t.start_time), INTERVAL 2 HOUR + 30 MINUTE),
+    DATE_ADD(CONCAT(t.shift_date, ' ', t.start_time), INTERVAL 150 MINUTE),
     0
 FROM (
     SELECT
