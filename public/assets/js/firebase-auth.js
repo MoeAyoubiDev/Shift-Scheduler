@@ -81,11 +81,11 @@
         }
     }
 
-    function sendTokenToBackend(idToken, payloadOverrides) {
+    function sendTokenToBackend(firebaseToken, payloadOverrides) {
         var appConfig = getAppConfig();
         var payload = new FormData();
         payload.append('action', 'firebase_login');
-        payload.append('id_token', idToken);
+        payload.append('firebase_token', firebaseToken);
         payload.append('csrf_token', appConfig.csrfToken || '');
 
         if (payloadOverrides) {
@@ -115,6 +115,23 @@
         }
 
         window.location.href = '/index.php';
+    }
+
+    function getSignupMetadata() {
+        var resolved = Intl.DateTimeFormat().resolvedOptions();
+        var timezone = resolved.timeZone || 'UTC';
+        var locale = resolved.locale || navigator.language || '';
+        var country = '';
+        if (locale.indexOf('-') !== -1) {
+            country = locale.split('-')[1];
+        } else if (locale.indexOf('_') !== -1) {
+            country = locale.split('_')[1];
+        }
+
+        return {
+            timezone: timezone,
+            country: country
+        };
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -208,6 +225,8 @@
                     return;
                 }
 
+                var signupMeta = getSignupMetadata();
+
                 setLoading(submitButton, true);
 
                 auth.createUserWithEmailAndPassword(email, password)
@@ -222,7 +241,8 @@
                             action: 'firebase_signup',
                             company_name: companyName,
                             admin_email: email,
-                            admin_password: password
+                            timezone: signupMeta.timezone,
+                            country: signupMeta.country
                         });
                     })
                     .then(handleBackendResponse)
