@@ -14,29 +14,19 @@ class User extends BaseModel
         }
 
         $primary = $rows[0];
-        $sections = [];
-        foreach ($rows as $row) {
-            $sections[] = [
-                'section_id' => (int) $row['section_id'],
-                'section_name' => $row['section_name'],
-            ];
-        }
 
         return [
             'id' => (int) $primary['user_id'],
             'username' => $primary['username'],
             'email' => $primary['email'],
-            'company_id' => $primary['company_id'] ? (int) $primary['company_id'] : null,
-            'role' => $primary['role_name'],
-            'section_id' => $primary['section_id'] ? (int) $primary['section_id'] : null,
-            'section_name' => $primary['section_name'],
-            'employee_id' => $primary['employee_id'] ? (int) $primary['employee_id'] : null,
-            'is_senior' => (int) ($primary['is_senior'] ?? 0),
-            'seniority_level' => (int) ($primary['seniority_level'] ?? 0),
+            'company_id' => isset($primary['company_id']) && $primary['company_id'] ? (int) $primary['company_id'] : null,
+            'role' => $primary['role_name'] ?? null,
+            'employee_id' => isset($primary['employee_id']) && $primary['employee_id'] ? (int) $primary['employee_id'] : null,
+            'is_senior' => isset($primary['is_senior']) ? (int) $primary['is_senior'] : 0,
+            'seniority_level' => isset($primary['seniority_level']) ? (int) $primary['seniority_level'] : 0,
             'employee_code' => $primary['employee_code'] ?? null,
             'full_name' => $primary['employee_name'] ?? null,
-            'onboarding_completed' => (bool) ($primary['onboarding_completed'] ?? false),
-            'sections' => $sections,
+            'onboarding_completed' => isset($primary['onboarding_completed']) ? (bool) $primary['onboarding_completed'] : false,
         ];
     }
 
@@ -44,11 +34,11 @@ class User extends BaseModel
     {
         $model = new self();
         $rows = $model->callProcedure('sp_create_employee', [
+            'p_company_id' => $payload['company_id'],
             'p_username' => $payload['username'],
             'p_password_hash' => $payload['password_hash'],
             'p_email' => $payload['email'],
             'p_role_id' => $payload['role_id'],
-            'p_section_id' => $payload['section_id'],
             'p_employee_code' => $payload['employee_code'],
             'p_full_name' => $payload['full_name'],
             'p_is_senior' => $payload['is_senior'],
@@ -62,11 +52,11 @@ class User extends BaseModel
     {
         $model = new self();
         $rows = $model->callProcedure('sp_create_leader', [
+            'p_company_id' => $payload['company_id'],
             'p_username' => $payload['username'],
             'p_password_hash' => $payload['password_hash'],
             'p_email' => $payload['email'],
             'p_role_id' => $payload['role_id'],
-            'p_section_id' => $payload['section_id'],
             'p_full_name' => $payload['full_name'],
         ]);
 
@@ -129,10 +119,10 @@ class User extends BaseModel
 
     public static function createSupervisor(array $payload): int
     {
+        // Use sp_create_admin since we no longer have sections
         $model = new self();
-        $rows = $model->callProcedure('sp_create_supervisor', [
+        $rows = $model->callProcedure('sp_create_admin', [
             'p_company_id' => $payload['company_id'],
-            'p_company_name' => $payload['company_name'],
             'p_username' => $payload['username'],
             'p_password_hash' => $payload['password_hash'],
             'p_email' => $payload['email'],

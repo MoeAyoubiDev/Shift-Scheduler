@@ -6,11 +6,6 @@ declare(strict_types=1);
  * First step in the onboarding process
  */
 
-// Enable error reporting for debugging (remove in production)
-error_reporting(E_ALL);
-ini_set('display_errors', '0'); // Don't display errors, but log them
-ini_set('log_errors', '1');
-
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -35,14 +30,12 @@ try {
         $pdo->query("SELECT 1 FROM companies LIMIT 1");
         $dbError = false;
     } catch (PDOException $e) {
-        // Table doesn't exist - show setup message
         $dbError = true;
     }
 } catch (Throwable $e) {
     error_log("Signup page error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     $dbError = true;
     $error = 'Application initialization error. Please check server logs.';
-    // Don't die - show error message instead
 }
 
 // Initialize variables
@@ -50,9 +43,9 @@ if (!isset($error)) $error = '';
 if (!isset($dbError)) $dbError = false;
 $message = isset($_GET['message']) ? (string) $_GET['message'] : '';
 
-$title = 'Sign Up - Shift Scheduler';
+$title = 'Create Account - Shift Scheduler';
 
-// Ensure all required functions are available before including header
+// Ensure all required functions are available
 if (!function_exists('e')) {
     require_once __DIR__ . '/../app/Helpers/view.php';
 }
@@ -62,21 +55,21 @@ if (!function_exists('app_config')) {
 if (!function_exists('current_user')) {
     require_once __DIR__ . '/../app/Helpers/helpers.php';
 }
+if (!function_exists('csrf_token')) {
+    require_once __DIR__ . '/../app/Helpers/helpers.php';
+}
 
-// Only include header if we have the required functions
 try {
     require_once __DIR__ . '/../includes/header.php';
 } catch (Throwable $e) {
-    error_log("Header error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-    // Fallback header
+    error_log("Header error: " . $e->getMessage());
     ?>
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-        <meta name="format-detection" content="telephone=no">
-        <title><?= htmlspecialchars($title ?? 'Sign Up') ?></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?= htmlspecialchars($title) ?></title>
         <link rel="stylesheet" href="/assets/css/app.css">
     </head>
     <body class="page-shell login-page">
@@ -89,13 +82,13 @@ try {
     <div class="login-card signup-card">
         <div class="login-brand">
             <div class="brand-logo">
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="48" height="48" rx="10" fill="white"/>
-                    <path d="M24 12L32 20H28V32H20V20H16L24 12Z" fill="#4f46e5"/>
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="48" height="48" rx="10" fill="#4f46e5"/>
+                    <path d="M24 12L32 20H28V32H20V20H16L24 12Z" fill="white"/>
                 </svg>
             </div>
-            <h1 class="brand-title">Create Your Account</h1>
-            <p class="brand-subtitle">Join thousands of companies managing their workforce efficiently</p>
+            <h1 class="brand-title">Create Account</h1>
+            <p class="brand-subtitle">Get started with Shift Scheduler today</p>
         </div>
 
         <?php if ($dbError && empty($error)): ?>
@@ -103,22 +96,14 @@ try {
                 <strong>⚠️ Database Setup Required</strong><br><br>
                 The companies table doesn't exist yet. Please run the database setup script first.<br><br>
                 <strong>Quick Fix:</strong><br>
-                <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; margin: 8px 0; font-family: monospace; white-space: pre-wrap;">
-mysql &lt; database/shift_scheduler.sql
+                <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; margin: 8px 0; font-family: monospace;">
+mysql -u shift_user -p ShiftSchedulerDB &lt; database/shift_scheduler.sql
                 </code>
-                <small>See <a href="/README.md" target="_blank" style="color: #93c5fd; text-decoration: underline;">README.md</a> for detailed instructions.</small>
             </div>
-        <?php elseif ($error): ?>
+        <?php elseif ($error || $message): ?>
             <div class="alert alert-error">
-                <?= e($error) ?>
-                <?php if ($dbError): ?>
-                    <br><br>
-                    <strong>Database Setup Required:</strong><br>
-                    Please run the database setup script. See <a href="/README.md" target="_blank" style="color: #93c5fd;">README.md</a> for instructions.
-                <?php endif; ?>
+                <?= e($error ?: $message) ?>
             </div>
-        <?php elseif ($message): ?>
-            <div class="alert alert-error"><?= e($message) ?></div>
         <?php endif; ?>
 
         <form id="signup-form" class="login-form" method="post" action="/index.php" novalidate>
@@ -135,7 +120,7 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="organization"
-                        placeholder="Acme Corporation"
+                        placeholder="Enter your company name"
                     >
                 </div>
                 <span class="form-error" data-error-for="signup-company-name"></span>
@@ -151,7 +136,7 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="name"
-                        placeholder="John Doe"
+                        placeholder="Enter your full name"
                     >
                 </div>
                 <span class="form-error" data-error-for="signup-full-name"></span>
@@ -183,12 +168,13 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="new-password"
-                        placeholder="........"
+                        placeholder="Create a password"
                         minlength="8"
                     >
                     <button type="button" class="password-toggle" id="signup-password-toggle" aria-label="Toggle password visibility">
                         <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
+                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="10" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
                         </svg>
                     </button>
                 </div>
@@ -205,22 +191,31 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="new-password"
-                        placeholder="........"
+                        placeholder="Confirm your password"
                         minlength="8"
                     >
                     <button type="button" class="password-toggle" id="signup-confirm-password-toggle" aria-label="Toggle password visibility">
                         <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
+                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="10" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
                         </svg>
                     </button>
                 </div>
                 <span class="form-error" data-error-for="signup-confirm-password"></span>
             </div>
 
-            <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="signup-terms" name="accept_terms" required>
-                    <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
+            <div class="form-group">
+                <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: var(--space-2); cursor: pointer;">
+                    <input 
+                        type="checkbox" 
+                        id="signup-terms" 
+                        name="accept_terms" 
+                        required
+                        style="margin-top: 2px; width: 18px; height: 18px; cursor: pointer;"
+                    >
+                    <span style="font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5;">
+                        I agree to the <a href="/terms" target="_blank" style="color: var(--primary); text-decoration: underline;">Terms of Service</a> and <a href="/privacy" target="_blank" style="color: var(--primary); text-decoration: underline;">Privacy Policy</a>
+                    </span>
                 </label>
                 <span class="form-error" data-error-for="signup-terms"></span>
             </div>
@@ -232,36 +227,18 @@ mysql &lt; database/shift_scheduler.sql
             </div>
         </form>
 
-        <div class="form-footer">
-            <div class="form-footer-content">
-                <span class="form-footer-text">Already have an account?</span>
-                <a href="/login.php" class="form-footer-link">Sign in</a>
-            </div>
-        </div>
-        
-        <div class="signup-features">
-            <div class="feature-item">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="feature-item">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="feature-item">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+        <div class="form-footer" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border); text-align: center;">
+            <div class="form-footer-content" style="display: flex; align-items: center; justify-content: center; gap: var(--space-2);">
+                <span class="form-footer-text" style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Already have an account?</span>
+                <a href="/login.php" class="form-footer-link" style="color: var(--primary); text-decoration: none; font-weight: var(--font-weight-semibold); font-size: var(--font-size-sm);">Sign in</a>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Password toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle functionality
     const toggles = ['signup-password-toggle', 'signup-confirm-password-toggle'];
     toggles.forEach(toggleId => {
         const toggle = document.getElementById(toggleId);
@@ -284,6 +261,15 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 confirmPassword.setCustomValidity('');
             }
+        });
+    }
+
+    // Form submission
+    const form = document.getElementById('signup-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Client-side validation already handled by HTML5 required and custom validity
+            // Server will handle additional validation
         });
     }
 });

@@ -64,22 +64,22 @@ class ActionHandler
         // Always initialize auth actions first
         self::initializeAuth();
         
-        // Supervisor actions
+        // Admin actions
         Router::register('select_section', function(array $payload) {
             DirectorController::handleSelectSection($payload);
             return ['redirect' => '/index.php'];
-        }, ['Supervisor'], true);
+        }, ['Admin'], true);
         
         Router::register('create_leader', function(array $payload) {
             $result = DirectorController::handleCreateLeader($payload);
             return ['message' => $result ?? 'Leader created successfully.'];
-        }, ['Supervisor'], true);
+        }, ['Admin'], true);
         
         // Team Leader actions
         Router::register('create_employee', function(array $payload) {
             $result = TeamLeaderController::handleCreateEmployee($payload);
             return ['message' => $result ?? 'Employee created successfully.'];
-        }, ['Team Leader', 'Supervisor'], true);
+        }, ['Team Leader', 'Admin'], true);
         
         Router::register('update_employee', function(array $payload) {
             $result = TeamLeaderController::handleUpdateEmployee($payload);

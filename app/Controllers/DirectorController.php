@@ -9,14 +9,10 @@ class DirectorController
     public static function handleSelectSection(array $payload): void
     {
         require_login();
-        require_role(['Supervisor']);
+        require_role(['Admin']);
         require_csrf($payload);
 
-        $sectionId = (int) ($payload['section_id'] ?? 0);
-        if ($sectionId > 0) {
-            set_current_section($sectionId);
-        }
-
+        // Deprecated - sections no longer exist, redirect to dashboard
         header('Location: /index.php');
         exit;
     }
@@ -24,22 +20,27 @@ class DirectorController
     public static function handleCreateLeader(array $payload): ?string
     {
         require_login();
-        require_role(['Supervisor']);
+        require_role(['Admin']);
         require_csrf($payload);
 
+        $user = current_user();
+        $companyId = $user['company_id'] ?? null;
+        if (!$companyId) {
+            return 'Company ID not found.';
+        }
+
         $roleId = (int) ($payload['role_id'] ?? 0);
-        $sectionId = (int) ($payload['section_id'] ?? 0);
         $password = (string) ($payload['password'] ?? '');
 
-        if ($roleId <= 0 || $sectionId <= 0) {
-            return 'Invalid role or section.';
+        if ($roleId <= 0) {
+            return 'Invalid role.';
         }
 
         if (mb_strlen($password) < 8) {
             return 'Password must be at least 8 characters long.';
         }
 
-        // Verify role is Team Leader or Supervisor
+        // Verify role is Team Leader
         require_once __DIR__ . '/../Models/Role.php';
         $roles = Role::listRoles();
         $selectedRole = null;
@@ -50,17 +51,17 @@ class DirectorController
             }
         }
 
-        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Team Leader', 'Supervisor'], true)) {
-            return 'Invalid role. Only Team Leader or Supervisor can be created.';
+        if (!$selectedRole || !in_array($selectedRole['role_name'], ['Team Leader'], true)) {
+            return 'Invalid role. Only Team Leader can be created.';
         }
 
         try {
             $userId = User::createLeader([
+                'company_id' => $companyId,
                 'username' => trim($payload['username'] ?? ''),
                 'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => trim($payload['email'] ?? ''),
                 'role_id' => $roleId,
-                'section_id' => $sectionId,
                 'full_name' => trim($payload['full_name'] ?? ''),
             ]);
 

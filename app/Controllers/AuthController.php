@@ -63,6 +63,17 @@ class AuthController
             return ['success' => false, 'message' => 'Password must be at least 8 characters long.', 'redirect' => '/signup.php'];
         }
 
+        // Validate password confirmation
+        $confirmPassword = (string) ($payload['confirm_password'] ?? '');
+        if ($password !== $confirmPassword) {
+            return ['success' => false, 'message' => 'Passwords do not match.', 'redirect' => '/signup.php'];
+        }
+
+        // Validate terms acceptance
+        if (empty($payload['accept_terms'])) {
+            return ['success' => false, 'message' => 'You must agree to the Terms of Service and Privacy Policy.', 'redirect' => '/signup.php'];
+        }
+
         if (User::emailExists($email) || Company::findByEmail($email)) {
             return ['success' => false, 'message' => 'An account with this email already exists.', 'redirect' => '/signup.php'];
         }
@@ -87,16 +98,20 @@ class AuthController
         }
 
         try {
-            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'supervisor'));
-            $usernameCandidate = $usernameBase ?: 'supervisor';
+            $fullName = trim($payload['full_name'] ?? '');
+            if (empty($fullName)) {
+                $fullName = $companyName . ' Admin';
+            }
+
+            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'admin'));
+            $usernameCandidate = $usernameBase ?: 'admin';
 
             $userId = User::createSupervisor([
                 'company_id' => $companyId,
-                'company_name' => $companyName,
                 'username' => $usernameCandidate,
                 'password_hash' => $passwordHash,
                 'email' => $email,
-                'full_name' => $companyName . ' Supervisor',
+                'full_name' => $fullName,
             ]);
 
             if ($userId <= 0) {

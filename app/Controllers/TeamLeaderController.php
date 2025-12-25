@@ -13,12 +13,13 @@ class TeamLeaderController
     public static function handleCreateEmployee(array $payload): ?string
     {
         require_login();
-        require_role(['Team Leader', 'Supervisor']);
+        require_role(['Team Leader', 'Admin']);
         require_csrf($payload);
 
-        $sectionId = current_section_id();
-        if (!$sectionId) {
-            return 'Section not selected.';
+        $user = current_user();
+        $companyId = $user['company_id'] ?? null;
+        if (!$companyId) {
+            return 'Company ID not found.';
         }
 
         // Validate required fields
@@ -58,11 +59,11 @@ class TeamLeaderController
 
         try {
             $employeeId = User::createEmployee([
+                'company_id' => $companyId,
                 'username' => $username,
                 'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => $email,
                 'role_id' => $roleId,
-                'section_id' => $sectionId,
                 'employee_code' => $employeeCode,
                 'full_name' => $fullName,
                 'is_senior' => $isSenior ? 1 : 0,
