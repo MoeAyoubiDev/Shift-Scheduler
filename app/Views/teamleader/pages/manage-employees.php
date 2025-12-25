@@ -10,8 +10,11 @@ foreach ($roles as $role) {
     <div class="dashboard-inner">
         <div class="card">
             <div class="section-title">
-                <h3>Manage Employees</h3>
-                <span><?= e(count($employees ?? [])) ?> employees in this section</span>
+                <div>
+                    <h3>Manage Employees</h3>
+                    <span><?= e(count($employees ?? [])) ?> employees in this section</span>
+                </div>
+                <a class="btn small" href="/dashboard/index.php?page=create-employee">Add Employee</a>
             </div>
             <?php if (!empty($employees)): ?>
                 <table>

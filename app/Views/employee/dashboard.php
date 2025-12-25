@@ -124,7 +124,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
             <h3>Quick Actions</h3>
         </div>
         <div class="quick-action-grid">
-            <a class="dashboard-card quick-action-card" href="#request-modal">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php#request-modal">
                 <span class="quick-action-icon accent-purple">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="2"/>
@@ -133,7 +133,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 </span>
                 <span>Request Time Off</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="#request-modal">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php#request-modal">
                 <span class="quick-action-icon accent-teal">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 7H13V17H3V7Z" stroke="currentColor" stroke-width="2"/>
@@ -144,7 +144,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 </span>
                 <span>Swap Shift</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="#employee-schedule">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php#employee-schedule">
                 <span class="quick-action-icon accent-green">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
@@ -153,7 +153,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                 </span>
                 <span>View Timesheet</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="#employee-summary">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php#employee-summary">
                 <span class="quick-action-icon accent-purple">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 1V23" stroke="currentColor" stroke-width="2"/>
@@ -205,14 +205,14 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                         </div>
                     <?php endif; ?>
                 </div>
-                <a class="activity-link" href="#employee-schedule">View Full Calendar</a>
+                <a class="activity-link" href="/dashboard/index.php#employee-schedule">View Full Calendar</a>
             </div>
 
             <div class="dashboard-side-stack">
                 <div class="dashboard-card requests-card" id="employee-requests">
                     <div class="card-header">
                         <h3>My Requests</h3>
-                        <a class="btn ghost small" href="#request-modal">New Request</a>
+                        <a class="btn ghost small" href="/dashboard/index.php#request-modal">New Request</a>
                     </div>
                     <div class="request-list">
                         <?php if (!empty($recentRequests)): ?>
@@ -261,7 +261,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <a class="activity-link" href="#employee-requests">View All</a>
+                    <a class="activity-link" href="/dashboard/index.php#employee-requests">View All</a>
                 </div>
             </div>
         </div>
