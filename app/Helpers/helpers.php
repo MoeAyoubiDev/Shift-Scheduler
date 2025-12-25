@@ -105,8 +105,9 @@ function is_csrf_exempt(): bool
     return str_starts_with($path, '/api/');
 }
 
-function submission_window_open(DateTimeImmutable $date): bool
+function submission_window_open(?DateTimeImmutable $date = null): bool
 {
+    $date ??= new DateTimeImmutable();
     $dayOfWeek = (int) $date->format('N');
 
     return $dayOfWeek >= 1 && $dayOfWeek <= 6;
