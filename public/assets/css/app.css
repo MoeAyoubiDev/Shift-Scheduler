@@ -9,36 +9,64 @@
    CSS VARIABLES - 2026 Design System
    ============================================ */
 :root {
-    /* Modern Color Palette - 2026 Trends */
-    --color-primary: #6366f1;
-    --color-primary-dark: #4f46e5;
-    --color-primary-light: #818cf8;
-    --color-primary-glow: rgba(99, 102, 241, 0.4);
+    /* Enterprise Color Palette - Design.md Specification */
+    /* Primary: Blue/Indigo for trust */
+    --color-primary: #4f46e5;
+    --color-primary-dark: #4338ca;
+    --color-primary-light: #6366f1;
+    --color-primary-glow: rgba(79, 70, 229, 0.3);
     
-    --color-secondary: #8b5cf6;
-    --color-accent: #06b6d4;
-    --color-accent-glow: rgba(6, 182, 212, 0.3);
+    /* Secondary: Teal/Green for compliance success */
+    --color-secondary: #14b8a6;
+    --color-secondary-dark: #0d9488;
+    --color-secondary-light: #2dd4bf;
     
-    /* Neutral Colors */
-    --color-bg-primary: #0a0e27;
-    --color-bg-secondary: #141b2d;
-    --color-bg-tertiary: #1a2332;
+    /* Accent: Teal/Green for success states */
+    --color-accent: #10b981;
+    --color-accent-dark: #059669;
+    --color-accent-glow: rgba(16, 185, 129, 0.2);
+    
+    /* Neutral Colors - Enterprise Dark Theme */
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-bg-tertiary: #334155;
     --color-bg-card: rgba(255, 255, 255, 0.05);
     --color-bg-glass: rgba(255, 255, 255, 0.08);
+    --color-bg-surface: rgba(30, 41, 59, 0.6);
     
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #a0aec0;
-    --color-text-muted: #718096;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    --color-text-disabled: #64748b;
     
-    /* Semantic Colors - Muted & Professional */
-    --color-success: #22c55e;
-    --color-success-muted: rgba(34, 197, 94, 0.15);
-    --color-warning: #eab308;
-    --color-warning-muted: rgba(234, 179, 8, 0.15);
+    /* Semantic Colors - Enterprise Grade */
+    /* Success: Teal/Green for compliance */
+    --color-success: #10b981;
+    --color-success-light: #34d399;
+    --color-success-dark: #059669;
+    --color-success-muted: rgba(16, 185, 129, 0.15);
+    --color-success-bg: rgba(16, 185, 129, 0.1);
+    
+    /* Warning: Amber/Orange for alerts */
+    --color-warning: #f59e0b;
+    --color-warning-light: #fbbf24;
+    --color-warning-dark: #d97706;
+    --color-warning-muted: rgba(245, 158, 11, 0.15);
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+    
+    /* Error: Red for critical alerts */
     --color-error: #ef4444;
+    --color-error-light: #f87171;
+    --color-error-dark: #dc2626;
     --color-error-muted: rgba(239, 68, 68, 0.15);
+    --color-error-bg: rgba(239, 68, 68, 0.1);
+    
+    /* Info: Blue for information */
     --color-info: #3b82f6;
+    --color-info-light: #60a5fa;
+    --color-info-dark: #2563eb;
     --color-info-muted: rgba(59, 130, 246, 0.15);
+    --color-info-bg: rgba(59, 130, 246, 0.1);
     
     /* Glassmorphism - Professional & Subtle */
     --glass-bg: rgba(255, 255, 255, 0.08);
@@ -59,7 +87,17 @@
     --shadow-glow-strong: 0 0 24px rgba(99, 102, 241, 0.3);
     --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     
-    /* Spacing - Enhanced for better breathing room */
+    /* Spacing Scale - Design.md Specification (4/8/12/16/24/32/48) */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-6: 1.5rem;   /* 24px */
+    --space-8: 2rem;     /* 32px */
+    --space-12: 3rem;    /* 48px */
+    --space-16: 4rem;    /* 64px */
+    
+    /* Legacy spacing (maintained for compatibility) */
     --space-xs: 0.5rem;
     --space-sm: 1rem;
     --space-md: 1.5rem;
@@ -119,7 +157,7 @@
 }
 
 /* ============================================
-   RESET & BASE STYLES
+   RESET & BASE STYLES - Enterprise Design
    ============================================ */
 * {
     margin: 0;
@@ -136,7 +174,7 @@ body {
     font-family: var(--font-primary);
     background: var(--color-bg-primary);
     color: var(--color-text-primary);
-    line-height: 1.6;
+    line-height: var(--line-height-relaxed);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -145,16 +183,71 @@ body {
     max-width: 100vw;
 }
 
-/* Animated Background */
+/* 12-Column Grid System - Design.md Specification */
+.container {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+    box-sizing: border-box;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-6);
+    width: 100%;
+}
+
+.grid-1 { grid-column: span 1; }
+.grid-2 { grid-column: span 2; }
+.grid-3 { grid-column: span 3; }
+.grid-4 { grid-column: span 4; }
+.grid-5 { grid-column: span 5; }
+.grid-6 { grid-column: span 6; }
+.grid-7 { grid-column: span 7; }
+.grid-8 { grid-column: span 8; }
+.grid-9 { grid-column: span 9; }
+.grid-10 { grid-column: span 10; }
+.grid-11 { grid-column: span 11; }
+.grid-12 { grid-column: span 12; }
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    
+    .grid-1,
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .grid-5,
+    .grid-6,
+    .grid-7,
+    .grid-8,
+    .grid-9,
+    .grid-10,
+    .grid-11,
+    .grid-12 {
+        grid-column: span 1;
+    }
+}
+
+/* Enterprise Background - Professional & Clean */
 body::before {
     content: '';
     position: fixed;
     inset: 0;
     background:
-        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 70%),
-        linear-gradient(135deg, #0a0e27 0%, #141b2d 50%, #1a2332 100%);
+        radial-gradient(circle at 20% 30%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.06) 0%, transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
     z-index: -2;
     animation: backgroundShift 20s ease-in-out infinite;
 }
@@ -164,10 +257,11 @@ body::after {
     position: fixed;
     inset: 0;
     background-image: 
-        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
-    background-size: 40px 40px;
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.02) 1px, transparent 0);
+    background-size: 48px 48px;
     z-index: -1;
     pointer-events: none;
+    opacity: 0.5;
 }
 
 @keyframes backgroundShift {
@@ -219,12 +313,15 @@ body.login-page .login-container {
     max-width: 520px;
 }
 
+/* Enterprise Login Card - Professional Design */
 .login-card {
-    background: linear-gradient(160deg, rgba(15, 23, 42, 0.94) 0%, rgba(30, 41, 59, 0.86) 100%);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: var(--radius-xl);
-    padding: clamp(1.5rem, 3vw, 2.25rem);
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(148, 163, 184, 0.08);
+    background: var(--color-bg-surface);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
     animation: cardSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: visible;
@@ -236,9 +333,7 @@ body.login-page .login-container {
     justify-content: center;
     margin: 0 auto;
     box-sizing: border-box;
-    gap: clamp(0.75rem, 2vw, 1.25rem);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    gap: var(--space-6);
 }
 
 .login-card::after {
@@ -290,13 +385,13 @@ body.login-page .login-card.signup-card {
 .brand-logo {
     width: clamp(48px, 8vw, 64px);
     height: clamp(48px, 8vw, 64px);
-    margin: 0 auto clamp(0.75rem, 1.5vw, 1rem);
+    margin: 0 auto var(--space-4);
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     transition: all var(--transition-base);
 }
 
@@ -401,23 +496,26 @@ body.login-page .login-card.signup-card {
     position: relative;
 }
 
+/* Enterprise Form Input - Professional Design */
 .form-input {
     width: 100%;
-    padding: clamp(0.9375rem, 2vw, 1.125rem) clamp(1.125rem, 2.5vw, 1.375rem);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: var(--space-4) var(--space-6);
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: var(--radius-md);
     color: var(--color-text-primary);
-    font-size: clamp(0.9375rem, 1.8vw, 1rem);
+    font-size: var(--font-size-base);
     font-family: var(--font-primary);
     font-weight: var(--font-weight-normal);
     transition: all var(--transition-base);
     line-height: var(--line-height-relaxed);
+    min-height: 44px; /* Touch-friendly */
+    box-sizing: border-box;
 }
 
 .form-input:hover {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.7);
 }
 
 .form-input::placeholder {
@@ -427,9 +525,8 @@ body.login-page .login-card.signup-card {
 .form-input:focus {
     outline: none;
     border-color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 0 3px var(--color-primary-glow), var(--shadow-md);
-    transform: translateY(-1px);
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .password-container {
@@ -458,32 +555,39 @@ body.login-page .login-card.signup-card {
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* Enterprise Button - Primary */
 .btn-primary {
     width: 100%;
-    padding: 0.9375rem 1.5rem;
+    padding: var(--space-4) var(--space-6);
     background: var(--color-primary);
     border: none;
     border-radius: var(--radius-md);
     color: white;
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     transition: all var(--transition-base);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
     position: relative;
     overflow: hidden;
     letter-spacing: 0.01em;
-    margin-top: 0.5rem;
+    margin-top: var(--space-2);
+    min-height: 44px; /* Touch-friendly */
 }
 
 .btn-primary:hover {
     background: var(--color-primary-dark);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
     transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
 }
 
 .btn-primary:active {
@@ -513,16 +617,17 @@ body.login-page .login-card.signup-card {
 /* ============================================
    HEADER - Modern Glassmorphism
    ============================================ */
+/* Enterprise Header - Professional Top Bar */
 header {
     position: sticky;
     top: 0;
     z-index: var(--z-sticky);
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border-bottom: 1px solid var(--glass-border);
-    padding: var(--space-md) var(--space-lg);
-    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    padding: var(--space-4) var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 .header-content {
@@ -583,9 +688,9 @@ header {
    MAIN CONTENT AREA - Centered
    ============================================ */
 main {
-    max-width: 1400px;
+    max-width: 1440px;
     margin: 0 auto;
-    padding: var(--space-xl) var(--space-lg);
+    padding: var(--space-8) var(--space-6);
     min-height: 100vh;
     width: 100%;
     box-sizing: border-box;
@@ -619,30 +724,32 @@ main {
    NAVIGATION CARDS - Modern 3D Effect
    ============================================ */
 /* Navigation cards - Compact square design */
+/* Enterprise Navigation Grid - Professional Card Layout */
 .dashboard-nav-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(clamp(120px, 18vw, 180px), 1fr));
-    gap: clamp(1rem, 2vw, 1.5rem);
-    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 20vw, 200px), 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
 }
 
 /* Nav Card - Card-based navigation component */
+/* Enterprise Nav Card - Professional Card-Based Navigation */
 .nav-card {
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
     cursor: pointer;
     transition: all var(--transition-base);
     position: relative;
     overflow: visible;
     text-align: center;
-    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     animation: cardFadeIn 0.5s ease-out both;
     width: 100%;
     max-width: 100%;
@@ -653,7 +760,7 @@ main {
     align-items: center;
     justify-content: center;
     min-height: clamp(120px, 18vw, 180px);
-    gap: clamp(0.75rem, 1.5vw, 1rem);
+    gap: var(--space-4);
     text-decoration: none;
     color: inherit;
 }
@@ -700,10 +807,10 @@ main {
 }
 
 .nav-card:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
-    transform: translateY(-3px);
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(79, 70, 229, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
     z-index: 1;
 }
 
@@ -712,12 +819,10 @@ main {
 }
 
 .nav-card.active {
-    background: linear-gradient(135deg, 
-        rgba(99, 102, 241, 0.15), 
-        rgba(139, 92, 246, 0.15));
+    background: rgba(79, 70, 229, 0.1);
     border-color: var(--color-primary);
-    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
-    transform: translateY(-2px);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 4px 6px rgba(79, 70, 229, 0.2);
+    transform: translateY(-1px);
 }
 
 .nav-card.active::before {
@@ -1397,17 +1502,16 @@ main {
     line-height: var(--line-height-tight);
 }
 
+/* Enterprise KPI Value - Data-Driven Typography */
 .metric-value {
     font-size: clamp(2rem, 4.5vw, 3rem);
     font-weight: var(--font-weight-bold);
-    background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-text-primary);
     margin: 0;
     line-height: var(--line-height-tight);
     text-align: center;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
 }
 
 /* ============================================
@@ -1738,15 +1842,16 @@ main {
 }
 
 /* Base card class - all cards inherit from this */
+/* Enterprise Card - Professional Design */
 .card {
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: clamp(1.5rem, 3vw, 2.25rem);
-    margin-bottom: clamp(1.5rem, 3vw, 2rem);
-    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     transition: all var(--transition-base);
     position: relative;
     overflow: visible;
@@ -1822,10 +1927,10 @@ main {
 }
 
 .card:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
-    transform: translateY(-2px);
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(148, 163, 184, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
 }
 
 .card:hover::before {
@@ -1945,14 +2050,15 @@ main {
     opacity: 1;
 }
 
+/* Enterprise KPI Card - Data-Driven Design */
 .metric {
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: clamp(1.25rem, 2.5vw, 1.75rem);
-    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     transition: all var(--transition-base);
     position: relative;
     overflow: visible;
@@ -1965,7 +2071,7 @@ main {
     align-items: center;
     justify-content: center;
     min-height: clamp(140px, 20vw, 180px);
-    gap: clamp(0.75rem, 1.5vw, 1rem);
+    gap: var(--space-4);
     text-align: center;
 }
 
@@ -1981,10 +2087,10 @@ main {
 }
 
 .metric:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-    box-shadow: var(--shadow-glow), var(--glass-shadow-hover);
-    transform: translateY(-3px);
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(79, 70, 229, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
 }
 
 .metric:hover::before {
@@ -2366,24 +2472,30 @@ main {
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
+/* Enterprise Button - Secondary */
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--color-bg-surface);
+    border: 1px solid rgba(148, 163, 184, 0.2);
     color: var(--color-text-primary);
-    padding: 0.9375rem 2rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
     border-radius: var(--radius-md);
     transition: all var(--transition-base);
     letter-spacing: 0.01em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    min-height: 44px; /* Touch-friendly */
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(148, 163, 184, 0.3);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
 }
 
 .btn.small {
@@ -2599,42 +2711,47 @@ textarea.form-input {
 }
 
 /* Compact table design */
+/* Enterprise Table - Sortable, Filterable, Professional */
 table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     min-width: 600px; /* Minimum width for desktop */
-    box-shadow: var(--glass-shadow), var(--shadow-inset);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 table th {
-    background: rgba(255, 255, 255, 0.06);
-    padding: clamp(1rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
+    background: rgba(15, 23, 42, 0.6);
+    padding: var(--space-4) var(--space-6);
     text-align: left;
     font-weight: var(--font-weight-semibold);
-    font-size: clamp(0.8125rem, 1.6vw, 0.9375rem);
+    font-size: var(--font-size-sm);
     color: var(--color-text-primary);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid rgba(148, 163, 184, 0.15);
     white-space: nowrap;
     vertical-align: middle;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 table td {
-    padding: clamp(1rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
     color: var(--color-text-primary);
     white-space: nowrap;
-    font-size: clamp(0.875rem, 1.8vw, 1rem);
+    font-size: var(--font-size-base);
     vertical-align: middle;
     line-height: var(--line-height-relaxed);
+    background: transparent;
 }
 
 table tr:last-child td {
@@ -2646,7 +2763,7 @@ table tr {
 }
 
 table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(79, 70, 229, 0.05);
 }
 
 table tbody tr:last-child td {
@@ -2803,19 +2920,20 @@ table tbody tr:last-child td {
     animation: fadeIn 0.2s ease-out;
 }
 
+/* Enterprise Modal - Professional Design */
 .modal-content {
-    background: var(--glass-bg);
+    background: var(--color-bg-surface);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
     max-width: 90vw;
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--glass-shadow-hover), var(--shadow-inset);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
     position: relative;
     animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -4254,14 +4372,16 @@ body.landing-page footer.landing-footer {
     display: block;
 }
 
+/* Enterprise Hero Section - Professional Landing */
 .hero-section {
     min-height: 85vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-2xl) var(--space-xl);
+    padding: var(--space-16) var(--space-6);
     text-align: center;
     box-sizing: border-box;
+    background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
 }
 
 .hero-content {
@@ -6154,19 +6274,101 @@ body.landing-page footer.landing-footer {
     }
 }
 
-/* Safe enhancement: Ensure existing cards get glass effect if they don't already */
-.card:not(.glass-card) {
-    /* Only add if not already glass-card */
+/* ============================================
+   ENTERPRISE DESIGN OVERRIDES - High Specificity
+   ============================================
+   These rules ensure the enterprise design is applied
+   while preserving all existing functionality.
+   ============================================ */
+
+/* Force enterprise color scheme */
+body {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Enterprise card styling - applied to all cards */
+.card,
+.glass-card {
+    background: var(--color-bg-surface) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+/* Enterprise navigation cards */
+.nav-card {
+    background: var(--color-bg-surface) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+.nav-card.active {
+    background: rgba(79, 70, 229, 0.1) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 1px var(--color-primary), 0 4px 6px rgba(79, 70, 229, 0.2) !important;
+}
+
+/* Enterprise buttons */
+.btn-primary {
+    background: var(--color-primary) !important;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2) !important;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-dark) !important;
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3) !important;
+}
+
+.btn-secondary {
+    background: var(--color-bg-surface) !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+/* Enterprise tables */
+table {
+    background: var(--color-bg-surface) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+table th {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-bottom: 2px solid rgba(148, 163, 184, 0.15) !important;
+}
+
+table tbody tr:hover {
+    background: rgba(79, 70, 229, 0.05) !important;
+}
+
+/* Enterprise form inputs */
+.form-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+.form-input:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Enterprise modals */
+.modal-content {
+    background: var(--color-bg-surface) !important;
+    border: 1px solid rgba(148, 163, 184, 0.15) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: var(--glass-backdrop-strong) !important;
+}
+
+/* Enterprise header */
+header {
+    background: var(--color-bg-surface) !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) !important;
 }
 
 /* Preserve all existing functionality - these selectors remain unchanged */
-.dashboard-section,
-.nav-card[data-section],
-.shift-selected,
-.shift-cell,
-.employee-row,
-.schedule-table-wrapper,
-.week-selector-pill,
-.ajax-notification {
-    /* All existing functionality preserved */
-}
+/* All JavaScript hooks and data attributes are preserved */
