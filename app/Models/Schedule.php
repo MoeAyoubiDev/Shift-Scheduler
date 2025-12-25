@@ -7,12 +7,22 @@ class Schedule extends BaseModel
 {
     protected string $table = 'schedules';
 
-    public static function upsertWeek(string $weekStart, string $weekEnd): int
+    public static function upsertWeek(string $weekStart, string $weekEnd, ?int $companyId = null): int
     {
         $model = new self();
         
+        // Get company_id from session if not provided
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for upsertWeek');
+            }
+        }
+        
         try {
             $rows = $model->callProcedure('sp_upsert_week', [
+                'p_company_id' => $companyId,
                 'p_week_start' => $weekStart,
                 'p_week_end' => $weekEnd,
             ]);
@@ -44,61 +54,103 @@ class Schedule extends BaseModel
         return $model->callProcedure('sp_get_schedule_patterns');
     }
 
-    public static function getShiftRequirements(int $weekId, int $sectionId): array
+    public static function getShiftRequirements(int $weekId, ?int $companyId = null): array
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for getShiftRequirements');
+            }
+        }
         return $model->callProcedure('sp_get_shift_requirements', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
         ]);
     }
 
-    public static function saveShiftRequirement(int $weekId, int $sectionId, string $date, int $shiftTypeId, int $requiredCount): void
+    public static function saveShiftRequirement(int $weekId, string $date, int $shiftTypeId, int $requiredCount, ?int $companyId = null): void
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for saveShiftRequirement');
+            }
+        }
         $model->callProcedure('sp_set_shift_requirement', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_date' => $date,
             'p_shift_type_id' => $shiftTypeId,
             'p_required_count' => $requiredCount,
         ]);
     }
 
-    public static function generateWeekly(int $weekId, int $sectionId, int $generatedByEmployeeId): void
+    public static function generateWeekly(int $weekId, int $generatedByEmployeeId, ?int $companyId = null): void
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for generateWeekly');
+            }
+        }
         $model->callProcedure('sp_generate_weekly_schedule', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_generated_by_employee_id' => $generatedByEmployeeId,
         ]);
     }
 
-    public static function getWeeklySchedule(int $weekId, int $sectionId): array
+    public static function getWeeklySchedule(int $weekId, ?int $companyId = null): array
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for getWeeklySchedule');
+            }
+        }
         return $model->callProcedure('sp_get_weekly_schedule', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
         ]);
     }
 
-    public static function getTodaySchedule(int $sectionId, string $date): array
+    public static function getTodaySchedule(string $date, ?int $companyId = null): array
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for getTodaySchedule');
+            }
+        }
         return $model->callProcedure('sp_get_today_shift', [
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
             'p_today' => $date,
         ]);
     }
 
-    public static function getCoverageGaps(int $weekId, int $sectionId): array
+    public static function getCoverageGaps(int $weekId, ?int $companyId = null): array
     {
         $model = new self();
+        if ($companyId === null) {
+            require_once __DIR__ . '/../Helpers/helpers.php';
+            $companyId = current_company_id();
+            if ($companyId === null) {
+                throw new RuntimeException('Company ID is required for getCoverageGaps');
+            }
+        }
         return $model->callProcedure('sp_get_coverage_gaps', [
             'p_week_id' => $weekId,
-            'p_section_id' => $sectionId,
+            'p_company_id' => $companyId,
         ]);
     }
 

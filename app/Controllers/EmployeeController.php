@@ -56,7 +56,13 @@ class EmployeeController
 
         // Get the correct week_id for next week
         require_once __DIR__ . '/../Models/Schedule.php';
-        $nextWeekId = Schedule::upsertWeek($nextWeekStart->format('Y-m-d'), $nextWeekEnd->format('Y-m-d'));
+        require_once __DIR__ . '/../Helpers/helpers.php';
+        $user = current_user();
+        $companyId = $user['company_id'] ?? null;
+        if (!$companyId) {
+            return 'Company ID is required';
+        }
+        $nextWeekId = Schedule::upsertWeek($nextWeekStart->format('Y-m-d'), $nextWeekEnd->format('Y-m-d'), (int) $companyId);
 
         $shiftDefinitionId = (int) ($payload['shift_definition_id'] ?? 0);
         $isDayOff = $shiftDefinitionId === 0;

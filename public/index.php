@@ -31,53 +31,60 @@ $today = new DateTimeImmutable();
 $weekStart = $today->modify('monday this week')->format('Y-m-d');
 $weekEnd = $today->modify('sunday this week')->format('Y-m-d');
 
-try {
-    $weekId = Schedule::upsertWeek($weekStart, $weekEnd);
-    if ($weekId <= 0) {
-        throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
+// Only create week if user is logged in (has company_id)
+$weekId = 0;
+$user = $_SESSION['user'] ?? null;
+if ($user && isset($user['company_id']) && $user['company_id']) {
+    try {
+        $weekId = Schedule::upsertWeek($weekStart, $weekEnd, (int) $user['company_id']);
+        if ($weekId <= 0) {
+            throw new RuntimeException("Failed to create or retrieve week. week_id is 0.");
+        }
+    } catch (PDOException $e) {
+        error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Database Error (PDOException):</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "SQL State: " . $e->getCode() . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
+    } catch (RuntimeException $e) {
+        error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Runtime Error:</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
+    } catch (Exception $e) {
+        error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
+        $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        if ($appEnv === 'development') {
+            die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
+                "<strong>Error:</strong>\n" .
+                "Message: " . $errorMsg . "\n" .
+                "Type: " . get_class($e) . "\n" .
+                "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
+                "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
+                "</pre>");
+        }
+        die("Database error. Please check server logs. Error: " . $errorMsg);
     }
-} catch (PDOException $e) {
-    error_log("Database error in Schedule::upsertWeek: " . $e->getMessage() . " | Code: " . $e->getCode());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Database Error (PDOException):</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "SQL State: " . $e->getCode() . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
-} catch (RuntimeException $e) {
-    error_log("Runtime error in Schedule::upsertWeek: " . $e->getMessage());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Runtime Error:</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
-} catch (Exception $e) {
-    error_log("Error in Schedule::upsertWeek: " . $e->getMessage());
-    $errorMsg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    if ($appEnv === 'development') {
-        die("<pre style='background:#f0f0f0;padding:20px;border:1px solid #ccc;font-family:monospace;'>" .
-            "<strong>Error:</strong>\n" .
-            "Message: " . $errorMsg . "\n" .
-            "Type: " . get_class($e) . "\n" .
-            "File: " . $e->getFile() . ":" . $e->getLine() . "\n\n" .
-            "<strong>Stack trace:</strong>\n" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') .
-            "</pre>");
-    }
-    die("Database error. Please check server logs. Error: " . $errorMsg);
 }
 
-// Initialize action handlers
-ActionHandler::initialize($weekId);
+// Initialize action handlers (only if weekId is available)
+if ($weekId > 0) {
+    ActionHandler::initialize($weekId);
+}
 
 // Process POST requests
 $message = '';
@@ -137,11 +144,16 @@ if ($user && $role === 'Supervisor' && !$sectionId) {
 if ($user && isset($_GET['download']) && $_GET['download'] === 'schedule' && $role === 'Team Leader') {
     $exportWeekStart = $_GET['week_start'] ?? $weekStart;
     $exportWeekEnd = $_GET['week_end'] ?? $weekEnd;
-    $exportWeekId = Schedule::upsertWeek($exportWeekStart, $exportWeekEnd);
-    $scheduleRows = $sectionId ? Schedule::getWeeklySchedule($exportWeekId, $sectionId) : [];
+    $companyId = $user['company_id'] ?? null;
+    if (!$companyId) {
+        http_response_code(400);
+        die('Company ID is required');
+    }
+    $exportWeekId = Schedule::upsertWeek($exportWeekStart, $exportWeekEnd, (int) $companyId);
+    $scheduleRows = Schedule::getWeeklySchedule($exportWeekId, (int) $companyId);
     
     require_once __DIR__ . '/../app/Models/Employee.php';
-    $allEmployees = $sectionId ? Employee::listBySection($sectionId) : [];
+    $allEmployees = Employee::listByCompany((int) $companyId);
     
     // Transform to employee-based format
     $employeeSchedule = [];
