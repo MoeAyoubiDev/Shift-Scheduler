@@ -1,0 +1,187 @@
+(function () {
+    function getAppConfig() {
+        return window.AppConfig || {};
+    }
+
+    function initFirebase() {
+        if (!window.firebase || !window.firebase.auth) {
+            return null;
+        }
+
+        var config = getAppConfig().firebase || {};
+        if (!config.apiKey || !config.projectId) {
+            return null;
+        }
+
+        if (firebase.apps && firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+        }
+
+        return firebase.auth();
+    }
+
+    function setError(message) {
+        var errorEl = document.getElementById('firebase-auth-error');
+        if (!errorEl) {
+            return;
+        }
+
+        if (message) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        } else {
+            errorEl.textContent = '';
+            errorEl.style.display = 'none';
+        }
+    }
+
+    function setLoading(button, isLoading) {
+        if (!button) {
+            return;
+        }
+        button.disabled = isLoading;
+        if (isLoading) {
+            button.classList.add('loading');
+        } else {
+            button.classList.remove('loading');
+        }
+    }
+
+    function sendTokenToBackend(idToken) {
+        var appConfig = getAppConfig();
+        var payload = new FormData();
+        payload.append('action', 'firebase_login');
+        payload.append('id_token', idToken);
+        payload.append('csrf_token', appConfig.csrfToken || '');
+
+        return fetch('/auth/firebase-login', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: payload
+        }).then(function (response) {
+            return response.json();
+        });
+    }
+
+    function handleBackendResponse(response) {
+        if (!response || response.success === false) {
+            setError((response && response.message) ? response.message : 'Authentication failed.');
+            return;
+        }
+
+        if (response.redirect) {
+            window.location.href = response.redirect;
+            return;
+        }
+
+        window.location.href = '/index.php';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var auth = initFirebase();
+        if (!auth) {
+            return;
+        }
+
+        var googleButtons = document.querySelectorAll('[data-firebase-google]');
+        googleButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                setError('');
+                setLoading(button, true);
+
+                var provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then(function (result) {
+                        if (!result || !result.user) {
+                            throw new Error('Authentication failed.');
+                        }
+                        return result.user.getIdToken();
+                    })
+                    .then(sendTokenToBackend)
+                    .then(handleBackendResponse)
+                    .catch(function (error) {
+                        setError(error && error.message ? error.message : 'Unable to sign in with Google.');
+                    })
+                    .finally(function () {
+                        setLoading(button, false);
+                    });
+            });
+        });
+
+        var loginForm = document.getElementById('firebase-login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                setError('');
+
+                var emailInput = loginForm.querySelector('input[name="firebase_email"]');
+                var passwordInput = loginForm.querySelector('input[name="firebase_password"]');
+                var submitButton = loginForm.querySelector('.firebase-submit');
+
+                var email = emailInput ? emailInput.value.trim() : '';
+                var password = passwordInput ? passwordInput.value : '';
+
+                if (!email || !password) {
+                    setError('Email and password are required.');
+                    return;
+                }
+
+                setLoading(submitButton, true);
+
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(function (result) {
+                        if (!result || !result.user) {
+                            throw new Error('Authentication failed.');
+                        }
+                        return result.user.getIdToken();
+                    })
+                    .then(sendTokenToBackend)
+                    .then(handleBackendResponse)
+                    .catch(function (error) {
+                        setError(error && error.message ? error.message : 'Unable to sign in.');
+                    })
+                    .finally(function () {
+                        setLoading(submitButton, false);
+                    });
+            });
+        }
+
+        var signupForm = document.getElementById('firebase-signup-form');
+        if (signupForm) {
+            signupForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                setError('');
+
+                var emailInput = signupForm.querySelector('input[name="firebase_email"]');
+                var passwordInput = signupForm.querySelector('input[name="firebase_password"]');
+                var submitButton = signupForm.querySelector('.firebase-submit');
+
+                var email = emailInput ? emailInput.value.trim() : '';
+                var password = passwordInput ? passwordInput.value : '';
+
+                if (!email || !password) {
+                    setError('Email and password are required.');
+                    return;
+                }
+
+                setLoading(submitButton, true);
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(function (result) {
+                        if (!result || !result.user) {
+                            throw new Error('Authentication failed.');
+                        }
+                        return result.user.getIdToken();
+                    })
+                    .then(sendTokenToBackend)
+                    .then(handleBackendResponse)
+                    .catch(function (error) {
+                        setError(error && error.message ? error.message : 'Unable to create account.');
+                    })
+                    .finally(function () {
+                        setLoading(submitButton, false);
+                    });
+            });
+        }
+    });
+})();
