@@ -92,8 +92,26 @@ try {
         return (int) $stmt->fetchColumn() > 0;
     };
 
+    $indexExists = function (string $table, string $index) use ($pdo, $dbName): bool {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) AS count
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?
+        ");
+        $stmt->execute([$dbName, $table, $index]);
+        return (int) $stmt->fetchColumn() > 0;
+    };
+
     if ($columnExists('companies', 'admin_password_hash')) {
         $pdo->exec("ALTER TABLE companies MODIFY admin_password_hash VARCHAR(255) NULL");
+    }
+
+    if (!$columnExists('users', 'firebase_uid')) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128) NULL AFTER email");
+    }
+
+    if (!$columnExists('users', 'provider')) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN provider ENUM('email') NULL AFTER firebase_uid");
     }
 
     if (!$columnExists('users', 'role')) {
@@ -106,6 +124,10 @@ try {
 
     if ($columnExists('users', 'provider')) {
         $pdo->exec("ALTER TABLE users MODIFY provider ENUM('email') NULL");
+    }
+
+    if (!$indexExists('users', 'unique_firebase_uid')) {
+        $pdo->exec("ALTER TABLE users ADD UNIQUE KEY unique_firebase_uid (firebase_uid)");
     }
 
     echo "   ✓ All tables created\n\n";
