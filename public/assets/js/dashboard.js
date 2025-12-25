@@ -149,12 +149,14 @@
             // Handle redirect
             if (data.redirect) {
                 window.location.href = data.redirect;
-            } else if (data.success && form.id === 'assign-shift-form') {
-                // Close modal and reload page with animation
-                closeModal();
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+            } else if (data.success) {
+                const closeModalId = form.getAttribute('data-close-modal');
+                if (closeModalId) {
+                    closeModalById(closeModalId);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
             }
         })
         .catch(error => {
@@ -236,10 +238,11 @@
             }
         }
         
-        // Quick action cards
-        if (button && button.classList.contains('quick-action-card')) {
+        // Quick action cards / data-section buttons
+        if (button && (button.classList.contains('quick-action-card') || button.getAttribute('data-section'))) {
+            const targetSection = button.getAttribute('data-section');
             const onclick = button.getAttribute('onclick');
-            if (onclick && onclick.includes('navigateToSection')) {
+            if (targetSection || (onclick && onclick.includes('navigateToSection'))) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -249,9 +252,13 @@
                     button.style.transform = '';
                 }, 150);
                 
-                const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
-                if (match && match[1]) {
-                    navigateToSection(match[1]);
+                if (targetSection) {
+                    navigateToSection(targetSection);
+                } else {
+                    const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
+                    if (match && match[1]) {
+                        navigateToSection(match[1]);
+                    }
                 }
                 return false;
             }
@@ -325,6 +332,13 @@
             return false;
         }
 
+        if (button && button.id === 'swap-shifts-btn') {
+            e.preventDefault();
+            e.stopPropagation();
+            openModalById('swap-modal');
+            return false;
+        }
+
         if (button && button.id === 'bulk-select-btn') {
             e.preventDefault();
             e.stopPropagation();
@@ -368,15 +382,44 @@
         const employeeSelect = document.getElementById('assign-employee-select');
         const requestIdInput = document.getElementById('assign-request-id');
         const shiftDefSelect = document.getElementById('assign-shift-def');
+        const assignmentInput = document.getElementById('assign-assignment-id');
+        const actionInput = document.getElementById('assign-action');
+        const submitBtn = document.getElementById('assign-submit-btn');
+        const deleteForm = document.getElementById('delete-assignment-form');
+        const deleteAssignmentInput = document.getElementById('delete-assignment-id');
+        const modalTitle = modal.querySelector('.modal-header h3');
+
+        const isEditing = Boolean(assignmentId);
+        if (actionInput) {
+            actionInput.value = isEditing ? 'update_assignment' : 'assign_shift';
+        }
+        if (assignmentInput) {
+            assignmentInput.value = assignmentId || '';
+        }
+        if (requestIdInput) {
+            requestIdInput.value = isEditing ? '' : (requestId || '');
+        }
+        if (deleteForm) {
+            deleteForm.style.display = isEditing ? 'block' : 'none';
+        }
+        if (deleteAssignmentInput) {
+            deleteAssignmentInput.value = assignmentId || '';
+        }
+        if (submitBtn) {
+            submitBtn.textContent = isEditing ? 'Update Shift' : 'Assign Shift';
+        }
+        if (modalTitle) {
+            modalTitle.textContent = isEditing ? 'Update Shift' : 'Assign Shift';
+        }
         
         if (dateInput) {
             dateInput.value = date || dateInput.value || '';
             if (!dateInput.value && dateInput.options && dateInput.options.length > 1) {
                 dateInput.value = dateInput.options[1].value;
             }
+            dateInput.disabled = isEditing;
         }
         if (employeeSelect) employeeSelect.value = employeeId || '';
-        if (requestIdInput) requestIdInput.value = requestId || '';
         if (shiftDefSelect && shiftDefId) {
             shiftDefSelect.value = shiftDefId;
             shiftDefSelect.dispatchEvent(new Event('change'));
@@ -413,6 +456,20 @@
     
     window.openAssignModal = openAssignModal;
     window.closeModal = closeModal;
+
+    function openModalById(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        modal.style.display = 'flex';
+        modal.style.animation = 'fadeIn 0.2s ease-out';
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        }
+
+        document.body.style.overflow = 'hidden';
+    }
 
     function closeModalById(modalId) {
         const modal = document.getElementById(modalId);

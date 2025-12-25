@@ -2635,6 +2635,17 @@ main {
     text-decoration: none;
 }
 
+.btn.danger {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn.danger:hover {
+    background: var(--destructive-dark);
+    transform: translateY(-1px);
+}
+
 .btn-primary {
     background: var(--color-primary);
     color: white;
@@ -7687,6 +7698,18 @@ a.btn:hover::before {
     gap: 18px;
 }
 
+.teamleader-dashboard-page {
+    margin-top: 0;
+}
+
+.teamleader-metric-grid {
+    margin-top: 8px;
+}
+
+.teamleader-overview-grid {
+    margin-top: 8px;
+}
+
 .dashboard-side-stack {
     display: flex;
     flex-direction: column;
@@ -7742,6 +7765,22 @@ a.btn:hover::before {
     color: #cbd5f5;
     text-decoration: none;
     font-weight: 600;
+}
+
+.request-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+.request-meta {
+    font-size: 12px;
+    color: rgba(148, 163, 184, 0.8);
+}
+
+.modal-delete-actions {
+    justify-content: flex-end;
+    margin-top: 12px;
 }
 
 .health-item {
