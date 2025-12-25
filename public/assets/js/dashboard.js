@@ -41,25 +41,34 @@
         }
     }
     
-    function setActiveNavCard(sectionName) {
-        // Remove active from all nav cards with animation
-        document.querySelectorAll('.nav-card').forEach(card => {
-            if (card.classList.contains('active')) {
-                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    function getSectionTriggers() {
+        return Array.from(document.querySelectorAll('[data-section]')).filter(trigger => (
+            !trigger.classList.contains('dashboard-section')
+        ));
+    }
+
+    function setActiveSectionTriggers(sectionName, clickedTrigger = null) {
+        // Remove active from all triggers with animation
+        getSectionTriggers().forEach(trigger => {
+            if (trigger.classList.contains('active')) {
+                trigger.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             }
-            card.classList.remove('active');
+            trigger.classList.remove('active');
         });
-        
-        // Add active to target nav card with animation
+
+        if (clickedTrigger) {
+            clickedTrigger.classList.add('active');
+        }
+
+        // Ensure the primary nav card reflects the active section
         const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
         if (targetCard) {
             targetCard.classList.add('active');
-            // Add pulse animation
             targetCard.style.animation = 'cardPulse 0.5s ease-out';
         }
     }
     
-    function navigateToSection(sectionName) {
+    function navigateToSection(sectionName, trigger = null) {
         if (!sectionName) return;
         const targetSection = document.querySelector(`.dashboard-section[data-section="${sectionName}"]`);
         if (!targetSection) return;
@@ -69,7 +78,7 @@
             navigator.vibrate(10);
         }
         
-        setActiveNavCard(sectionName);
+        setActiveSectionTriggers(sectionName, trigger);
         showSection(sectionName);
         
         // Update URL hash
@@ -262,7 +271,7 @@
             
             const sectionName = navTrigger.getAttribute('data-section');
             if (sectionName) {
-                navigateToSection(sectionName);
+                navigateToSection(sectionName, navTrigger);
             }
             return false;
         }
@@ -283,7 +292,7 @@
                 
                 const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
                 if (match && match[1]) {
-                    navigateToSection(match[1]);
+                    navigateToSection(match[1], widget);
                 }
                 return false;
             }
@@ -304,11 +313,11 @@
                 }, 150);
                 
                 if (targetSection) {
-                    navigateToSection(targetSection);
+                    navigateToSection(targetSection, navTrigger);
                 } else {
                     const match = onclick.match(/navigateToSection\(['"]([^'"]+)['"]\)/);
                     if (match && match[1]) {
-                        navigateToSection(match[1]);
+                        navigateToSection(match[1], navTrigger);
                     }
                 }
                 return false;
@@ -858,7 +867,7 @@
                 overviewSection.style.display = 'block';
                 overviewSection.style.opacity = '1';
                 overviewSection.classList.add('active');
-                setActiveNavCard('overview');
+                setActiveSectionTriggers('overview');
                 currentSection = 'overview';
             } else {
                 // Fallback: show first section if overview doesn't exist
