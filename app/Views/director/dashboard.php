@@ -137,145 +137,212 @@ declare(strict_types=1);
                 </div>
             </div>
             <div class="dashboard-panel-grid">
-                <div class="card">
-                    <div class="hero-row">
+                <div class="card admin-card admin-card--form">
+                    <div class="card-header">
                         <div>
-                            <h2>Create Team Leader or Supervisor</h2>
+                            <h3>Create Team Leader or Supervisor</h3>
                             <p>Assign leadership roles to sections. Team Leaders have full management permissions, while Supervisors have read-only access.</p>
                         </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Roles</span>
+                            <span class="card-meta-value">Team Leader · Supervisor</span>
+                        </div>
                     </div>
-
-                    <form method="post" action="/index.php" class="create-leader-form">
-                    <input type="hidden" name="action" value="create_leader">
-                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="full_name" class="form-label">Full Name</label>
-                            <input 
-                                type="text" 
-                                id="full_name" 
-                                name="full_name" 
-                                class="form-input" 
-                                required 
-                                placeholder="Enter full name"
-                                autocomplete="name"
-                            >
-                        </div>
+                    <div class="card-body">
+                        <form method="post" action="/index.php" class="create-leader-form">
+                        <input type="hidden" name="action" value="create_leader">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                         
-                        <div class="form-group">
-                            <label for="username" class="form-label">Username</label>
-                            <input 
-                                type="text" 
-                                id="username" 
-                                name="username" 
-                                class="form-input" 
-                                required 
-                                placeholder="Enter username"
-                                autocomplete="username"
-                            >
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email <span class="muted">(optional)</span></label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                class="form-input" 
-                                placeholder="Enter email address"
-                                autocomplete="email"
-                            >
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-container password-container">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="full_name" class="form-label">Full Name</label>
                                 <input 
-                                    type="password" 
-                                    id="password" 
-                                    name="password" 
+                                    type="text" 
+                                    id="full_name" 
+                                    name="full_name" 
                                     class="form-input" 
                                     required 
-                                    placeholder="Enter password"
-                                    autocomplete="new-password"
+                                    placeholder="Enter full name"
+                                    autocomplete="name"
                                 >
-                                <button 
-                                    type="button" 
-                                    class="password-toggle" 
-                                    id="password-toggle-leader"
-                                    aria-label="Toggle password visibility"
-                                    tabindex="-1"
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="username" class="form-label">Username</label>
+                                <input 
+                                    type="text" 
+                                    id="username" 
+                                    name="username" 
+                                    class="form-input" 
+                                    required 
+                                    placeholder="Enter username"
+                                    autocomplete="username"
                                 >
-                                    <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3ZM10 13C7.24 13 5 10.76 5 8C5 5.24 7.24 3 10 3C12.76 3 15 5.24 15 8C15 10.76 12.76 13 10 13ZM10 5C8.34 5 7 6.34 7 8C7 9.66 8.34 11 10 11C11.66 11 13 9.66 13 8C13 6.34 11.66 5 10 5Z" fill="currentColor"/>
-                                    </svg>
-                                    <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                        <path d="M2.5 2.5L17.5 17.5M8.16 8.16C7.84 8.5 7.65 8.96 7.65 9.45C7.65 10.43 8.42 11.2 9.4 11.2C9.89 11.2 10.35 11.01 10.69 10.69M14.84 14.84C13.94 15.54 12.78 16 11.5 16C7.91 16 4.81 13.92 2.5 10.5C3.46 8.64 4.9 7.2 6.66 6.34M12.41 4.41C13.5 4.78 14.52 5.32 15.43 6C18.09 8.08 21.19 10.16 24.5 10.5C23.54 12.36 22.1 13.8 20.34 14.66" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M10.59 6.59C11.37 6.22 12.15 6 12.5 6C15.09 6 17.19 8.1 17.19 10.69C17.19 11.04 16.97 11.82 16.6 12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email <span class="muted">(optional)</span></label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    class="form-input" 
+                                    placeholder="Enter email address"
+                                    autocomplete="email"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-container password-container">
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password" 
+                                        class="form-input" 
+                                        required 
+                                        placeholder="Enter password"
+                                        autocomplete="new-password"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        class="password-toggle" 
+                                        id="password-toggle-leader"
+                                        aria-label="Toggle password visibility"
+                                        tabindex="-1"
+                                    >
+                                        <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3ZM10 13C7.24 13 5 10.76 5 8C5 5.24 7.24 3 10 3C12.76 3 15 5.24 15 8C15 10.76 12.76 13 10 13ZM10 5C8.34 5 7 6.34 7 8C7 9.66 8.34 11 10 11C11.66 11 13 9.66 13 8C13 6.34 11.66 5 10 5Z" fill="currentColor"/>
+                                        </svg>
+                                        <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                                            <path d="M2.5 2.5L17.5 17.5M8.16 8.16C7.84 8.5 7.65 8.96 7.65 9.45C7.65 10.43 8.42 11.2 9.4 11.2C9.89 11.2 10.35 11.01 10.69 10.69M14.84 14.84C13.94 15.54 12.78 16 11.5 16C7.91 16 4.81 13.92 2.5 10.5C3.46 8.64 4.9 7.2 6.66 6.34M12.41 4.41C13.5 4.78 14.52 5.32 15.43 6C18.09 8.08 21.19 10.16 24.5 10.5C23.54 12.36 22.1 13.8 20.34 14.66" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10.59 6.59C11.37 6.22 12.15 6 12.5 6C15.09 6 17.19 8.1 17.19 10.69C17.19 11.04 16.97 11.82 16.6 12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="role_id" class="form-label">Role</label>
+                                <select id="role_id" name="role_id" class="form-input" required>
+                                    <option value="">Select Role</option>
+                                    <?php foreach ($roles as $role): ?>
+                                        <?php if (in_array($role['role_name'], ['Team Leader', 'Supervisor'], true)): ?>
+                                            <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="section_id" class="form-label">Section</label>
+                                <select id="section_id" name="section_id" class="form-input" required>
+                                    <option value="">Select Section</option>
+                                    <?php foreach ($sections as $section): ?>
+                                        <option value="<?= e((string) $section['id']) ?>"><?= e($section['section_name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="role_id" class="form-label">Role</label>
-                            <select id="role_id" name="role_id" class="form-input" required>
-                                <option value="">Select Role</option>
-                                <?php foreach ($roles as $role): ?>
-                                    <?php if (in_array($role['role_name'], ['Team Leader', 'Supervisor'], true)): ?>
-                                        <option value="<?= e((string) $role['id']) ?>"><?= e($role['role_name']) ?></option>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;">
+                                    <path d="M9 3V15M3 9H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Create Leader
+                            </button>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="section_id" class="form-label">Section</label>
-                            <select id="section_id" name="section_id" class="form-input" required>
-                                <option value="">Select Section</option>
-                                <?php foreach ($sections as $section): ?>
-                                    <option value="<?= e((string) $section['id']) ?>"><?= e($section['section_name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                        </form>
                     </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;">
-                                <path d="M9 3V15M3 9H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Create Leader
-                        </button>
-                    </div>
-                    </form>
                 </div>
-                <div class="card">
-                    <div class="section-title">
-                        <h3>Performance Analytics</h3>
-                        <span>Sorted by lowest delay</span>
+                <div class="card admin-card admin-card--analytics">
+                    <div class="card-header">
+                        <div>
+                            <h3>Performance Analytics</h3>
+                            <p>Review on-time performance by employee. Sorted by lowest delay.</p>
+                        </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Employees</span>
+                            <span class="card-meta-value"><?= e((string) count($performance)) ?></span>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Days Worked</th>
-                            <th>Total Delay (min)</th>
-                            <th>Average Delay</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($performance as $row): ?>
-                            <tr>
-                                <td><?= e($row['employee_name']) ?></td>
-                                <td><?= e((string) $row['days_worked']) ?></td>
-                                <td><?= e((string) $row['total_delay_minutes']) ?></td>
-                                <td><?= e((string) $row['average_delay_minutes']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <div class="card-body">
+                        <?php if ($performance): ?>
+                            <div class="table-wrapper table-wrapper-tight">
+                                <table class="dashboard-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Days Worked</th>
+                                        <th>Total Delay (min)</th>
+                                        <th>Average Delay</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($performance as $row): ?>
+                                        <tr>
+                                            <td><?= e($row['employee_name']) ?></td>
+                                            <td><?= e((string) $row['days_worked']) ?></td>
+                                            <td><?= e((string) $row['total_delay_minutes']) ?></td>
+                                            <td><?= e((string) $row['average_delay_minutes']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No analytics yet</div>
+                                <div class="empty-state-text">Performance data will appear once attendance records are available.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="card admin-card admin-card--directory">
+                    <div class="card-header">
+                        <div>
+                            <h3>Admins Directory</h3>
+                            <p>All Team Leaders and Supervisors across sections.</p>
+                        </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Admins</span>
+                            <span class="card-meta-value"><?= e((string) count($admins)) ?></span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($admins): ?>
+                            <div class="table-wrapper table-wrapper-tight">
+                                <table class="dashboard-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Section</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($admins as $admin): ?>
+                                        <tr>
+                                            <td><?= e($admin['full_name']) ?></td>
+                                            <td><?= e($admin['role_name']) ?></td>
+                                            <td><?= e($admin['section_name']) ?></td>
+                                            <td><?= e($admin['username']) ?></td>
+                                            <td><?= e($admin['email'] ?? 'N/A') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No admins yet</div>
+                                <div class="empty-state-text">Create a Team Leader or Supervisor to populate this list.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </section>
@@ -289,63 +356,142 @@ declare(strict_types=1);
                 </div>
             </div>
             <div class="dashboard-panel-grid">
-                <div class="card">
-                    <div class="section-title">
-                        <h3>Weekly Schedule Snapshot</h3>
-                        <span><?= e(count($schedule)) ?> assignments</span>
+                <div class="card employees-card employees-card--directory">
+                    <div class="card-header">
+                        <div>
+                            <h3>Employee Directory</h3>
+                            <p>All active employees and seniors in this section.</p>
+                        </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Employees</span>
+                            <span class="card-meta-value"><?= e((string) count($employees)) ?></span>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Shift</th>
-                            <th>Employee</th>
-                            <th>Source</th>
-                            <th>Notes</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($schedule as $entry): ?>
-                            <tr>
-                                <td><?= e($entry['shift_date']) ?></td>
-                                <td><?= e($entry['shift_name']) ?></td>
-                                <td><?= e($entry['employee_name']) ?></td>
-                                <td><?= e($entry['assignment_source']) ?></td>
-                                <td><?= e($entry['notes']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <div class="card-body">
+                        <?php if ($employees): ?>
+                            <div class="table-wrapper table-wrapper-tight">
+                                <table class="dashboard-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Seniority Level</th>
+                                        <th>Employee Code</th>
+                                        <th>Email</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($employees as $employee): ?>
+                                        <tr>
+                                            <td><?= e($employee['full_name']) ?></td>
+                                            <td><?= e($employee['role_name']) ?></td>
+                                            <td><?= e((string) $employee['seniority_level']) ?></td>
+                                            <td><?= e($employee['employee_code']) ?></td>
+                                            <td><?= e($employee['email'] ?? 'N/A') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No employees yet</div>
+                                <div class="empty-state-text">Assign employees to this section to see them here.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                <div class="card">
-                    <div class="section-title">
-                        <h3>Shift Requests</h3>
-                        <span><?= e(count($requests)) ?> requests</span>
+                <div class="card employees-card employees-card--schedule">
+                    <div class="card-header">
+                        <div>
+                            <h3>Weekly Schedule Snapshot</h3>
+                            <p>Latest assignments generated for this section.</p>
+                        </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Assignments</span>
+                            <span class="card-meta-value"><?= e((string) count($schedule)) ?></span>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Request Date</th>
-                            <th>Shift</th>
-                            <th>Pattern</th>
-                            <th>Importance</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($requests as $request): ?>
-                            <tr>
-                                <td><?= e($request['employee_name']) ?></td>
-                                <td><?= e($request['request_date'] ?? $request['submit_date'] ?? 'N/A') ?></td>
-                                <td><?= e($request['shift_name'] ?? 'OFF') ?></td>
-                                <td><?= e($request['pattern_name']) ?></td>
-                                <td><?= e($request['importance_level']) ?></td>
-                                <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <div class="card-body">
+                        <?php if ($schedule): ?>
+                            <div class="table-wrapper table-wrapper-tight">
+                                <table class="dashboard-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Shift</th>
+                                        <th>Employee</th>
+                                        <th>Source</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($schedule as $entry): ?>
+                                        <tr>
+                                            <td><?= e($entry['shift_date']) ?></td>
+                                            <td><?= e($entry['shift_name']) ?></td>
+                                            <td><?= e($entry['employee_name']) ?></td>
+                                            <td><?= e($entry['assignment_source']) ?></td>
+                                            <td><?= e($entry['notes']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No schedule generated</div>
+                                <div class="empty-state-text">Generate a schedule to see assignments for the week.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="card employees-card employees-card--requests">
+                    <div class="card-header">
+                        <div>
+                            <h3>Shift Requests</h3>
+                            <p>Requests submitted by employees for the current week.</p>
+                        </div>
+                        <div class="card-header-meta">
+                            <span class="card-meta-label">Requests</span>
+                            <span class="card-meta-value"><?= e((string) count($requests)) ?></span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($requests): ?>
+                            <div class="table-wrapper table-wrapper-tight">
+                                <table class="dashboard-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Request Date</th>
+                                        <th>Shift</th>
+                                        <th>Pattern</th>
+                                        <th>Importance</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($requests as $request): ?>
+                                        <tr>
+                                            <td><?= e($request['employee_name']) ?></td>
+                                            <td><?= e($request['request_date'] ?? $request['submit_date'] ?? 'N/A') ?></td>
+                                            <td><?= e($request['shift_name'] ?? 'OFF') ?></td>
+                                            <td><?= e($request['pattern_name']) ?></td>
+                                            <td><?= e($request['importance_level']) ?></td>
+                                            <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No requests yet</div>
+                                <div class="empty-state-text">Employee requests will appear once submissions are made.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </section>

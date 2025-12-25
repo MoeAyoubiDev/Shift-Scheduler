@@ -827,6 +827,65 @@ main {
     max-width: 60ch;
 }
 
+.director-dashboard .card-header {
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.director-dashboard .card-header p {
+    margin-top: 0.35rem;
+}
+
+.director-dashboard .card-header-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(15, 23, 42, 0.55);
+    box-shadow: var(--shadow-sm);
+}
+
+.director-dashboard .card-meta-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+}
+
+.director-dashboard .card-meta-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.director-dashboard .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.director-dashboard .admin-card .create-leader-form {
+    margin-top: 0;
+}
+
+.director-dashboard .table-wrapper-tight {
+    margin-bottom: 0;
+}
+
+.director-dashboard .dashboard-table {
+    min-width: 520px;
+}
+
+@media (max-width: 720px) {
+    .director-dashboard .card-header-meta {
+        align-items: flex-start;
+    }
+}
+
 @media (max-width: 900px) {
     .director-dashboard .overview-layout {
         grid-template-columns: 1fr;
