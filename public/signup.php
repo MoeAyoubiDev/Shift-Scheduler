@@ -124,8 +124,9 @@ mysql &lt; database/shift_scheduler.sql
         <form id="signup-form" class="login-form" method="post" action="/index.php" novalidate>
             <input type="hidden" name="action" value="signup">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            
             <div class="form-group">
-                <label for="signup-company-name" class="form-label">Company Name</label>
+                <label for="signup-company-name" class="form-label">Company Name <span class="required">*</span></label>
                 <div class="input-container">
                     <input
                         type="text"
@@ -141,7 +142,23 @@ mysql &lt; database/shift_scheduler.sql
             </div>
 
             <div class="form-group">
-                <label for="signup-admin-email" class="form-label">Admin Email</label>
+                <label for="signup-full-name" class="form-label">Full Name <span class="required">*</span></label>
+                <div class="input-container">
+                    <input
+                        type="text"
+                        id="signup-full-name"
+                        name="full_name"
+                        class="form-input"
+                        required
+                        autocomplete="name"
+                        placeholder="John Doe"
+                    >
+                </div>
+                <span class="form-error" data-error-for="signup-full-name"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="signup-admin-email" class="form-label">Work Email <span class="required">*</span></label>
                 <div class="input-container">
                     <input
                         type="email"
@@ -150,14 +167,14 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="email"
-                        placeholder="admin@company.com"
+                        placeholder="you@company.com"
                     >
                 </div>
                 <span class="form-error" data-error-for="signup-admin-email"></span>
             </div>
 
             <div class="form-group">
-                <label for="signup-password" class="form-label">Password</label>
+                <label for="signup-password" class="form-label">Password <span class="required">*</span></label>
                 <div class="input-container password-container">
                     <input
                         type="password"
@@ -166,7 +183,7 @@ mysql &lt; database/shift_scheduler.sql
                         class="form-input"
                         required
                         autocomplete="new-password"
-                        placeholder="Minimum 8 characters"
+                        placeholder="........"
                         minlength="8"
                     >
                     <button type="button" class="password-toggle" id="signup-password-toggle" aria-label="Toggle password visibility">
@@ -178,12 +195,39 @@ mysql &lt; database/shift_scheduler.sql
                 <span class="form-error" data-error-for="signup-password"></span>
             </div>
 
+            <div class="form-group">
+                <label for="signup-confirm-password" class="form-label">Confirm Password <span class="required">*</span></label>
+                <div class="input-container password-container">
+                    <input
+                        type="password"
+                        id="signup-confirm-password"
+                        name="confirm_password"
+                        class="form-input"
+                        required
+                        autocomplete="new-password"
+                        placeholder="........"
+                        minlength="8"
+                    >
+                    <button type="button" class="password-toggle" id="signup-confirm-password-toggle" aria-label="Toggle password visibility">
+                        <svg class="icon-eye" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3C5.5 3 1.73 5.61 0 9C1.73 12.39 5.5 15 10 15C14.5 15 18.27 12.39 20 9C18.27 5.61 14.5 3 10 3Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+                <span class="form-error" data-error-for="signup-confirm-password"></span>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="signup-terms" name="accept_terms" required>
+                    <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
+                </label>
+                <span class="form-error" data-error-for="signup-terms"></span>
+            </div>
+
             <div class="form-actions">
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-primary btn-full-width">
                     <span>Create Account</span>
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
                 </button>
             </div>
         </form>
@@ -194,13 +238,31 @@ mysql &lt; database/shift_scheduler.sql
                 <a href="/login.php" class="form-footer-link">Sign in</a>
             </div>
         </div>
+        
+        <div class="signup-features">
+            <div class="feature-item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="feature-item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="feature-item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
 // Password toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const toggles = ['signup-password-toggle'];
+    const toggles = ['signup-password-toggle', 'signup-confirm-password-toggle'];
     toggles.forEach(toggleId => {
         const toggle = document.getElementById(toggleId);
         if (toggle) {
@@ -211,6 +273,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    
+    // Password confirmation validation
+    const password = document.getElementById('signup-password');
+    const confirmPassword = document.getElementById('signup-confirm-password');
+    if (password && confirmPassword) {
+        confirmPassword.addEventListener('input', function() {
+            if (confirmPassword.value !== password.value) {
+                confirmPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+    }
 });
 </script>
 
