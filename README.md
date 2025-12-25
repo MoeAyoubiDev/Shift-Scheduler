@@ -103,6 +103,7 @@ Shift-Scheduler/
 │   │   ├── AuthController.php             # Authentication (login/logout)
 │   │   ├── DirectorController.php         # Director role actions
 │   │   ├── EmployeeController.php         # Employee actions (requests, breaks)
+│   │   ├── NotificationController.php     # Notification endpoints
 │   │   ├── RequestController.php          # Shift request management
 │   │   ├── SeniorController.php           # Senior role actions
 │   │   ├── SupervisorController.php       # Supervisor monitoring actions
@@ -124,6 +125,7 @@ Shift-Scheduler/
 │   │   ├── Company.php                    # Company management (multi-tenant)
 │   │   ├── Employee.php                  # Employee records
 │   │   ├── EmployeeBreak.php             # Break records
+│   │   ├── FcmToken.php                   # Firebase Cloud Messaging tokens
 │   │   ├── Notification.php              # User notifications
 │   │   ├── Performance.php               # Performance reporting
 │   │   ├── Role.php                       # Role management
@@ -140,6 +142,10 @@ Shift-Scheduler/
 │   │   ├── User.php                       # User authentication
 │   │   ├── UserRole.php                   # User-role assignments
 │   │   └── Week.php                       # Week management
+│   │
+│   ├── Services/                           # External service integrations
+│   │   ├── FirebaseAuthService.php        # Firebase authentication helper
+│   │   └── FirebaseNotificationService.php # Firebase push notifications
 │   │
 │   └── Views/                              # View Templates (Presentation Layer)
 │       ├── auth/
@@ -172,7 +178,8 @@ Shift-Scheduler/
 │   └── schedule.php                       # Schedule configuration
 │
 ├── database/                               # Database Management
-│   ├── migrations/                        # Migration scripts (legacy)
+│   ├── seed.php                           # Large multi-tenant seed data
+│   ├── seed_test_data.php                 # Test company seed data
 │   └── setup.php                          # Complete database setup script
 │                                           # (Drops & recreates entire DB)
 │
@@ -190,6 +197,9 @@ Shift-Scheduler/
 │   │   ├── requests.php                  # Request API
 │   │   └── schedules.php                 # Schedule API
 │   │
+│   ├── auth/                              # Auth providers
+│   │   └── firebase-login/                # Firebase login assets
+│   │
 │   ├── assets/                            # Static Assets
 │   │   ├── css/
 │   │   │   └── app.css                   # Main stylesheet
@@ -201,9 +211,21 @@ Shift-Scheduler/
 │   │       └── enhanced.js               # Enhanced features
 │   │
 │   ├── dashboard/                        # Dashboard routes
+│   │   └── index.php                      # Dashboard entry point
+│   │
+│   ├── notifications/                    # Notification tooling
+│   │   └── test.php                       # Notification test endpoint
+│   │
+│   ├── onboarding/                       # Onboarding step templates
+│   │   ├── step-1/                        # Step 1 assets
+│   │   ├── step-2/                        # Step 2 assets
+│   │   ├── step-3/                        # Step 3 assets
+│   │   ├── step-4/                        # Step 4 assets
+│   │   └── step-5/                        # Step 5 assets
 │   │
 │   ├── index.php                         # Main entry point (routing)
 │   ├── login.php                         # Login page
+│   ├── firebase-messaging-sw.js          # Firebase messaging service worker
 │   ├── onboarding.php                   # Onboarding wizard (5 steps)
 │   ├── onboarding-preview.php           # Preview before payment
 │   ├── payment.php                       # Payment processing
