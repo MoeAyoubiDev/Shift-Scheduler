@@ -24,6 +24,9 @@ $currentSectionId = function_exists('current_section_id') ? current_section_id()
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/app.css?v=<?= @filemtime(__DIR__ . '/../public/assets/css/app.css') ?: time() ?>">
     <link rel="stylesheet" href="/assets/css/skin.css?v=<?= @filemtime(__DIR__ . '/../public/assets/css/skin.css') ?: time() ?>">
+    <?php if (strpos($_SERVER['REQUEST_URI'] ?? '', '/onboarding') !== false): ?>
+    <link rel="stylesheet" href="/assets/css/onboarding.css?v=<?= @filemtime(__DIR__ . '/../public/assets/css/onboarding.css') ?: time() ?>">
+    <?php endif; ?>
 
     </head>
 <body class="page-shell <?= !$user ? 'login-page' : '' ?> <?= $bodyRoleClass ?>">

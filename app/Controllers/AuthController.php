@@ -37,7 +37,7 @@ class AuthController
         if ($companyId && empty($user['onboarding_completed'])) {
             $_SESSION['onboarding_company_id'] = $companyId;
             $nextStep = self::getNextOnboardingStep((int) $companyId);
-            return ['success' => true, 'redirect' => '/onboarding/step-' . $nextStep];
+            return ['success' => true, 'redirect' => '/onboarding.php?step=' . $nextStep];
         }
 
         return ['success' => true, 'redirect' => '/dashboard'];
@@ -112,11 +112,12 @@ class AuthController
             return ['success' => false, 'message' => 'Unable to complete sign-up.', 'redirect' => '/signup.php'];
         }
 
-        Company::activateCompany($companyId);
+        // Don't activate company yet - wait for onboarding completion
+        // Company::activateCompany($companyId);
         self::initializeSession($user);
         unset($_SESSION['onboarding_company_id']);
 
-        return ['success' => true, 'redirect' => '/dashboard'];
+        return ['success' => true, 'redirect' => '/onboarding.php?step=1'];
     }
 
     private static function initializeSession(array $user): void
@@ -132,7 +133,7 @@ class AuthController
         $progress = Company::getOnboardingProgress($companyId);
         for ($step = 1; $step <= 5; $step++) {
             $stepKey = "step_{$step}";
-            if (empty($progress[$stepKey]) || empty($progress[$stepKey]['completed'])) {
+            if (empty($progress[$stepKey]) || !$progress[$stepKey]['completed']) {
                 return $step;
             }
         }

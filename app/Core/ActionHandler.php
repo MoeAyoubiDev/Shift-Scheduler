@@ -16,23 +16,53 @@ require_once __DIR__ . '/Router.php';
 class ActionHandler
 {
     /**
+     * Initialize authentication action handlers (always available)
+     */
+    public static function initializeAuth(): void
+    {
+        // Authentication actions (available even when not logged in)
+        if (!Router::hasAction('logout')) {
+            Router::register('logout', function(array $payload) {
+                AuthController::handleLogout($payload);
+                return ['redirect' => '/index.php'];
+            }, [], true);
+        }
+
+        if (!Router::hasAction('login')) {
+            Router::register('login', function(array $payload) {
+                return AuthController::handleLogin($payload);
+            }, [], true);
+        }
+
+        if (!Router::hasAction('signup')) {
+            Router::register('signup', function(array $payload) {
+                return AuthController::handleSignup($payload);
+            }, [], true);
+        }
+
+        // Onboarding actions (available during onboarding)
+        if (!Router::hasAction('onboarding_step')) {
+            Router::register('onboarding_step', function(array $payload) {
+                require_once __DIR__ . '/../Controllers/OnboardingController.php';
+                return OnboardingController::handleStepSubmission($payload);
+            }, [], true);
+        }
+
+        if (!Router::hasAction('complete_onboarding')) {
+            Router::register('complete_onboarding', function(array $payload) {
+                require_once __DIR__ . '/../Controllers/OnboardingController.php';
+                return OnboardingController::handleComplete($payload);
+            }, [], true);
+        }
+    }
+
+    /**
      * Initialize all action handlers
      */
     public static function initialize(int $weekId): void
     {
-        // Authentication actions
-        Router::register('logout', function(array $payload) {
-            AuthController::handleLogout($payload);
-            return ['redirect' => '/index.php'];
-        }, [], true);
-
-        Router::register('login', function(array $payload) {
-            return AuthController::handleLogin($payload);
-        }, [], true);
-
-        Router::register('signup', function(array $payload) {
-            return AuthController::handleSignup($payload);
-        }, [], true);
+        // Always initialize auth actions first
+        self::initializeAuth();
         
         // Supervisor actions
         Router::register('select_section', function(array $payload) {

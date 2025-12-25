@@ -89,7 +89,10 @@ if ($user && isset($user['company_id']) && $user['company_id']) {
     }
 }
 
-// Initialize action handlers (only if weekId is available)
+// Always initialize auth actions (login, signup, logout)
+ActionHandler::initializeAuth();
+
+// Initialize other action handlers (only if weekId is available)
 if ($weekId > 0) {
     ActionHandler::initialize($weekId);
 }
