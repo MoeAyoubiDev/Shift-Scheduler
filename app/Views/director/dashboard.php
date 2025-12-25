@@ -13,62 +13,35 @@ declare(strict_types=1);
             </div>
             <div class="nav-card-content">
                 <div class="nav-card-title">Overview</div>
-                <div class="nav-card-subtitle">Dashboard metrics</div>
+                <div class="nav-card-subtitle">Executive summary</div>
             </div>
         </button>
-        
-        <button class="nav-card" data-section="weekly-schedule">
+
+        <button class="nav-card" data-section="admin">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2L3 7V12C3 16.4183 6.13401 20.4183 12 22C17.866 20.4183 21 16.4183 21 12V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
             <div class="nav-card-content">
-                <div class="nav-card-title">Weekly Schedule</div>
-                <div class="nav-card-subtitle">Schedule snapshot</div>
+                <div class="nav-card-title">ADMIN</div>
+                <div class="nav-card-subtitle">Leadership tools</div>
             </div>
         </button>
-        
-        <button class="nav-card" data-section="shift-requests">
+
+        <button class="nav-card" data-section="employees">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Shift Requests</div>
-                <div class="nav-card-subtitle">View requests</div>
-            </div>
-        </button>
-        
-        <button class="nav-card" data-section="performance">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M21 10V3H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="nav-card-content">
-                <div class="nav-card-title">Performance</div>
-                <div class="nav-card-subtitle">Analytics & metrics</div>
-            </div>
-        </button>
-        
-        <button class="nav-card" data-section="create-leader">
-            <div class="nav-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H6C4.93913 15 3.92172 15.4214 3.17157 16.1716C2.42143 16.9217 2 17.9391 2 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9.5 11C11.7091 11 13.5 9.20914 13.5 7C13.5 4.79086 11.7091 3 9.5 3C7.29086 3 5.5 4.79086 5.5 7C5.5 9.20914 7.29086 11 9.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 21V19C21.9993 18.1137 21.7044 17.2528 21.1614 16.5523C20.6184 15.8519 19.8581 15.3516 19 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
             <div class="nav-card-content">
-                <div class="nav-card-title">Create Leader</div>
-                <div class="nav-card-subtitle">Team Leader or Supervisor</div>
+                <div class="nav-card-title">EMPLOYEES</div>
+                <div class="nav-card-subtitle">Schedules & requests</div>
             </div>
         </button>
     </div>
@@ -81,6 +54,7 @@ declare(strict_types=1);
                 <div class="hero-row">
                     <div>
                         <h2>Director Overview</h2>
+                        <p class="muted">A clear snapshot of operational health, approvals, and leadership actions.</p>
                     </div>
                     <div class="meta-row">
                         <button type="button" class="week-selector-pill" id="week-selector" data-week-start="<?= e($weekStart) ?>" data-week-end="<?= e($weekEnd) ?>">
@@ -108,116 +82,63 @@ declare(strict_types=1);
                         </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
-        </section>
-
-        <!-- Weekly Schedule Section -->
-        <section class="dashboard-section" data-section="weekly-schedule">
-            <div class="card">
-                <div class="section-title">
-                    <h3>Weekly Schedule Snapshot</h3>
-                    <span><?= e(count($schedule)) ?> assignments</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>Employee</th>
-                        <th>Source</th>
-                        <th>Notes</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($schedule as $entry): ?>
-                        <tr>
-                            <td><?= e($entry['shift_date']) ?></td>
-                            <td><?= e($entry['shift_name']) ?></td>
-                            <td><?= e($entry['employee_name']) ?></td>
-                            <td><?= e($entry['assignment_source']) ?></td>
-                            <td><?= e($entry['notes']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Shift Requests Section -->
-        <section class="dashboard-section" data-section="shift-requests">
-            <div class="card">
-                <div class="section-title">
-                    <h3>Shift Requests</h3>
-                    <span><?= e(count($requests)) ?> requests</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Request Date</th>
-                        <th>Shift</th>
-                        <th>Pattern</th>
-                        <th>Importance</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($requests as $request): ?>
-                        <tr>
-                            <td><?= e($request['employee_name']) ?></td>
-                            <td><?= e($request['request_date'] ?? $request['submit_date'] ?? 'N/A') ?></td>
-                            <td><?= e($request['shift_name'] ?? 'OFF') ?></td>
-                            <td><?= e($request['pattern_name']) ?></td>
-                            <td><?= e($request['importance_level']) ?></td>
-                            <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Performance Analytics Section -->
-        <section class="dashboard-section" data-section="performance">
-            <div class="card">
-                <div class="section-title">
-                    <h3>Performance Analytics</h3>
-                    <span>Sorted by lowest delay</span>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Days Worked</th>
-                        <th>Total Delay (min)</th>
-                        <th>Average Delay</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($performance as $row): ?>
-                        <tr>
-                            <td><?= e($row['employee_name']) ?></td>
-                            <td><?= e((string) $row['days_worked']) ?></td>
-                            <td><?= e((string) $row['total_delay_minutes']) ?></td>
-                            <td><?= e((string) $row['average_delay_minutes']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Create Leader Section -->
-        <section class="dashboard-section" data-section="create-leader">
-            <div class="card">
-                <div class="hero-row">
-                    <div>
-                        <h2>Create Team Leader or Supervisor</h2>
-                        <p>Assign leadership roles to sections. Team Leaders have full management permissions, while Supervisors have read-only access.</p>
+                <div class="quick-actions-section">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions-grid">
+                        <button class="quick-action-card" type="button" onclick="window.dashboard?.navigateToSection('admin')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L3 7V12C3 16.4183 6.13401 20.4183 12 22C17.866 20.4183 21 16.4183 21 12V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Open ADMIN workspace</span>
+                        </button>
+                        <button class="quick-action-card" type="button" onclick="window.dashboard?.navigateToSection('employees')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H6C4.93913 15 3.92172 15.4214 3.17157 16.1716C2.42143 16.9217 2 17.9391 2 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9.5 11C11.7091 11 13.5 9.20914 13.5 7C13.5 4.79086 11.7091 3 9.5 3C7.29086 3 5.5 4.79086 5.5 7C5.5 9.20914 7.29086 11 9.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Review EMPLOYEES updates</span>
+                        </button>
+                        <button class="quick-action-card" type="button" onclick="window.dashboard?.navigateToSection('admin')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Create a new leader</span>
+                        </button>
+                        <button class="quick-action-card" type="button" onclick="window.dashboard?.navigateToSection('employees')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Approve shift requests</span>
+                        </button>
                     </div>
                 </div>
-                
-                <form method="post" action="/index.php" class="create-leader-form">
+            </div>
+        </section>
+
+        <!-- Admin Section -->
+        <section class="dashboard-section" data-section="admin">
+            <div class="section-header">
+                <div>
+                    <h2>ADMIN</h2>
+                    <p class="muted">Leadership actions, performance insight, and permission management.</p>
+                </div>
+            </div>
+            <div class="dashboard-panel-grid">
+                <div class="card">
+                    <div class="hero-row">
+                        <div>
+                            <h2>Create Team Leader or Supervisor</h2>
+                            <p>Assign leadership roles to sections. Team Leaders have full management permissions, while Supervisors have read-only access.</p>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/index.php" class="create-leader-form">
                     <input type="hidden" name="action" value="create_leader">
                     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                     
@@ -321,7 +242,104 @@ declare(strict_types=1);
                             Create Leader
                         </button>
                     </div>
-                </form>
+                    </form>
+                </div>
+                <div class="card">
+                    <div class="section-title">
+                        <h3>Performance Analytics</h3>
+                        <span>Sorted by lowest delay</span>
+                    </div>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Days Worked</th>
+                            <th>Total Delay (min)</th>
+                            <th>Average Delay</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($performance as $row): ?>
+                            <tr>
+                                <td><?= e($row['employee_name']) ?></td>
+                                <td><?= e((string) $row['days_worked']) ?></td>
+                                <td><?= e((string) $row['total_delay_minutes']) ?></td>
+                                <td><?= e((string) $row['average_delay_minutes']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Employees Section -->
+        <section class="dashboard-section" data-section="employees">
+            <div class="section-header">
+                <div>
+                    <h2>EMPLOYEES</h2>
+                    <p class="muted">Scheduling, requests, and staffing coverage at a glance.</p>
+                </div>
+            </div>
+            <div class="dashboard-panel-grid">
+                <div class="card">
+                    <div class="section-title">
+                        <h3>Weekly Schedule Snapshot</h3>
+                        <span><?= e(count($schedule)) ?> assignments</span>
+                    </div>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Employee</th>
+                            <th>Source</th>
+                            <th>Notes</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($schedule as $entry): ?>
+                            <tr>
+                                <td><?= e($entry['shift_date']) ?></td>
+                                <td><?= e($entry['shift_name']) ?></td>
+                                <td><?= e($entry['employee_name']) ?></td>
+                                <td><?= e($entry['assignment_source']) ?></td>
+                                <td><?= e($entry['notes']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="section-title">
+                        <h3>Shift Requests</h3>
+                        <span><?= e(count($requests)) ?> requests</span>
+                    </div>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Request Date</th>
+                            <th>Shift</th>
+                            <th>Pattern</th>
+                            <th>Importance</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($requests as $request): ?>
+                            <tr>
+                                <td><?= e($request['employee_name']) ?></td>
+                                <td><?= e($request['request_date'] ?? $request['submit_date'] ?? 'N/A') ?></td>
+                                <td><?= e($request['shift_name'] ?? 'OFF') ?></td>
+                                <td><?= e($request['pattern_name']) ?></td>
+                                <td><?= e($request['importance_level']) ?></td>
+                                <td><span class="status <?= strtolower($request['status']) ?>"><?= e($request['status']) ?></span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
         
