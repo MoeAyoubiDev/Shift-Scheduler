@@ -229,7 +229,10 @@
     document.addEventListener('click', function(e) {
         const target = e.target;
         const button = target.closest('button');
-        const navTrigger = target.closest('.nav-card, .quick-action-card, [data-section]');
+        let navTrigger = target.closest('.nav-card, .quick-action-card, [data-section]');
+        if (navTrigger && navTrigger.classList.contains('dashboard-section')) {
+            navTrigger = null;
+        }
 
         if (bulkSelectActive) {
             const selectableCell = target.closest('.shift-cell');
