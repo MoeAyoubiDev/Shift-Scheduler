@@ -4603,7 +4603,7 @@ body.landing-page footer.landing-footer {
     padding: var(--space-16) var(--space-6);
     text-align: center;
     box-sizing: border-box;
-    background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+    background: transparent;
 }
 
 .hero-content {
@@ -4736,12 +4736,12 @@ body.landing-page footer.landing-footer {
 
 .features-section {
     padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
-    background: var(--color-bg-secondary);
+    background: transparent;
     box-sizing: border-box;
 }
 
 .features-section--alt {
-    background: var(--color-bg-tertiary);
+    background: transparent;
 }
 
 .landing-section-header {
@@ -4849,7 +4849,7 @@ body.landing-page footer.landing-footer {
 
 
 .landing-footer {
-    background: var(--color-bg-secondary);
+    background: transparent;
     border-top: 1px solid var(--glass-border);
     padding: clamp(1.5rem, 4vw, 2rem);
     box-sizing: border-box;
@@ -6587,6 +6587,7 @@ p, .text {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: transparent;
 }
 
 .hero-content {
