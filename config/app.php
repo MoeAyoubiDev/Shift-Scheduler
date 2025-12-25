@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 return [
-    'name' => 'Support Department - Shift Management',
-    'tagline' => 'Employee Scheduling & Workforce Management',
+    'name' => 'Shift Scheduler',
+    'tagline' => 'Enterprise Workforce Scheduling & Operations',
     'brand_year' => date('Y'),
     'timezone' => 'UTC',
 ];

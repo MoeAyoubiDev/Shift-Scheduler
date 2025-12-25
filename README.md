@@ -23,7 +23,7 @@ EXIT;
 **Then run this single command to set up everything:**
 
 ```bash
-php database/setup.php
+mysql < database/shift_scheduler.sql
 ```
 
 **This script will:**
@@ -58,40 +58,21 @@ Should return HTTP 200.
 
 ```bash
 git pull
-php database/setup.php
+mysql < database/shift_scheduler.sql
 systemctl restart php8.1-fpm
 systemctl reload nginx
 ```
 
 **That's it!** The setup script handles everything.
 
-### 4. Seed Test Data (Optional)
+### 4. Seed Data (Optional)
 
-To create a ready-to-use test company with employees and sample data:
-
-```bash
-php database/seed_test_data.php
-```
-
-This creates:
-- A test company ("Demo Company")
-- Admin user with credentials: `democompany_admin` / `Demo123!`
-- 6 employees with different roles
-- Sample schedules and shift requests
-
-**See "Quick Test Data Setup" section below for full credentials.**
-
-### 5. Seed Big Test Data (Optional)
-
-To create large, realistic multi-tenant data for full feature coverage:
+The database script ships with expanded reference data (roles, shifts, patterns, and operational settings).
+If you need additional tenant-specific seed data, insert it after running:
 
 ```bash
-php database/seed.php
+mysql < database/shift_scheduler.sql
 ```
-
-Seeded credentials:
-- **Email (all users):** `mouhamad.ayoubi.dev@gmail.com`
-- **Password (all users):** `SeededPass123!`
 
 ## Project Structure
 
@@ -175,10 +156,8 @@ Shift-Scheduler/
 │   └── schedule.php                       # Schedule configuration
 │
 ├── database/                               # Database Management
-│   ├── seed.php                           # Large multi-tenant seed data
-│   ├── seed_test_data.php                 # Test company seed data
-│   └── setup.php                          # Complete database setup script
-│                                           # (Drops & recreates entire DB)
+│   ├── shift_scheduler.sql                # Single source of truth schema + procedures + seed data
+│
 │
 ├── includes/                               # Shared Includes
 │   ├── auth.php                          # Authentication middleware
@@ -253,10 +232,10 @@ Shift-Scheduler/
 - **schedule.php**: Schedule-related configuration
 
 #### `/database` - Database Management
-- **setup.php**: Single script that drops and recreates entire database
+- **shift_scheduler.sql**: Single script that drops/recreates the database
   - Creates all tables with proper dependencies
   - Creates all stored procedures
-  - Seeds reference data
+  - Seeds reference and catalog data
   - Handles multi-tenant setup
 
 #### `/includes` - Shared Components
@@ -393,7 +372,7 @@ Shift-Scheduler/
 **Solution:** Run the database setup script:
 
    ```bash
-php database/setup.php
+mysql < database/shift_scheduler.sql
    ```
 
 ### Collation Error (utf8mb4_unicode_ci vs utf8mb4_0900_ai_ci)
@@ -401,7 +380,7 @@ php database/setup.php
 **Solution:** The setup script creates the database with `utf8mb4_unicode_ci`. If you see collation errors, the stored procedures are already fixed. Just run:
 
    ```bash
-php database/setup.php
+mysql < database/shift_scheduler.sql
 ```
 
 ### Login Errors
@@ -409,7 +388,7 @@ php database/setup.php
 **Solution:** Verify the database is set up correctly:
 
    ```bash
-php database/setup.php
+mysql < database/shift_scheduler.sql
    ```
 
 Then verify stored procedure exists:
@@ -462,7 +441,7 @@ define('DB_PASS', 'your_password');
 **Solution:** Run setup script:
 
 ```bash
-php database/setup.php
+mysql < database/shift_scheduler.sql
 ```
 
 ## Configuration
@@ -559,10 +538,10 @@ define('DB_PASS', 'your_password');
    - Check for `.env` file overriding config
 
 2. **Missing Tables**
-   - Run: `php database/setup.php`
+   - Run: `mysql < database/shift_scheduler.sql`
 
 3. **Stored Procedure Errors**
-   - Run: `php database/setup.php` to recreate procedures
+   - Run: `mysql < database/shift_scheduler.sql` to recreate procedures
 
 4. **Permission Errors**
    - Verify database user has all privileges
@@ -588,7 +567,7 @@ SHOW PROCEDURE STATUS WHERE Db = 'ShiftSchedulerDB';
 
 ### Getting Help
 
-1. Check database setup: `php database/setup.php`
+1. Check database setup: `mysql < database/shift_scheduler.sql`
 2. Verify database connection in `config/database.php`
 3. Check PHP error logs: `/var/log/php8.1-fpm.log`
 4. Verify all tables exist: `SHOW TABLES;`
@@ -769,71 +748,14 @@ After successful login:
 - **Senior**: Shift management dashboard
 - **Employee**: Personal schedule and requests dashboard
 
-### Quick Test Data Setup
+### Quick Start Data Workflow
 
-To quickly create a test company with employees and sample data, run:
+To generate data quickly:
+1. Sign up once to create a Director account.
+2. Use the Director dashboard to add Team Leaders or Supervisors.
+3. Have Team Leaders or Supervisors add Employees and Seniors.
 
-```bash
-php database/seed_test_data.php
-```
-
-This script creates:
-- **Test Company**: "Demo Company"
-- **Admin User**: Ready to login
-- **6 Employees**: With different roles
-- **Schedules**: Sample weekly schedules
-- **Shift Requests**: Sample pending requests
-
-**After running the seed script, use these credentials:**
-
-```
-Company: Demo Company
-Username: democompany_admin
-Password: Demo123!
-Email: admin@demo.com
-Status: ACTIVE (ready to use immediately)
-```
-
-**Employee Test Accounts:**
-```
-Employee 1:
-  Name: John Doe
-  Username: johndoe_1
-  Password: TempPass123!
-  Role: Employee
-
-Employee 2:
-  Name: Jane Smith
-  Username: janesmith_2
-  Password: TempPass123!
-  Role: Employee
-
-Employee 3:
-  Name: Mike Johnson
-  Username: mikejohnson_3
-  Password: TempPass123!
-  Role: Senior
-
-Employee 4:
-  Name: Sarah Williams
-  Username: sarahwilliams_4
-  Password: TempPass123!
-  Role: Employee
-
-Team Leader:
-  Name: Tom Brown
-  Username: tombrown_5
-  Password: TempPass123!
-  Role: Team Leader
-
-Supervisor:
-  Name: Lisa Davis
-  Username: lisadavis_6
-  Password: TempPass123!
-  Role: Supervisor
-```
-
-**Note:** The seed script checks if test data already exists. If it does, it will skip creation and display existing credentials.
+The database script already includes robust reference data (roles, shift types, patterns, and settings) for immediate use.
 
 ### Password Reset
 

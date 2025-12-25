@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                     $directorRoleId = (int) ($roleRow['id'] ?? 0);
                     if ($directorRoleId === 0) {
                         throw new RuntimeException(
-                            'Director role not found. Database seed data is missing. Please run: php database/setup.php'
+                            'Director role not found. Database seed data is missing. Please run: mysql < database/shift_scheduler.sql'
                         );
                     }
 

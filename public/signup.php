@@ -104,7 +104,7 @@ try {
                 The companies table doesn't exist yet. Please run the database setup script first.<br><br>
                 <strong>Quick Fix:</strong><br>
                 <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; margin: 8px 0; font-family: monospace; white-space: pre-wrap;">
-php database/setup.php
+mysql &lt; database/shift_scheduler.sql
                 </code>
                 <small>See <a href="/README.md" target="_blank" style="color: #93c5fd; text-decoration: underline;">README.md</a> for detailed instructions.</small>
             </div>

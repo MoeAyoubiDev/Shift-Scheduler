@@ -76,37 +76,12 @@ class User extends BaseModel
     public static function findByEmail(string $email): ?array
     {
         try {
-            $pdo = db();
-            $sql = "
-                SELECT u.id AS user_id,
-                       u.username,
-                       u.email,
-                       u.onboarding_completed,
-                       u.is_active,
-                       u.company_id,
-                       ur.id AS user_role_id,
-                       r.id AS role_id,
-                       r.role_name,
-                       s.id AS section_id,
-                       s.section_name,
-                       e.id AS employee_id,
-                       e.full_name AS employee_name,
-                       e.is_senior,
-                       e.seniority_level,
-                       e.employee_code
-                FROM users u
-                INNER JOIN user_roles ur ON ur.user_id = u.id
-                INNER JOIN roles r ON r.id = ur.role_id
-                INNER JOIN sections s ON s.id = ur.section_id
-                LEFT JOIN employees e ON e.user_role_id = ur.id
-                WHERE u.email = ? AND u.is_active = 1
-            ";
+            $model = new self();
+            $rows = $model->callProcedure('sp_get_user_by_email', [
+                'p_email' => $email,
+            ]);
 
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$email]);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            return self::mapUserRows($rows);
+            return self::mapUserRows($rows ?? []);
         } catch (PDOException $e) {
             error_log("User lookup by email failed: " . $e->getMessage());
             return null;
@@ -116,36 +91,10 @@ class User extends BaseModel
     public static function authenticate(string $identifier, string $password): ?array
     {
         try {
-            $pdo = db();
-            $sql = "
-                SELECT u.id AS user_id,
-                       u.username,
-                       u.email,
-                       u.password_hash,
-                       u.onboarding_completed,
-                       u.is_active,
-                       u.company_id,
-                       ur.id AS user_role_id,
-                       r.id AS role_id,
-                       r.role_name,
-                       s.id AS section_id,
-                       s.section_name,
-                       e.id AS employee_id,
-                       e.full_name AS employee_name,
-                       e.is_senior,
-                       e.seniority_level,
-                       e.employee_code
-                FROM users u
-                INNER JOIN user_roles ur ON ur.user_id = u.id
-                INNER JOIN roles r ON r.id = ur.role_id
-                INNER JOIN sections s ON s.id = ur.section_id
-                LEFT JOIN employees e ON e.user_role_id = ur.id
-                WHERE (u.username = ? OR u.email = ?) AND u.is_active = 1
-            ";
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$identifier, $identifier]);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $model = new self();
+            $rows = $model->callProcedure('sp_get_user_by_identifier', [
+                'p_identifier' => $identifier,
+            ]);
 
             if (empty($rows)) {
                 return null;
@@ -156,7 +105,7 @@ class User extends BaseModel
                 return null;
             }
 
-            return self::mapUserRows($rows);
+            return self::mapUserRows($rows ?? []);
         } catch (PDOException $e) {
             error_log("User authentication failed: " . $e->getMessage());
             return null;
@@ -166,14 +115,31 @@ class User extends BaseModel
     public static function emailExists(string $email): bool
     {
         try {
-            $pdo = db();
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-            $stmt->execute([$email]);
-            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+            $model = new self();
+            $rows = $model->callProcedure('sp_user_email_exists', [
+                'p_email' => $email,
+            ]);
+
+            return (bool) ($rows[0]['email_exists'] ?? false);
         } catch (PDOException $e) {
             error_log("Email lookup failed: " . $e->getMessage());
             return false;
         }
+    }
+
+    public static function createDirector(array $payload): int
+    {
+        $model = new self();
+        $rows = $model->callProcedure('sp_create_director', [
+            'p_company_id' => $payload['company_id'],
+            'p_company_name' => $payload['company_name'],
+            'p_username' => $payload['username'],
+            'p_password_hash' => $payload['password_hash'],
+            'p_email' => $payload['email'],
+            'p_full_name' => $payload['full_name'],
+        ]);
+
+        return (int) ($rows[0]['user_id'] ?? 0);
     }
 
 }

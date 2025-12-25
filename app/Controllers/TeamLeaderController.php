@@ -13,7 +13,7 @@ class TeamLeaderController
     public static function handleCreateEmployee(array $payload): ?string
     {
         require_login();
-        require_role(['Team Leader']);
+        require_role(['Team Leader', 'Supervisor']);
         require_csrf($payload);
 
         $sectionId = current_section_id();
@@ -28,6 +28,7 @@ class TeamLeaderController
         $fullName = trim($payload['full_name'] ?? '');
         $roleId = (int) ($payload['role_id'] ?? 0);
         $seniorityLevel = max(0, (int) ($payload['seniority_level'] ?? 0));
+        $password = (string) ($payload['password'] ?? '');
 
         if ($username === '' || $employeeCode === '' || $fullName === '') {
             return 'Username, employee code, and full name are required.';
@@ -35,6 +36,10 @@ class TeamLeaderController
 
         if ($roleId <= 0) {
             return 'Role is required.';
+        }
+
+        if (mb_strlen($password) < 8) {
+            return 'Password must be at least 8 characters long.';
         }
 
         $roleName = null;
@@ -54,7 +59,7 @@ class TeamLeaderController
         try {
             $employeeId = User::createEmployee([
                 'username' => $username,
-                'password_hash' => null,
+                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => $email,
                 'role_id' => $roleId,
                 'section_id' => $sectionId,
