@@ -10,7 +10,7 @@ if (!in_array($directorPage, $allowedPages, true)) {
 ?>
 <div class="dashboard-container director-dashboard">
     <!-- Structural update: left sidebar + dedicated page content area -->
-    <div class="dashboard-shell">
+    <div class="dashboard-shell <?= $directorPage === 'overview' ? 'dashboard-shell--full' : '' ?>">
         <?php require __DIR__ . '/partials/sidebar.php'; ?>
 
         <main class="dashboard-content dashboard-main">
