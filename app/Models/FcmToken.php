@@ -80,4 +80,10 @@ class FcmToken extends BaseModel
 
         return array_column($stmt->fetchAll(), 'token');
     }
+
+    public static function listAllTokens(): array
+    {
+        $stmt = db()->query('SELECT DISTINCT token FROM fcm_tokens');
+        return array_column($stmt->fetchAll(), 'token');
+    }
 }
