@@ -29,9 +29,14 @@ class DirectorController
 
         $roleId = (int) ($payload['role_id'] ?? 0);
         $sectionId = (int) ($payload['section_id'] ?? 0);
+        $password = (string) ($payload['password'] ?? '');
 
         if ($roleId <= 0 || $sectionId <= 0) {
             return 'Invalid role or section.';
+        }
+
+        if (mb_strlen($password) < 8) {
+            return 'Password must be at least 8 characters long.';
         }
 
         // Verify role is Team Leader or Supervisor
@@ -52,7 +57,7 @@ class DirectorController
         try {
             $userId = User::createLeader([
                 'username' => trim($payload['username'] ?? ''),
-                'password_hash' => null,
+                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => trim($payload['email'] ?? ''),
                 'role_id' => $roleId,
                 'section_id' => $sectionId,

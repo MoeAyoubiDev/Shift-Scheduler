@@ -10,7 +10,7 @@ for ($i = 0; $i < 7; $i++) {
 <div class="dashboard-container">
     <!-- Modern Navigation Cards -->
     <div class="dashboard-nav-cards">
-        <button class="nav-card active" data-section="overview">
+        <button type="button" class="nav-card active" data-section="overview">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -23,7 +23,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="create-employee">
+        <button type="button" class="nav-card" data-section="create-employee">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -38,7 +38,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="manage-employees">
+        <button type="button" class="nav-card" data-section="manage-employees">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -53,7 +53,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="shift-requirements">
+        <button type="button" class="nav-card" data-section="shift-requirements">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -67,7 +67,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="shift-requests">
+        <button type="button" class="nav-card" data-section="shift-requests">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,7 +81,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="weekly-schedule">
+        <button type="button" class="nav-card" data-section="weekly-schedule">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -93,7 +93,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="break-monitoring">
+        <button type="button" class="nav-card" data-section="break-monitoring">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -106,7 +106,7 @@ for ($i = 0; $i < 7; $i++) {
             </div>
         </button>
         
-        <button class="nav-card" data-section="performance">
+        <button type="button" class="nav-card" data-section="performance">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -195,26 +195,26 @@ for ($i = 0; $i < 7; $i++) {
             <div class="quick-actions-section">
                 <h3>Quick Actions</h3>
                 <div class="quick-actions-grid">
-                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('shift-requests')">
+                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('shift-requests')">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         <span>Review Requests</span>
                     </button>
-                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
+                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('weekly-schedule')">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         <span>Manage Schedule</span>
                     </button>
-                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('manage-employees')">
+                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('manage-employees')">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         <span>View Team</span>
                     </button>
-                    <button class="quick-action-card" onclick="window.dashboard?.navigateToSection('performance')">
+                    <button type="button" class="quick-action-card" onclick="window.dashboard?.navigateToSection('performance')">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M7 16L12 11L16 15L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

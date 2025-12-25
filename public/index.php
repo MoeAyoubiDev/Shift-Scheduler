@@ -380,6 +380,7 @@ if ($role === 'Director') {
     require_once __DIR__ . '/../app/Models/Performance.php';
     require_once __DIR__ . '/../app/Models/Break.php';
     require_once __DIR__ . '/../app/Models/ShiftRequest.php';
+    require_once __DIR__ . '/../app/Models/Role.php';
     
     $schedule = $sectionId ? Schedule::getWeeklySchedule($weekId, $sectionId) : [];
     $employees = $sectionId ? Employee::listBySection($sectionId) : [];
@@ -387,6 +388,7 @@ if ($role === 'Director') {
     $breaks = $sectionId ? BreakModel::currentBreaks($sectionId, $today->format('Y-m-d')) : [];
     $requests = $sectionId ? ShiftRequest::listByWeek($weekId, $sectionId) : [];
     $requirements = $sectionId ? Schedule::getShiftRequirements($weekId, $sectionId) : [];
+    $roles = Role::listRoles();
     
     // Calculate tracking metrics
     $totalEmployees = count($employees);
@@ -414,6 +416,7 @@ if ($role === 'Director') {
         'breaks' => $breaks,
         'requests' => $requests,
         'requirements' => $requirements,
+        'roles' => $roles,
         'metrics' => [
             'total_employees' => $totalEmployees,
             'total_shifts' => $totalShifts,

@@ -27,17 +27,7 @@ class Employee extends BaseModel
     public static function listAdmins(): array
     {
         $model = new self();
-        $sql = "SELECT e.id, e.employee_code, e.full_name, e.email, r.role_name, u.username, s.section_name
-                FROM employees e
-                INNER JOIN user_roles ur ON ur.id = e.user_role_id
-                INNER JOIN roles r ON r.id = ur.role_id
-                INNER JOIN users u ON u.id = ur.user_id
-                INNER JOIN sections s ON s.id = ur.section_id
-                WHERE e.is_active = 1
-                  AND r.role_name IN ('Team Leader', 'Supervisor')
-                ORDER BY s.section_name, r.role_name, e.full_name";
-
-        return $model->query($sql);
+        return $model->callProcedure('sp_get_admin_directory');
     }
 
     public static function updateInSection(

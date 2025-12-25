@@ -4,7 +4,7 @@ declare(strict_types=1);
 <div class="dashboard-container">
     <!-- Modern Navigation Cards -->
     <div class="dashboard-nav-cards">
-        <button class="nav-card active" data-section="overview">
+        <button type="button" class="nav-card active" data-section="overview">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -17,7 +17,7 @@ declare(strict_types=1);
             </div>
         </button>
         
-        <button class="nav-card" data-section="shift-coverage">
+        <button type="button" class="nav-card" data-section="shift-coverage">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -32,7 +32,7 @@ declare(strict_types=1);
             </div>
         </button>
         
-        <button class="nav-card" data-section="break-monitoring">
+        <button type="button" class="nav-card" data-section="break-monitoring">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -45,7 +45,7 @@ declare(strict_types=1);
             </div>
         </button>
         
-        <button class="nav-card" data-section="weekly-schedule">
+        <button type="button" class="nav-card" data-section="weekly-schedule">
             <div class="nav-card-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

@@ -86,48 +86,23 @@ class AuthController
             return ['success' => false, 'message' => 'Failed to create account.', 'redirect' => '/signup.php'];
         }
 
-        $pdo = db();
-        $pdo->beginTransaction();
-
         try {
-            $sectionStmt = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
-            $sectionStmt->execute([$companyName . ' - Main', $companyId]);
-            $sectionId = (int) $pdo->lastInsertId();
+            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'director'));
+            $usernameCandidate = $usernameBase ?: 'director';
 
-            $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = 'Director' LIMIT 1");
-            $roleStmt->execute();
-            $directorRoleId = (int) ($roleStmt->fetchColumn() ?: 0);
-            if ($directorRoleId <= 0) {
-                throw new RuntimeException('Director role not found.');
+            $userId = User::createDirector([
+                'company_id' => $companyId,
+                'company_name' => $companyName,
+                'username' => $usernameCandidate,
+                'password_hash' => $passwordHash,
+                'email' => $email,
+                'full_name' => $companyName . ' Director',
+            ]);
+
+            if ($userId <= 0) {
+                throw new RuntimeException('Unable to create director account.');
             }
-
-            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'admin'));
-            $usernameCandidate = $usernameBase ?: 'admin';
-            $suffix = 1;
-
-            while (true) {
-                $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1");
-                $checkStmt->execute([$usernameCandidate, $companyId]);
-                if (!$checkStmt->fetch(PDO::FETCH_ASSOC)) {
-                    break;
-                }
-                $usernameCandidate = $usernameBase . $suffix;
-                $suffix++;
-            }
-
-            $userStmt = $pdo->prepare("
-                INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
-                VALUES (?, ?, ?, ?, 'Director', 0, 1)
-            ");
-            $userStmt->execute([$companyId, $usernameCandidate, $passwordHash, $email]);
-            $userId = (int) $pdo->lastInsertId();
-
-            $roleAssignStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
-            $roleAssignStmt->execute([$userId, $directorRoleId, $sectionId]);
-
-            $pdo->commit();
         } catch (Throwable $e) {
-            $pdo->rollBack();
             error_log('Signup creation error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Unable to finish signup. Please try again.', 'redirect' => '/signup.php'];
         }
@@ -137,11 +112,11 @@ class AuthController
             return ['success' => false, 'message' => 'Unable to complete sign-up.', 'redirect' => '/signup.php'];
         }
 
-        self::markCompanyOnboarding($companyId);
+        Company::activateCompany($companyId);
         self::initializeSession($user);
-        $_SESSION['onboarding_company_id'] = $companyId;
+        unset($_SESSION['onboarding_company_id']);
 
-        return ['success' => true, 'redirect' => '/onboarding/step-1'];
+        return ['success' => true, 'redirect' => '/dashboard'];
     }
 
     private static function initializeSession(array $user): void
@@ -167,8 +142,6 @@ class AuthController
 
     private static function markCompanyOnboarding(int $companyId): void
     {
-        $pdo = db();
-        $stmt = $pdo->prepare("UPDATE companies SET status = 'ONBOARDING' WHERE id = ? AND status != 'ACTIVE'");
-        $stmt->execute([$companyId]);
+        Company::activateCompany($companyId);
     }
 }

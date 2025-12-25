@@ -148,11 +148,12 @@ body::after {
 body.login-page {
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: var(--space-md);
+    padding: var(--space-xl) var(--space-md);
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body.login-page footer {
@@ -550,14 +551,14 @@ main {
     max-width: 1400px;
     margin: 0 auto;
     padding: var(--space-xl) var(--space-lg);
-    min-height: calc(100vh - 100px);
+    min-height: 100vh;
     width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
 }
 
 /* ============================================
@@ -569,8 +570,8 @@ main {
     animation: fadeIn 0.5s ease-out;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
     margin: 0 auto;
 }
 
@@ -3584,6 +3585,37 @@ body.landing-page footer.landing-footer {
     padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
     background: var(--color-bg-secondary);
     box-sizing: border-box;
+}
+
+.features-section--alt {
+    background: var(--color-bg-tertiary);
+}
+
+.landing-section-header {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto clamp(2rem, 4vw, 3rem);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.section-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.landing-section-header h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.2;
+}
+
+.landing-section-header p {
+    color: var(--color-text-secondary);
+    font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+    line-height: 1.7;
 }
 
 .container {

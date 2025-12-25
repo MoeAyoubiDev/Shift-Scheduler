@@ -51,7 +51,7 @@ class ActionHandler
         Router::register('create_employee', function(array $payload) {
             $result = TeamLeaderController::handleCreateEmployee($payload);
             return ['message' => $result ?? 'Employee created successfully.'];
-        }, ['Team Leader'], true);
+        }, ['Team Leader', 'Supervisor'], true);
         
         Router::register('update_employee', function(array $payload) {
             $result = TeamLeaderController::handleUpdateEmployee($payload);

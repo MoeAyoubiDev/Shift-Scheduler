@@ -19,56 +19,10 @@ class Schedule extends BaseModel
 
             return (int) ($rows[0]['week_id'] ?? 0);
         } catch (PDOException $e) {
-            // Fallback: If stored procedure doesn't exist or has an error, use direct SQL
             $errorMsg = $e->getMessage();
-            $isProcedureError = (
-                strpos($errorMsg, 'does not exist') !== false || 
-                strpos($errorMsg, 'Unknown procedure') !== false ||
-                strpos($errorMsg, 'PROCEDURE') !== false ||
-                strpos($errorMsg, 'routine') !== false ||
-                $e->getCode() == '42000' // SQL syntax error/access violation
+            throw new RuntimeException(
+                "Stored procedure failure in sp_upsert_week. Please run: mysql < database/shift_scheduler.sql. Error: " . $errorMsg
             );
-            
-            if ($isProcedureError) {
-                try {
-                    $pdo = db();
-                    
-                    // Check if weeks table exists
-                    $stmt = $pdo->query("SHOW TABLES LIKE 'weeks'");
-                    if ($stmt->rowCount() === 0) {
-                        throw new RuntimeException("The 'weeks' table does not exist. Please run the database setup script: php database/setup.php");
-                    }
-                    
-                    // Try to find existing week
-                    $stmt = $pdo->prepare('SELECT id FROM weeks WHERE week_start_date = ? LIMIT 1');
-                    $stmt->execute([$weekStart]);
-                    $week = $stmt->fetch();
-                    
-                    if ($week) {
-                        return (int) $week['id'];
-                    }
-                    
-                    // Insert new week (company_id can be NULL for now)
-                    $stmt = $pdo->prepare('INSERT INTO weeks (week_start_date, week_end_date, company_id) VALUES (?, ?, NULL)');
-                    $stmt->execute([$weekStart, $weekEnd]);
-                    $weekId = (int) $pdo->lastInsertId();
-                    
-                    if ($weekId <= 0) {
-                        throw new RuntimeException("Failed to insert week record. lastInsertId returned 0.");
-                    }
-                    
-                    return $weekId;
-                } catch (PDOException $fallbackError) {
-                    // If fallback also fails, provide a helpful error message
-                    throw new RuntimeException(
-                        "Database error in fallback: " . $fallbackError->getMessage() . 
-                        " (Original error: " . $errorMsg . ")"
-                    );
-                }
-            }
-            
-            // Re-throw if it's a different error
-            throw $e;
         }
     }
 
@@ -141,22 +95,11 @@ class Schedule extends BaseModel
 
     public static function getCoverageGaps(int $weekId, int $sectionId): array
     {
-        $stmt = db()->prepare(
-            'SELECT ss.shift_date, sd.shift_name, ss.required_count, COUNT(sa.id) AS assigned_count
-             FROM schedules s
-             INNER JOIN schedule_shifts ss ON ss.schedule_id = s.id
-             INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
-             LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id
-             WHERE s.week_id = :week_id AND s.section_id = :section_id
-             GROUP BY ss.id
-             HAVING assigned_count < ss.required_count'
-        );
-        $stmt->execute([
-            'week_id' => $weekId,
-            'section_id' => $sectionId,
+        $model = new self();
+        return $model->callProcedure('sp_get_coverage_gaps', [
+            'p_week_id' => $weekId,
+            'p_section_id' => $sectionId,
         ]);
-
-        return $stmt->fetchAll();
     }
 
     public static function updateAssignment(int $assignmentId, int $shiftDefinitionId, ?int $employeeId = null): void

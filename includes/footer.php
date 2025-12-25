@@ -10,11 +10,7 @@ $isDashboard = $role && in_array($role, ['Employee', 'Team Leader', 'Director', 
 <footer class="site-footer">
     <div>
         <strong><?= function_exists('e') ? e(function_exists('app_config') ? app_config('name', 'Shift Scheduler') : 'Shift Scheduler') : htmlspecialchars(function_exists('app_config') ? app_config('name', 'Shift Scheduler') : 'Shift Scheduler', ENT_QUOTES, 'UTF-8') ?></strong>
-        <span class="muted">Production-ready schedules, break monitoring, and analytics.</span>
-    </div>
-    <div class="footer-meta">
-        <span class="status-indicator"></span>
-        <span>Last sync <?= function_exists('e') ? e((new DateTimeImmutable())->format('M d, Y H:i')) : htmlspecialchars((new DateTimeImmutable())->format('M d, Y H:i'), ENT_QUOTES, 'UTF-8') ?></span>
+        <span class="muted">Secure scheduling, compliance-ready operations, and real-time workforce insight.</span>
     </div>
 </footer>
 <?php endif; ?>
