@@ -227,7 +227,11 @@
     // ============================================
     
     document.addEventListener('click', function(e) {
-        const target = e.target;
+        const rawTarget = e.target;
+        const target = rawTarget instanceof Element ? rawTarget : rawTarget?.parentElement;
+        if (!target) {
+            return;
+        }
         const button = target.closest('button');
         let navTrigger = target.closest('.nav-card, .quick-action-card, [data-section]');
         if (navTrigger && navTrigger.classList.contains('dashboard-section')) {
