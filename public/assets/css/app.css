@@ -766,123 +766,190 @@ main {
     align-items: flex-start;
 }
 
-.director-dashboard .dashboard-sidebar {
+/* Director Sidebar - Card-based navigation (matching Team Leader style) */
+.director-dashboard .director-sidebar {
     position: sticky;
     top: clamp(1rem, 2vw, 1.5rem);
-    min-width: 240px;
-    max-width: 280px;
+    min-width: 280px;
+    max-width: 320px;
     width: 100%;
-    padding: clamp(1rem, 2vw, 1.5rem);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
     border-radius: var(--radius-xl);
     background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
     border: 1px solid rgba(148, 163, 184, 0.2);
     box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    max-height: calc(100vh - clamp(2rem, 4vw, 3rem));
+    overflow-y: auto;
 }
 
-.director-dashboard .sidebar-brand {
-    padding-bottom: var(--space-sm);
+.director-dashboard .director-sidebar-header {
+    margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+    padding-bottom: clamp(0.75rem, 1.5vw, 1rem);
     border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.director-dashboard .sidebar-title {
-    font-size: 1rem;
+.director-dashboard .director-sidebar-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     font-weight: 700;
     color: var(--color-text-primary);
+    margin: 0 0 0.35rem 0;
+    line-height: 1.2;
 }
 
-.director-dashboard .sidebar-subtitle {
-    font-size: 0.8rem;
+.director-dashboard .director-sidebar-subtitle {
+    font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
     color: var(--color-text-secondary);
-    margin-top: 0.25rem;
+    margin: 0;
+    line-height: 1.4;
+    font-weight: 500;
 }
 
-.director-dashboard .sidebar-nav {
+.director-dashboard .director-sidebar-group-header {
+    margin-top: clamp(0.75rem, 1.5vw, 1rem);
+    margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+    padding-top: clamp(0.75rem, 1.5vw, 1rem);
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.director-dashboard .director-sidebar-group-title {
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 0.2rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.director-dashboard .director-sidebar-group-subtitle {
+    font-size: clamp(0.6875rem, 1.2vw, 0.75rem);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Director sidebar navigation cards - card-based layout */
+.director-dashboard .director-sidebar-nav-cards {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    width: 100%;
 }
 
-.director-dashboard .sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 0.85rem;
-    border-radius: var(--radius-lg);
-    color: var(--color-text-primary);
-    text-decoration: none;
-    background: rgba(15, 23, 42, 0.35);
-    border: 1px solid transparent;
+.director-dashboard .director-sidebar-management {
+    margin-top: 0;
+}
+
+/* Director nav cards in sidebar - enhanced styling */
+.director-dashboard .director-nav-card {
+    width: 100%;
+    min-height: clamp(100px, 12vw, 120px);
+    aspect-ratio: auto;
+    padding: clamp(1rem, 2vw, 1.25rem);
+    text-align: center;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
     transition: all var(--transition-base);
-}
-
-.director-dashboard .sidebar-link:hover {
-    border-color: rgba(99, 102, 241, 0.35);
-    background: rgba(99, 102, 241, 0.12);
-}
-
-.director-dashboard .sidebar-link.active {
-    border-color: rgba(99, 102, 241, 0.6);
-    background: rgba(99, 102, 241, 0.2);
-    box-shadow: var(--shadow-glow);
-}
-
-.director-dashboard .sidebar-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-md);
-    display: inline-flex;
+    position: relative;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--color-text-primary);
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+}
+
+.director-dashboard .director-nav-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.1) 0%, 
+        rgba(139, 92, 246, 0.1) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    border-radius: var(--radius-xl);
+}
+
+.director-dashboard .director-nav-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-glow), var(--shadow-lg);
+    z-index: 1;
+}
+
+.director-dashboard .director-nav-card:hover::before {
+    opacity: 1;
+}
+
+.director-dashboard .director-nav-card.active {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.25), 
+        rgba(139, 92, 246, 0.25));
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-glow), var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.director-dashboard .director-nav-card.active::before {
+    opacity: 1;
+}
+
+.director-dashboard .director-nav-card.active .nav-card-icon {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+}
+
+.director-dashboard .director-nav-card .nav-card-icon {
+    width: clamp(40px, 5vw, 48px);
+    height: clamp(40px, 5vw, 48px);
+    margin-bottom: 0;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-glow);
+    transition: all var(--transition-base);
     flex-shrink: 0;
 }
 
-.director-dashboard .sidebar-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
+.director-dashboard .director-nav-card:hover .nav-card-icon {
+    transform: rotate(5deg) scale(1.1);
 }
 
-.director-dashboard .sidebar-link-title {
-    font-size: 0.9rem;
+.director-dashboard .director-nav-card .nav-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.125rem, 0.3vw, 0.25rem);
+    width: 100%;
+}
+
+.director-dashboard .director-nav-card .nav-card-title {
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
     font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    text-align: center;
 }
 
-.director-dashboard .sidebar-link-subtitle {
-    font-size: 0.75rem;
+.director-dashboard .director-nav-card .nav-card-subtitle {
+    font-size: clamp(0.6875rem, 1.2vw, 0.8125rem);
     color: var(--color-text-secondary);
-}
-
-.director-dashboard .sidebar-group {
-    border: none;
-    margin: 0;
-    padding: 0;
-}
-
-.director-dashboard .sidebar-group summary {
-    list-style: none;
-    cursor: pointer;
-}
-
-.director-dashboard .sidebar-group summary::-webkit-details-marker {
-    display: none;
-}
-
-.director-dashboard .sidebar-chevron {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-}
-
-.director-dashboard .sidebar-subnav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.25rem 0 0.25rem 1.25rem;
+    text-align: center;
+    line-height: 1.3;
+    font-weight: 500;
 }
 
 .director-dashboard .dashboard-main {
@@ -890,14 +957,36 @@ main {
     display: flex;
     flex-direction: column;
     gap: clamp(1.5rem, 3vw, 2.25rem);
+    min-width: 0; /* Prevent flex item overflow */
+    width: 100%;
 }
 
 .director-dashboard .dashboard-page-header {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: flex-start;
     justify-content: space-between;
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    padding-bottom: clamp(1rem, 2vw, 1.5rem);
+    border-bottom: 2px solid rgba(148, 163, 184, 0.25);
+}
+
+.director-dashboard .dashboard-page-header h2 {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.director-dashboard .dashboard-page-header p.muted {
+    font-size: clamp(0.9375rem, 1.6vw, 1.125rem);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.6;
+    font-weight: 400;
 }
 
 .director-dashboard .overview-card-grid {
@@ -1097,9 +1186,39 @@ main {
     }
 }
 
+@media (max-width: 1024px) {
+    .director-dashboard .dashboard-shell {
+        flex-direction: column;
+        gap: clamp(1rem, 2vw, 1.5rem);
+    }
+    
+    .director-dashboard .director-sidebar {
+        position: relative;
+        top: 0;
+        min-width: 100%;
+        max-width: 100%;
+        max-height: none;
+    }
+    
+    .director-dashboard .director-sidebar-nav-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 20vw, 180px), 1fr));
+        gap: clamp(0.75rem, 1.5vw, 1rem);
+    }
+}
+
 @media (max-width: 900px) {
     .director-dashboard .overview-layout {
         grid-template-columns: 1fr;
+    }
+    
+    .director-dashboard .overview-card-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .director-dashboard .dashboard-page-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
@@ -2531,6 +2650,50 @@ table tr:hover {
 .empty-state-text {
     font-size: 0.875rem;
     color: var(--color-text-secondary);
+}
+
+/* Director-specific empty state improvements */
+.director-dashboard .empty-state {
+    padding: clamp(2.5rem, 5vw, 4rem);
+    background: rgba(15, 23, 42, 0.25);
+    border: 1px dashed rgba(148, 163, 184, 0.25);
+    position: relative;
+}
+
+.director-dashboard .empty-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    opacity: 0.5;
+    z-index: 0;
+}
+
+.director-dashboard .empty-state > * {
+    position: relative;
+    z-index: 1;
+}
+
+.director-dashboard .empty-state-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.director-dashboard .empty-state-text {
+    font-size: clamp(0.9375rem, 1.6vw, 1.0625rem);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ============================================

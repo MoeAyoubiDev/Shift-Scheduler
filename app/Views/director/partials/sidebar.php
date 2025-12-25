@@ -49,50 +49,46 @@ $managementNav = [
     ],
 ];
 
-$managementOpen = in_array($directorPage, ['departments', 'settings'], true);
 ?>
-<aside class="dashboard-sidebar">
-    <div class="sidebar-brand">
-        <div class="sidebar-title">Director Console</div>
-        <div class="sidebar-subtitle">Executive control center</div>
+<aside class="dashboard-sidebar director-sidebar">
+    <div class="director-sidebar-header">
+        <h2 class="director-sidebar-title">Director Console</h2>
+        <p class="director-sidebar-subtitle">Executive control center</p>
     </div>
 
-    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+    <!-- Primary Navigation Cards -->
+    <div class="director-sidebar-nav-cards">
         <?php foreach ($primaryNav as $item): ?>
-            <a class="sidebar-link <?= $directorPage === $item['slug'] ? 'active' : '' ?>" href="<?= e($item['href']) ?>" <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
-                <span class="sidebar-icon" aria-hidden="true"><?= $item['icon'] ?></span>
-                <span class="sidebar-text">
-                    <span class="sidebar-link-title"><?= e($item['label']) ?></span>
-                    <span class="sidebar-link-subtitle"><?= e($item['subtitle']) ?></span>
-                </span>
+            <a href="<?= e($item['href']) ?>" class="nav-card director-nav-card <?= $directorPage === $item['slug'] ? 'active' : '' ?>" <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
+                <div class="nav-card-icon">
+                    <?= str_replace('width="20" height="20"', 'width="24" height="24"', $item['icon']) ?>
+                </div>
+                <div class="nav-card-content">
+                    <div class="nav-card-title"><?= e($item['label']) ?></div>
+                    <div class="nav-card-subtitle"><?= e($item['subtitle']) ?></div>
+                </div>
             </a>
         <?php endforeach; ?>
-
-        <details class="sidebar-group" <?= $managementOpen ? 'open' : '' ?>>
-            <summary class="sidebar-link">
-                <span class="sidebar-icon" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L3 7V12C3 16.4183 6.13401 20.4183 12 22C17.866 20.4183 21 16.4183 21 12V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span class="sidebar-text">
-                    <span class="sidebar-link-title">Management</span>
-                    <span class="sidebar-link-subtitle">Departments & settings</span>
-                </span>
-                <span class="sidebar-chevron" aria-hidden="true">▾</span>
-            </summary>
-            <div class="sidebar-subnav">
-                <?php foreach ($managementNav as $item): ?>
-                    <a class="sidebar-link <?= $directorPage === $item['slug'] ? 'active' : '' ?>" href="<?= e($item['href']) ?>" <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
-                        <span class="sidebar-icon" aria-hidden="true"><?= $item['icon'] ?></span>
-                        <span class="sidebar-text">
-                            <span class="sidebar-link-title"><?= e($item['label']) ?></span>
-                            <span class="sidebar-link-subtitle"><?= e($item['subtitle']) ?></span>
-                        </span>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        </details>
-    </nav>
+    </div>
+    
+    <!-- Management Section Header -->
+    <div class="director-sidebar-group-header">
+        <h3 class="director-sidebar-group-title">Management</h3>
+        <p class="director-sidebar-group-subtitle">Departments & settings</p>
+    </div>
+    
+    <!-- Management Navigation Cards -->
+    <div class="director-sidebar-nav-cards director-sidebar-management">
+        <?php foreach ($managementNav as $item): ?>
+            <a href="<?= e($item['href']) ?>" class="nav-card director-nav-card <?= $directorPage === $item['slug'] ? 'active' : '' ?>" <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
+                <div class="nav-card-icon">
+                    <?= str_replace('width="20" height="20"', 'width="24" height="24"', $item['icon']) ?>
+                </div>
+                <div class="nav-card-content">
+                    <div class="nav-card-title"><?= e($item['label']) ?></div>
+                    <div class="nav-card-subtitle"><?= e($item['subtitle']) ?></div>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </div>
 </aside>
