@@ -1,13 +1,22 @@
--- Shift Scheduler Database: Schema + Procedures + Seed Data
--- Single source of truth for fresh installs
+-- ============================================================
+-- Shift Scheduler Database - Multi-Tenant (No Sections)
+-- ============================================================
+-- Complete database schema with:
+-- - No sections (removed completely)
+-- - Company-only multi-tenant isolation
+-- - Only 3 roles: Admin, Team Leader, Employee
+-- - All stored procedures updated
+-- - MySQL 5.7 compatible
+-- ============================================================
 
 DROP DATABASE IF EXISTS ShiftSchedulerDB;
 CREATE DATABASE ShiftSchedulerDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ShiftSchedulerDB;
 
 -- ===============================
--- Tables
+-- TABLES
 -- ===============================
+
 CREATE TABLE companies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     company_name VARCHAR(255) NOT NULL,
@@ -79,16 +88,6 @@ CREATE TABLE company_onboarding (
     INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE sections (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NULL,
-    section_name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
-    INDEX idx_company (company_id),
-    UNIQUE KEY unique_section_company (section_name, company_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE shift_definitions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     shift_name VARCHAR(50) NOT NULL,
@@ -135,33 +134,33 @@ CREATE TABLE user_roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     role_id INT NOT NULL,
-    section_id INT NOT NULL,
+    company_id INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES roles(id),
-    FOREIGN KEY (section_id) REFERENCES sections(id),
-    UNIQUE KEY unique_user_role_section (user_id, role_id, section_id)
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_role_company (user_id, role_id, company_id),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE shift_requirements (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NULL,
+    company_id INT NOT NULL,
     week_id INT NOT NULL,
-    section_id INT NOT NULL,
     shift_date DATE NOT NULL,
     shift_type_id INT NOT NULL,
     required_count INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (week_id) REFERENCES weeks(id) ON DELETE CASCADE,
-    FOREIGN KEY (section_id) REFERENCES sections(id),
     FOREIGN KEY (shift_type_id) REFERENCES shift_types(id),
     INDEX idx_company (company_id),
-    UNIQUE KEY unique_shift_requirement (week_id, section_id, shift_date, shift_type_id)
+    UNIQUE KEY unique_shift_requirement (week_id, shift_date, shift_type_id, company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     user_role_id INT NOT NULL,
     employee_code VARCHAR(50) NOT NULL,
     full_name VARCHAR(150) NOT NULL,
@@ -171,41 +170,45 @@ CREATE TABLE employees (
     is_active TINYINT(1) DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (user_role_id) REFERENCES user_roles(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_employee_code (employee_code)
+    UNIQUE KEY unique_employee_code (employee_code),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE schedules (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NULL,
+    company_id INT NOT NULL,
     week_id INT NOT NULL,
-    section_id INT NOT NULL,
     generated_by_admin_id INT NOT NULL,
     generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     status ENUM('DRAFT','FINAL') DEFAULT 'DRAFT',
     notes TEXT NULL,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (week_id) REFERENCES weeks(id) ON DELETE CASCADE,
-    FOREIGN KEY (section_id) REFERENCES sections(id),
     FOREIGN KEY (generated_by_admin_id) REFERENCES employees(id),
     INDEX idx_company (company_id),
-    UNIQUE KEY unique_schedule_company_week_section (week_id, section_id, company_id)
+    UNIQUE KEY unique_schedule_company_week (week_id, company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE schedule_shifts (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     schedule_id INT NOT NULL,
     shift_date DATE NOT NULL,
     shift_definition_id INT NOT NULL,
     required_count INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE,
     FOREIGN KEY (shift_definition_id) REFERENCES shift_definitions(id),
-    INDEX idx_schedule_date (schedule_id, shift_date)
+    INDEX idx_schedule_date (schedule_id, shift_date),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE shift_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     employee_id INT NOT NULL,
     week_id INT NOT NULL,
     request_date DATE NOT NULL,
@@ -218,30 +221,36 @@ CREATE TABLE shift_requests (
     submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     reviewed_by_admin_id INT NULL,
     reviewed_at DATETIME NULL,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
     FOREIGN KEY (week_id) REFERENCES weeks(id) ON DELETE CASCADE,
     FOREIGN KEY (shift_definition_id) REFERENCES shift_definitions(id),
     FOREIGN KEY (schedule_pattern_id) REFERENCES schedule_patterns(id),
     FOREIGN KEY (reviewed_by_admin_id) REFERENCES employees(id),
     INDEX idx_week_employee (week_id, employee_id),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE schedule_assignments (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     schedule_shift_id INT NOT NULL,
     employee_id INT NOT NULL,
     assignment_source ENUM('MATCHED_REQUEST','AUTO_ASSIGNED','MANUALLY_ADJUSTED') NOT NULL DEFAULT 'MATCHED_REQUEST',
     is_senior TINYINT(1) DEFAULT 0,
     notes VARCHAR(255) DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (schedule_shift_id) REFERENCES schedule_shifts(id) ON DELETE CASCADE,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_assignment (schedule_shift_id, employee_id)
+    UNIQUE KEY unique_assignment (schedule_shift_id, employee_id),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE employee_breaks (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     employee_id INT NOT NULL,
     schedule_shift_id INT NULL,
     worked_date DATE NOT NULL,
@@ -249,9 +258,11 @@ CREATE TABLE employee_breaks (
     break_end DATETIME NULL,
     is_active TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
     FOREIGN KEY (schedule_shift_id) REFERENCES schedule_shifts(id) ON DELETE SET NULL,
-    UNIQUE KEY unique_employee_break (employee_id, worked_date)
+    UNIQUE KEY unique_employee_break (employee_id, worked_date),
+    INDEX idx_company (company_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE notifications (
@@ -271,13 +282,13 @@ CREATE TABLE notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===============================
--- Seed Reference Data
+-- REFERENCE DATA
 -- ===============================
+
 INSERT INTO roles (role_name, description) VALUES
-    ('Supervisor', 'Executive oversight across sections'),
+    ('Admin', 'Company owner and administrator'),
     ('Team Leader', 'Full scheduling and employee management'),
-    ('Employee', 'Shift requests and schedule access')
-ON DUPLICATE KEY UPDATE description = VALUES(description);
+    ('Employee', 'Shift requests and schedule access');
 
 INSERT INTO shift_types (code, name, start_time, end_time, duration_hours) VALUES
     ('AM', 'Morning', '06:00:00', '14:00:00', 8.00),
@@ -286,8 +297,7 @@ INSERT INTO shift_types (code, name, start_time, end_time, duration_hours) VALUE
     ('MIDNIGHT', 'Midnight', '18:00:00', '02:00:00', 8.00),
     ('OVERNIGHT', 'Overnight', '22:00:00', '06:00:00', 8.00),
     ('FLEX', 'Flex', '09:00:00', '17:00:00', 8.00),
-    ('SPLIT', 'Split Shift', '08:00:00', '16:00:00', 8.00)
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+    ('SPLIT', 'Split Shift', '08:00:00', '16:00:00', 8.00);
 
 INSERT INTO shift_definitions (shift_name, start_time, end_time, duration_hours, category, color_code, shift_type_id) VALUES
     ('AM Shift', '06:00:00', '14:00:00', 8.00, 'AM', '#38bdf8', 1),
@@ -297,27 +307,24 @@ INSERT INTO shift_definitions (shift_name, start_time, end_time, duration_hours,
     ('Overnight Shift', '22:00:00', '06:00:00', 8.00, 'OVERNIGHT', '#334155', 5),
     ('Flex Shift', '09:00:00', '17:00:00', 8.00, 'AM', '#22c55e', 6),
     ('Split Shift', '08:00:00', '16:00:00', 8.00, 'MID', '#ec4899', 7),
-    ('Day Off', NULL, NULL, 0.00, 'OFF', '#94a3b8', NULL)
-ON DUPLICATE KEY UPDATE shift_name = VALUES(shift_name);
+    ('Day Off', NULL, NULL, 0.00, 'OFF', '#94a3b8', NULL);
 
 INSERT INTO schedule_patterns (name, work_days_per_week, off_days_per_week, default_shift_duration_hours, description) VALUES
     ('5x2', 5, 2, 8.00, '5 days on / 2 days off'),
     ('6x1', 6, 1, 8.00, '6 days on / 1 day off'),
     ('4x3', 4, 3, 10.00, '4 days on / 3 days off'),
     ('Rotating', 5, 2, 8.00, 'Rotating schedule pattern'),
-    ('Weekend Coverage', 4, 3, 8.00, 'Weekend-focused staffing plan')
-ON DUPLICATE KEY UPDATE description = VALUES(description);
+    ('Weekend Coverage', 4, 3, 8.00, 'Weekend-focused staffing plan');
 
 INSERT INTO system_settings (system_key, system_value, description) VALUES
     ('schedule_generation_mode', 'auto', 'Default weekly schedule generation mode'),
     ('break_duration_minutes', '30', 'Standard break duration in minutes'),
     ('shift_request_window_days', '7', 'Days in advance allowed for shift requests'),
     ('timezone_default', 'UTC', 'Default timezone for new companies'),
-    ('compliance_mode', 'enabled', 'Enable compliance tracking features')
-ON DUPLICATE KEY UPDATE system_value = VALUES(system_value);
+    ('compliance_mode', 'enabled', 'Enable compliance tracking features');
 
 -- ===============================
--- Stored Procedures
+-- STORED PROCEDURES
 -- ===============================
 DELIMITER $$
 
@@ -424,10 +431,9 @@ BEGIN
     SELECT LAST_INSERT_ID() AS company_id;
 END $$
 
-DROP PROCEDURE IF EXISTS sp_create_supervisor $$
-CREATE PROCEDURE sp_create_supervisor(
+DROP PROCEDURE IF EXISTS sp_create_admin $$
+CREATE PROCEDURE sp_create_admin(
     IN p_company_id INT,
-    IN p_company_name VARCHAR(255),
     IN p_username VARCHAR(100),
     IN p_password_hash VARCHAR(255),
     IN p_email VARCHAR(150),
@@ -436,23 +442,11 @@ CREATE PROCEDURE sp_create_supervisor(
 BEGIN
     DECLARE v_user_id INT;
     DECLARE v_role_id INT;
-    DECLARE v_section_id INT;
     DECLARE v_username_candidate VARCHAR(100);
     DECLARE v_username_exists INT DEFAULT 1;
     DECLARE v_suffix INT DEFAULT 0;
 
-    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Supervisor' LIMIT 1;
-
-    SELECT id INTO v_section_id
-    FROM sections
-    WHERE company_id = p_company_id AND section_name = CONCAT(p_company_name, ' - Main')
-    LIMIT 1;
-
-    IF v_section_id IS NULL THEN
-        INSERT INTO sections (section_name, company_id)
-        VALUES (CONCAT(p_company_name, ' - Main'), p_company_id);
-        SET v_section_id = LAST_INSERT_ID();
-    END IF;
+    SELECT id INTO v_role_id FROM roles WHERE role_name = 'Admin' LIMIT 1;
 
     SET v_username_candidate = p_username;
     WHILE v_username_exists > 0 DO
@@ -466,13 +460,41 @@ BEGIN
     END WHILE;
 
     INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
-    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Supervisor', 1, 1);
+    VALUES (p_company_id, v_username_candidate, p_password_hash, p_email, 'Admin', 1, 1);
     SET v_user_id = LAST_INSERT_ID();
 
-    INSERT INTO user_roles (user_id, role_id, section_id)
-    VALUES (v_user_id, v_role_id, v_section_id);
+    INSERT INTO user_roles (user_id, role_id, company_id)
+    VALUES (v_user_id, v_role_id, p_company_id);
 
     SELECT v_user_id AS user_id;
+END $$
+
+DROP PROCEDURE IF EXISTS sp_verify_login $$
+CREATE PROCEDURE sp_verify_login(IN p_username VARCHAR(100), IN p_company_id INT)
+BEGIN
+    SELECT u.id AS user_id,
+           u.username,
+           u.email,
+           u.password_hash,
+           u.onboarding_completed,
+           u.is_active,
+           u.company_id,
+           ur.id AS user_role_id,
+           r.id AS role_id,
+           r.role_name,
+           e.id AS employee_id,
+           e.full_name AS employee_name,
+           e.is_senior,
+           e.seniority_level,
+           e.employee_code
+    FROM users u
+    INNER JOIN user_roles ur ON ur.user_id = u.id
+    INNER JOIN roles r ON r.id = ur.role_id
+    LEFT JOIN employees e ON e.user_role_id = ur.id
+    WHERE u.username = p_username 
+      AND u.company_id <=> p_company_id 
+      AND u.is_active = 1
+    LIMIT 1;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_user_by_email $$
@@ -488,8 +510,6 @@ BEGIN
            ur.id AS user_role_id,
            r.id AS role_id,
            r.role_name,
-           s.id AS section_id,
-           s.section_name,
            e.id AS employee_id,
            e.full_name AS employee_name,
            e.is_senior,
@@ -498,7 +518,6 @@ BEGIN
     FROM users u
     INNER JOIN user_roles ur ON ur.user_id = u.id
     INNER JOIN roles r ON r.id = ur.role_id
-    INNER JOIN sections s ON s.id = ur.section_id
     LEFT JOIN employees e ON e.user_role_id = ur.id
     WHERE u.email = p_email AND u.is_active = 1;
 END $$
@@ -516,8 +535,6 @@ BEGIN
            ur.id AS user_role_id,
            r.id AS role_id,
            r.role_name,
-           s.id AS section_id,
-           s.section_name,
            e.id AS employee_id,
            e.full_name AS employee_name,
            e.is_senior,
@@ -526,7 +543,6 @@ BEGIN
     FROM users u
     INNER JOIN user_roles ur ON ur.user_id = u.id
     INNER JOIN roles r ON r.id = ur.role_id
-    INNER JOIN sections s ON s.id = ur.section_id
     LEFT JOIN employees e ON e.user_role_id = ur.id
     WHERE (u.username = p_identifier OR u.email = p_identifier) AND u.is_active = 1;
 END $$
@@ -562,12 +578,12 @@ BEGIN
 END $$
 
 DROP PROCEDURE IF EXISTS sp_upsert_week $$
-CREATE PROCEDURE sp_upsert_week(IN p_week_start DATE, IN p_week_end DATE)
+CREATE PROCEDURE sp_upsert_week(IN p_company_id INT, IN p_week_start DATE, IN p_week_end DATE)
 BEGIN
     DECLARE v_week_id INT;
-    SELECT id INTO v_week_id FROM weeks WHERE week_start_date = p_week_start LIMIT 1;
+    SELECT id INTO v_week_id FROM weeks WHERE week_start_date = p_week_start AND company_id = p_company_id LIMIT 1;
     IF v_week_id IS NULL THEN
-        INSERT INTO weeks (week_start_date, week_end_date) VALUES (p_week_start, p_week_end);
+        INSERT INTO weeks (company_id, week_start_date, week_end_date) VALUES (p_company_id, p_week_start, p_week_end);
         SET v_week_id = LAST_INSERT_ID();
     END IF;
     SELECT v_week_id AS week_id;
@@ -612,7 +628,7 @@ BEGIN
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_shift_requirements $$
-CREATE PROCEDURE sp_get_shift_requirements(IN p_week_id INT, IN p_section_id INT)
+CREATE PROCEDURE sp_get_shift_requirements(IN p_week_id INT, IN p_company_id INT)
 BEGIN
     SELECT sr.id,
            sr.shift_date,
@@ -624,25 +640,25 @@ BEGIN
     FROM shift_requirements sr
     INNER JOIN shift_types st ON st.id = sr.shift_type_id
     INNER JOIN shift_definitions sd ON sd.shift_type_id = st.id
-    WHERE sr.week_id = p_week_id AND sr.section_id = p_section_id;
+    WHERE sr.week_id = p_week_id AND sr.company_id = p_company_id;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_set_shift_requirement $$
 CREATE PROCEDURE sp_set_shift_requirement(
     IN p_week_id INT,
-    IN p_section_id INT,
+    IN p_company_id INT,
     IN p_date DATE,
     IN p_shift_type_id INT,
     IN p_required_count INT
 )
 BEGIN
-    INSERT INTO shift_requirements (week_id, section_id, shift_date, shift_type_id, required_count)
-    VALUES (p_week_id, p_section_id, p_date, p_shift_type_id, p_required_count)
+    INSERT INTO shift_requirements (week_id, company_id, shift_date, shift_type_id, required_count)
+    VALUES (p_week_id, p_company_id, p_date, p_shift_type_id, p_required_count)
     ON DUPLICATE KEY UPDATE required_count = p_required_count;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_generate_weekly_schedule $$
-CREATE PROCEDURE sp_generate_weekly_schedule(IN p_week_id INT, IN p_section_id INT, IN p_generated_by_employee_id INT)
+CREATE PROCEDURE sp_generate_weekly_schedule(IN p_week_id INT, IN p_company_id INT, IN p_generated_by_employee_id INT)
 BEGIN
     DECLARE v_schedule_id INT;
     DECLARE v_assignments_needed INT DEFAULT 1;
@@ -656,12 +672,12 @@ BEGIN
 
     SELECT id INTO v_schedule_id
     FROM schedules
-    WHERE week_id = p_week_id AND section_id = p_section_id
+    WHERE week_id = p_week_id AND company_id = p_company_id
     LIMIT 1;
 
     IF v_schedule_id IS NULL THEN
-        INSERT INTO schedules (week_id, section_id, generated_by_admin_id, status)
-        VALUES (p_week_id, p_section_id, p_generated_by_employee_id, 'DRAFT');
+        INSERT INTO schedules (week_id, company_id, generated_by_admin_id, status)
+        VALUES (p_week_id, p_company_id, p_generated_by_employee_id, 'DRAFT');
         SET v_schedule_id = LAST_INSERT_ID();
     ELSE
         DELETE FROM schedule_assignments
@@ -669,23 +685,22 @@ BEGIN
         DELETE FROM schedule_shifts WHERE schedule_id = v_schedule_id;
     END IF;
 
-    INSERT INTO schedule_shifts (schedule_id, shift_date, shift_definition_id, required_count)
-    SELECT v_schedule_id, sr.shift_date, sd.id, sr.required_count
+    INSERT INTO schedule_shifts (schedule_id, company_id, shift_date, shift_definition_id, required_count)
+    SELECT v_schedule_id, p_company_id, sr.shift_date, sd.id, sr.required_count
     FROM shift_requirements sr
     INNER JOIN shift_types st ON st.id = sr.shift_type_id
     INNER JOIN shift_definitions sd ON sd.shift_type_id = st.id
-    WHERE sr.week_id = p_week_id AND sr.section_id = p_section_id;
+    WHERE sr.week_id = p_week_id AND sr.company_id = p_company_id;
 
-    INSERT INTO schedule_assignments (schedule_shift_id, employee_id, assignment_source, is_senior, notes)
-    SELECT ss.id, sr.employee_id, 'MATCHED_REQUEST', e.is_senior, CONCAT('Request: ', COALESCE(sr.reason, ''))
+    INSERT INTO schedule_assignments (schedule_shift_id, company_id, employee_id, assignment_source, is_senior, notes)
+    SELECT ss.id, p_company_id, sr.employee_id, 'MATCHED_REQUEST', e.is_senior, CONCAT('Request: ', COALESCE(sr.reason, ''))
     FROM schedule_shifts ss
     INNER JOIN shift_requests sr ON sr.week_id = p_week_id AND sr.request_date = ss.shift_date
     INNER JOIN employees e ON e.id = sr.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
     WHERE ss.shift_definition_id = sr.shift_definition_id
       AND sr.status = 'APPROVED'
       AND sr.is_day_off = 0
-      AND ur.section_id = p_section_id
+      AND sr.company_id = p_company_id
       AND NOT EXISTS (
           SELECT 1 FROM schedule_assignments sa
           WHERE sa.schedule_shift_id = ss.id AND sa.employee_id = e.id
@@ -693,21 +708,28 @@ BEGIN
 
     SET v_assignments_needed = 1;
     WHILE v_assignments_needed > 0 DO
-        INSERT INTO schedule_assignments (schedule_shift_id, employee_id, assignment_source, is_senior, notes)
-        SELECT ss.id, e.id, 'AUTO_ASSIGNED', e.is_senior, 'Auto-assigned by system'
+        SET @emp_id = NULL;
+        SET @shift_id = NULL;
+        
+        SELECT e.id, ss.id INTO @emp_id, @shift_id
         FROM schedule_shifts ss
         INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
-        INNER JOIN employees e ON e.is_active = 1
-        INNER JOIN user_roles ur ON ur.id = e.user_role_id
+        INNER JOIN employees e ON e.is_active = 1 AND e.company_id = p_company_id
         LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id AND sa.employee_id = e.id
-        WHERE ur.section_id = p_section_id
+        WHERE ss.schedule_id = v_schedule_id
           AND sa.id IS NULL
           AND sd.category <> 'OFF'
           AND (SELECT COUNT(*) FROM schedule_assignments WHERE schedule_shift_id = ss.id) < ss.required_count
         ORDER BY e.seniority_level DESC, e.id
         LIMIT 1;
 
-        SET v_assignments_needed = ROW_COUNT();
+        IF @emp_id IS NOT NULL AND @shift_id IS NOT NULL THEN
+            INSERT INTO schedule_assignments (schedule_shift_id, company_id, employee_id, assignment_source, is_senior, notes)
+            VALUES (@shift_id, p_company_id, @emp_id, 'AUTO_ASSIGNED', (SELECT is_senior FROM employees WHERE id = @emp_id), 'Auto-assigned by system');
+            SET v_assignments_needed = ROW_COUNT();
+        ELSE
+            SET v_assignments_needed = 0;
+        END IF;
     END WHILE;
 
     COMMIT;
@@ -715,7 +737,7 @@ BEGIN
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_weekly_schedule $$
-CREATE PROCEDURE sp_get_weekly_schedule(IN p_week_id INT, IN p_section_id INT)
+CREATE PROCEDURE sp_get_weekly_schedule(IN p_week_id INT, IN p_company_id INT)
 BEGIN
     SELECT ss.id AS schedule_shift_id,
            ss.shift_date,
@@ -738,12 +760,12 @@ BEGIN
     INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
     LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id
     LEFT JOIN employees e ON e.id = sa.employee_id
-    WHERE s.week_id = p_week_id AND s.section_id = p_section_id
+    WHERE s.week_id = p_week_id AND s.company_id = p_company_id
     ORDER BY ss.shift_date, sd.shift_name, e.full_name;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_today_shift $$
-CREATE PROCEDURE sp_get_today_shift(IN p_section_id INT, IN p_today DATE)
+CREATE PROCEDURE sp_get_today_shift(IN p_company_id INT, IN p_today DATE)
 BEGIN
     SELECT ss.id AS schedule_shift_id,
            ss.shift_date,
@@ -763,14 +785,14 @@ BEGIN
     INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
     LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id
     LEFT JOIN employees e ON e.id = sa.employee_id
-    WHERE s.section_id = p_section_id
+    WHERE s.company_id = p_company_id
       AND ss.shift_date = p_today
       AND sd.category <> 'OFF'
     ORDER BY sd.start_time, e.full_name;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_coverage_gaps $$
-CREATE PROCEDURE sp_get_coverage_gaps(IN p_week_id INT, IN p_section_id INT)
+CREATE PROCEDURE sp_get_coverage_gaps(IN p_week_id INT, IN p_company_id INT)
 BEGIN
     SELECT ss.shift_date,
            sd.shift_name,
@@ -780,7 +802,7 @@ BEGIN
     INNER JOIN schedule_shifts ss ON ss.schedule_id = s.id
     INNER JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
     LEFT JOIN schedule_assignments sa ON sa.schedule_shift_id = ss.id
-    WHERE s.week_id = p_week_id AND s.section_id = p_section_id
+    WHERE s.week_id = p_week_id AND s.company_id = p_company_id
     GROUP BY ss.id
     HAVING assigned_count < ss.required_count;
 END $$
@@ -835,6 +857,10 @@ DROP PROCEDURE IF EXISTS sp_start_break $$
 CREATE PROCEDURE sp_start_break(IN p_employee_id INT, IN p_worked_date DATE, IN p_schedule_shift_id INT)
 BEGIN
     DECLARE v_existing_break INT;
+    DECLARE v_company_id INT;
+    
+    SELECT company_id INTO v_company_id FROM employees WHERE id = p_employee_id LIMIT 1;
+    
     SELECT id INTO v_existing_break
     FROM employee_breaks
     WHERE employee_id = p_employee_id AND worked_date = p_worked_date;
@@ -844,8 +870,8 @@ BEGIN
         SET break_start = NOW(), is_active = 1, schedule_shift_id = p_schedule_shift_id
         WHERE id = v_existing_break;
     ELSE
-        INSERT INTO employee_breaks (employee_id, schedule_shift_id, worked_date, break_start, is_active)
-        VALUES (p_employee_id, p_schedule_shift_id, p_worked_date, NOW(), 1);
+        INSERT INTO employee_breaks (company_id, employee_id, schedule_shift_id, worked_date, break_start, is_active)
+        VALUES (v_company_id, p_employee_id, p_schedule_shift_id, p_worked_date, NOW(), 1);
     END IF;
 
     SELECT LAST_INSERT_ID() AS break_id, 'Break started' AS message;
@@ -862,7 +888,7 @@ BEGIN
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_break_status $$
-CREATE PROCEDURE sp_get_break_status(IN p_section_id INT, IN p_today DATE)
+CREATE PROCEDURE sp_get_break_status(IN p_company_id INT, IN p_today DATE)
 BEGIN
     SELECT eb.id AS break_id,
            e.id AS employee_id,
@@ -886,11 +912,9 @@ BEGIN
            END AS status
     FROM employee_breaks eb
     INNER JOIN employees e ON e.id = eb.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN sections s ON s.id = ur.section_id
     LEFT JOIN schedule_shifts ss ON ss.id = eb.schedule_shift_id
     LEFT JOIN shift_definitions sd ON sd.id = ss.shift_definition_id
-    WHERE s.id = p_section_id AND eb.worked_date = p_today
+    WHERE eb.company_id = p_company_id AND eb.worked_date = p_today
     ORDER BY e.full_name;
 END $$
 
@@ -923,20 +947,23 @@ CREATE PROCEDURE sp_submit_shift_request(
 )
 BEGIN
     DECLARE v_day_of_week INT;
+    DECLARE v_company_id INT;
 
     SET v_day_of_week = DAYOFWEEK(p_request_date);
     IF v_day_of_week = 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Shift requests are not allowed on Sunday';
     END IF;
 
-    INSERT INTO shift_requests (employee_id, week_id, request_date, shift_definition_id, is_day_off, schedule_pattern_id, reason, importance_level)
-    VALUES (p_employee_id, p_week_id, NULLIF(p_shift_definition_id, 0), p_is_day_off, p_schedule_pattern_id, p_reason, p_importance_level);
+    SELECT company_id INTO v_company_id FROM employees WHERE id = p_employee_id LIMIT 1;
+
+    INSERT INTO shift_requests (company_id, employee_id, week_id, request_date, shift_definition_id, is_day_off, schedule_pattern_id, reason, importance_level)
+    VALUES (v_company_id, p_employee_id, p_week_id, p_request_date, NULLIF(p_shift_definition_id, 0), p_is_day_off, p_schedule_pattern_id, p_reason, p_importance_level);
 
     SELECT LAST_INSERT_ID() AS request_id, 'Request submitted successfully' AS message;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_shift_requests $$
-CREATE PROCEDURE sp_get_shift_requests(IN p_week_id INT, IN p_section_id INT, IN p_employee_id INT)
+CREATE PROCEDURE sp_get_shift_requests(IN p_week_id INT, IN p_company_id INT, IN p_employee_id INT)
 BEGIN
     SELECT sr.id,
            sr.request_date,
@@ -954,12 +981,10 @@ BEGIN
            reviewer.full_name AS reviewer_name
     FROM shift_requests sr
     INNER JOIN employees e ON e.id = sr.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN sections s ON s.id = ur.section_id
     LEFT JOIN shift_definitions sd ON sd.id = sr.shift_definition_id
     INNER JOIN schedule_patterns sp ON sp.id = sr.schedule_pattern_id
     LEFT JOIN employees reviewer ON reviewer.id = sr.reviewed_by_admin_id
-    WHERE sr.week_id = p_week_id AND s.id = p_section_id
+    WHERE sr.week_id = p_week_id AND sr.company_id = p_company_id
       AND (p_employee_id IS NULL OR e.id = p_employee_id)
     ORDER BY sr.submitted_at DESC;
 END $$
@@ -977,11 +1002,11 @@ END $$
 
 DROP PROCEDURE IF EXISTS sp_create_employee $$
 CREATE PROCEDURE sp_create_employee(
+    IN p_company_id INT,
     IN p_username VARCHAR(100),
     IN p_password_hash VARCHAR(255),
     IN p_email VARCHAR(150),
     IN p_role_id INT,
-    IN p_section_id INT,
     IN p_employee_code VARCHAR(50),
     IN p_full_name VARCHAR(150),
     IN p_is_senior TINYINT,
@@ -994,8 +1019,6 @@ BEGIN
     DECLARE v_username_exists INT DEFAULT 0;
     DECLARE v_email_exists INT DEFAULT 0;
     DECLARE v_employee_code_exists INT DEFAULT 0;
-    DECLARE v_full_name_exists INT DEFAULT 0;
-    DECLARE v_company_id INT DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -1005,14 +1028,13 @@ BEGIN
 
     START TRANSACTION;
 
-    SELECT company_id INTO v_company_id FROM sections WHERE id = p_section_id LIMIT 1;
-    SELECT COUNT(*) INTO v_username_exists FROM users WHERE username = p_username AND company_id <=> v_company_id;
+    SELECT COUNT(*) INTO v_username_exists FROM users WHERE username = p_username AND company_id <=> p_company_id;
     IF v_username_exists > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username already exists';
     END IF;
 
     IF p_email IS NOT NULL AND p_email != '' THEN
-        SELECT COUNT(*) INTO v_email_exists FROM users WHERE email = p_email AND email IS NOT NULL AND email != '' AND company_id <=> v_company_id;
+        SELECT COUNT(*) INTO v_email_exists FROM users WHERE email = p_email AND email IS NOT NULL AND email != '' AND company_id <=> p_company_id;
         IF v_email_exists > 0 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already exists';
         END IF;
@@ -1023,21 +1045,16 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Employee code already exists';
     END IF;
 
-    SELECT COUNT(*) INTO v_full_name_exists FROM employees WHERE full_name = p_full_name;
-    IF v_full_name_exists > 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Full name already exists';
-    END IF;
-
-    INSERT INTO users (company_id, username, password_hash, email)
-    VALUES (v_company_id, p_username, p_password_hash, p_email);
+    INSERT INTO users (company_id, username, password_hash, email, role)
+    VALUES (p_company_id, p_username, p_password_hash, p_email, (SELECT role_name FROM roles WHERE id = p_role_id));
     SET v_user_id = LAST_INSERT_ID();
 
-    INSERT INTO user_roles (user_id, role_id, section_id)
-    VALUES (v_user_id, p_role_id, p_section_id);
+    INSERT INTO user_roles (user_id, role_id, company_id)
+    VALUES (v_user_id, p_role_id, p_company_id);
     SET v_user_role_id = LAST_INSERT_ID();
 
-    INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level)
-    VALUES (v_user_role_id, p_employee_code, p_full_name, p_email, p_is_senior, p_seniority_level);
+    INSERT INTO employees (company_id, user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+    VALUES (p_company_id, v_user_role_id, p_employee_code, p_full_name, p_email, p_is_senior, p_seniority_level);
     SET v_employee_id = LAST_INSERT_ID();
 
     COMMIT;
@@ -1046,11 +1063,11 @@ END $$
 
 DROP PROCEDURE IF EXISTS sp_create_leader $$
 CREATE PROCEDURE sp_create_leader(
+    IN p_company_id INT,
     IN p_username VARCHAR(100),
     IN p_password_hash VARCHAR(255),
     IN p_email VARCHAR(150),
     IN p_role_id INT,
-    IN p_section_id INT,
     IN p_full_name VARCHAR(150)
 )
 BEGIN
@@ -1061,7 +1078,6 @@ BEGIN
     DECLARE v_email_exists INT DEFAULT 0;
     DECLARE v_employee_code_exists INT DEFAULT 1;
     DECLARE v_employee_code VARCHAR(50);
-    DECLARE v_company_id INT DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -1071,14 +1087,13 @@ BEGIN
 
     START TRANSACTION;
 
-    SELECT company_id INTO v_company_id FROM sections WHERE id = p_section_id LIMIT 1;
-    SELECT COUNT(*) INTO v_username_exists FROM users WHERE username = p_username AND company_id <=> v_company_id;
+    SELECT COUNT(*) INTO v_username_exists FROM users WHERE username = p_username AND company_id <=> p_company_id;
     IF v_username_exists > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username already exists';
     END IF;
 
     IF p_email IS NOT NULL AND p_email != '' THEN
-        SELECT COUNT(*) INTO v_email_exists FROM users WHERE email = p_email AND email IS NOT NULL AND email != '' AND company_id <=> v_company_id;
+        SELECT COUNT(*) INTO v_email_exists FROM users WHERE email = p_email AND email IS NOT NULL AND email != '' AND company_id <=> p_company_id;
         IF v_email_exists > 0 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already exists';
         END IF;
@@ -1089,24 +1104,24 @@ BEGIN
         SELECT COUNT(*) INTO v_employee_code_exists FROM employees WHERE employee_code = v_employee_code;
     END WHILE;
 
-    INSERT INTO users (company_id, username, password_hash, email)
-    VALUES (v_company_id, p_username, p_password_hash, p_email);
+    INSERT INTO users (company_id, username, password_hash, email, role)
+    VALUES (p_company_id, p_username, p_password_hash, p_email, (SELECT role_name FROM roles WHERE id = p_role_id));
     SET v_user_id = LAST_INSERT_ID();
 
-    INSERT INTO user_roles (user_id, role_id, section_id)
-    VALUES (v_user_id, p_role_id, p_section_id);
+    INSERT INTO user_roles (user_id, role_id, company_id)
+    VALUES (v_user_id, p_role_id, p_company_id);
     SET v_user_role_id = LAST_INSERT_ID();
 
-    INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level)
-    VALUES (v_user_role_id, v_employee_code, p_full_name, p_email, 0, 0);
+    INSERT INTO employees (company_id, user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+    VALUES (p_company_id, v_user_role_id, v_employee_code, p_full_name, p_email, 0, 0);
     SET v_employee_id = LAST_INSERT_ID();
 
     COMMIT;
     SELECT v_employee_id AS employee_id, v_user_id AS user_id;
 END $$
 
-DROP PROCEDURE IF EXISTS sp_get_employees_by_section $$
-CREATE PROCEDURE sp_get_employees_by_section(IN p_section_id INT)
+DROP PROCEDURE IF EXISTS sp_get_employees_by_company $$
+CREATE PROCEDURE sp_get_employees_by_company(IN p_company_id INT)
 BEGIN
     SELECT e.id,
            e.employee_code,
@@ -1121,14 +1136,14 @@ BEGIN
     INNER JOIN user_roles ur ON ur.id = e.user_role_id
     INNER JOIN roles r ON r.id = ur.role_id
     INNER JOIN users u ON u.id = ur.user_id
-    WHERE ur.section_id = p_section_id
+    WHERE e.company_id = p_company_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee')
+      AND r.role_name IN ('Employee', 'Team Leader')
     ORDER BY e.seniority_level DESC, e.full_name;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_available_employees $$
-CREATE PROCEDURE sp_get_available_employees(IN p_section_id INT, IN p_date DATE)
+CREATE PROCEDURE sp_get_available_employees(IN p_company_id INT, IN p_date DATE)
 BEGIN
     SELECT e.id,
            e.employee_code,
@@ -1137,19 +1152,15 @@ BEGIN
            e.seniority_level,
            e.is_senior
     FROM employees e
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN roles r ON r.id = ur.role_id
-    WHERE ur.section_id = p_section_id
+    WHERE e.company_id = p_company_id
       AND e.is_active = 1
-      AND r.role_name IN ('Employee')
       AND NOT EXISTS (
           SELECT 1
           FROM schedule_assignments sa
           INNER JOIN schedule_shifts ss ON ss.id = sa.schedule_shift_id
-          INNER JOIN schedules s ON s.id = ss.schedule_id
           WHERE sa.employee_id = e.id
             AND ss.shift_date = p_date
-            AND s.section_id = p_section_id
+            AND sa.company_id = p_company_id
       )
     ORDER BY e.seniority_level DESC, e.full_name;
 END $$
@@ -1157,7 +1168,7 @@ END $$
 DROP PROCEDURE IF EXISTS sp_update_employee $$
 CREATE PROCEDURE sp_update_employee(
     IN p_employee_id INT,
-    IN p_section_id INT,
+    IN p_company_id INT,
     IN p_full_name VARCHAR(150),
     IN p_email VARCHAR(150),
     IN p_role_id INT,
@@ -1182,34 +1193,33 @@ BEGIN
         e.is_senior = p_is_senior,
         ur.role_id = p_role_id,
         u.email = NULLIF(p_email, '')
-    WHERE e.id = p_employee_id AND ur.section_id = p_section_id;
+    WHERE e.id = p_employee_id AND e.company_id = p_company_id;
 
     SELECT ROW_COUNT() AS affected_rows;
     COMMIT;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_get_admin_directory $$
-CREATE PROCEDURE sp_get_admin_directory()
+CREATE PROCEDURE sp_get_admin_directory(IN p_company_id INT)
 BEGIN
     SELECT e.id,
            e.employee_code,
            e.full_name,
            e.email,
            r.role_name,
-           u.username,
-           s.section_name
+           u.username
     FROM employees e
     INNER JOIN user_roles ur ON ur.id = e.user_role_id
     INNER JOIN roles r ON r.id = ur.role_id
     INNER JOIN users u ON u.id = ur.user_id
-    INNER JOIN sections s ON s.id = ur.section_id
-    WHERE e.is_active = 1
-      AND r.role_name IN ('Team Leader', 'Supervisor')
-    ORDER BY s.section_name, r.role_name, e.full_name;
+    WHERE e.company_id = p_company_id
+      AND e.is_active = 1
+      AND r.role_name IN ('Team Leader', 'Admin')
+    ORDER BY r.role_name, e.full_name;
 END $$
 
 DROP PROCEDURE IF EXISTS sp_performance_report $$
-CREATE PROCEDURE sp_performance_report(IN p_start_date DATE, IN p_end_date DATE, IN p_section_id INT, IN p_employee_id INT)
+CREATE PROCEDURE sp_performance_report(IN p_start_date DATE, IN p_end_date DATE, IN p_company_id INT, IN p_employee_id INT)
 BEGIN
     SELECT e.id AS employee_id,
            e.full_name AS employee_name,
@@ -1218,14 +1228,12 @@ BEGIN
            COALESCE(SUM(GREATEST(TIMESTAMPDIFF(MINUTE, eb.break_start, eb.break_end) - 30, 0)), 0) AS total_delay_minutes,
            COALESCE(AVG(GREATEST(TIMESTAMPDIFF(MINUTE, eb.break_start, eb.break_end) - 30, 0)), 0) AS average_delay_minutes
     FROM employees e
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    INNER JOIN sections s ON s.id = ur.section_id
     LEFT JOIN schedule_assignments sa ON sa.employee_id = e.id
     LEFT JOIN schedule_shifts ss ON ss.id = sa.schedule_shift_id
     LEFT JOIN employee_breaks eb ON eb.employee_id = e.id
         AND eb.worked_date BETWEEN p_start_date AND p_end_date
         AND eb.break_end IS NOT NULL
-    WHERE s.id = p_section_id
+    WHERE e.company_id = p_company_id
       AND e.is_active = 1
       AND (p_employee_id IS NULL OR e.id = p_employee_id)
       AND (ss.shift_date IS NULL OR ss.shift_date BETWEEN p_start_date AND p_end_date)
@@ -1233,37 +1241,30 @@ BEGIN
     ORDER BY total_delay_minutes ASC, average_delay_minutes ASC, e.full_name;
 END $$
 
-DROP PROCEDURE IF EXISTS sp_director_dashboard $$
-CREATE PROCEDURE sp_director_dashboard(IN p_section_id INT, IN p_week_id INT)
+DROP PROCEDURE IF EXISTS sp_admin_dashboard $$
+CREATE PROCEDURE sp_admin_dashboard(IN p_company_id INT, IN p_week_id INT)
 BEGIN
-    SELECT 'Total Employees' AS metric_label, COUNT(DISTINCT e.id) AS metric_value, 'Active employees in section' AS description
+    SELECT 'Total Employees' AS metric_label, COUNT(DISTINCT e.id) AS metric_value, 'Active employees' AS description
     FROM employees e
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    WHERE ur.section_id = p_section_id AND e.is_active = 1
+    WHERE e.company_id = p_company_id AND e.is_active = 1
     UNION ALL
     SELECT 'Approved Requests', COUNT(*), 'Requests approved for the week'
     FROM shift_requests sr
-    INNER JOIN employees e ON e.id = sr.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    WHERE sr.week_id = p_week_id AND ur.section_id = p_section_id AND sr.status = 'APPROVED'
+    WHERE sr.week_id = p_week_id AND sr.company_id = p_company_id AND sr.status = 'APPROVED'
     UNION ALL
     SELECT 'Pending Requests', COUNT(*), 'Requests pending approval'
     FROM shift_requests sr
-    INNER JOIN employees e ON e.id = sr.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    WHERE sr.week_id = p_week_id AND ur.section_id = p_section_id AND sr.status = 'PENDING'
+    WHERE sr.week_id = p_week_id AND sr.company_id = p_company_id AND sr.status = 'PENDING'
     UNION ALL
     SELECT 'Total Breaks Today', COUNT(*), 'Breaks logged today'
     FROM employee_breaks eb
-    INNER JOIN employees e ON e.id = eb.employee_id
-    INNER JOIN user_roles ur ON ur.id = e.user_role_id
-    WHERE ur.section_id = p_section_id AND eb.worked_date = CURDATE();
-END $$
-
-DROP PROCEDURE IF EXISTS sp_get_all_sections $$
-CREATE PROCEDURE sp_get_all_sections()
-BEGIN
-    SELECT id, section_name FROM sections ORDER BY id;
+    WHERE eb.company_id = p_company_id AND eb.worked_date = CURDATE();
 END $$
 
 DELIMITER ;
+
+-- ===============================
+-- COMPLETION
+-- ===============================
+SELECT 'Database created successfully with multi-tenant isolation (no sections)' AS status;
+
