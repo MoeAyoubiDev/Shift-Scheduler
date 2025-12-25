@@ -200,6 +200,60 @@ mysql -u root -p ShiftSchedulerDB &lt; database/migrations/003_update_stored_pro
             <div class="alert alert-success"><?= e($success) ?></div>
         <?php endif; ?>
 
+        <div id="firebase-auth-error" class="alert alert-error" style="display: none;"></div>
+
+        <div class="firebase-auth">
+            <button type="button" class="btn-secondary oauth-button" data-firebase-google>
+                <span class="oauth-icon" aria-hidden="true">G</span>
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="auth-divider"><span>or</span></div>
+
+            <form id="firebase-signup-form" class="login-form firebase-login-form">
+                <div class="form-group">
+                    <label for="firebase-signup-email" class="form-label">Email</label>
+                    <div class="input-container">
+                        <input
+                            type="email"
+                            id="firebase-signup-email"
+                            name="firebase_email"
+                            class="form-input"
+                            required
+                            autocomplete="email"
+                            placeholder="you@company.com"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="firebase-signup-password" class="form-label">Password</label>
+                    <div class="input-container password-container">
+                        <input
+                            type="password"
+                            id="firebase-signup-password"
+                            name="firebase_password"
+                            class="form-input"
+                            required
+                            autocomplete="new-password"
+                            placeholder="Minimum 8 characters"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary firebase-submit">
+                        <span>Create Firebase Account</span>
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M6.75 13.5L11.25 9L6.75 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-divider"><span>or create a company account</span></div>
+
         <form method="post" action="/signup.php" class="login-form">
             <input type="hidden" name="action" value="signup">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
@@ -375,5 +429,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<script>
+window.AppConfig = <?= json_encode([
+    'csrfToken' => csrf_token(),
+    'firebase' => [
+        'apiKey' => 'AIzaSyAw4EH-GEqUUpnmRJ4XfN2AFUwmd5XoaFY',
+        'authDomain' => 'shiftscheduler-37b31.firebaseapp.com',
+        'projectId' => 'shiftscheduler-37b31',
+        'storageBucket' => 'shiftscheduler-37b31.firebasestorage.app',
+        'messagingSenderId' => '461867929776',
+        'appId' => '1:461867929776:web:cfce1f8f4be7a74f51ab75',
+        'measurementId' => 'G-DKCL8P1284',
+    ],
+], JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="/assets/js/firebase-auth.js?v=<?= @filemtime(__DIR__ . '/assets/js/firebase-auth.js') ?: time() ?>"></script>
 
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

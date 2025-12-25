@@ -300,6 +300,55 @@ body.login-page .login-card.signup-card::-webkit-scrollbar-thumb:hover {
     margin-top: 0.5rem;
 }
 
+.firebase-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.firebase-login-form {
+    margin-top: 0;
+}
+
+.oauth-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.oauth-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1f2937;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;

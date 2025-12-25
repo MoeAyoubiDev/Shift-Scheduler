@@ -52,6 +52,10 @@ class ActionHandler
             AuthController::handleLogout($payload);
             return ['redirect' => '/index.php'];
         }, [], true);
+
+        Router::register('firebase_login', function(array $payload) {
+            return AuthController::handleFirebaseLogin($payload);
+        }, [], false);
         
         // Director actions
         Router::register('select_section', function(array $payload) {

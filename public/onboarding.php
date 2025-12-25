@@ -136,6 +136,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['step'])) {
                     $checkUserStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id = ? LIMIT 1");
                     $checkUserStmt->execute([$username, $companyId]);
                     $existingUser = $checkUserStmt->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$existingUser && $adminEmail) {
+                        $checkUserStmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+                        $checkUserStmt->execute([$adminEmail]);
+                        $existingUser = $checkUserStmt->fetch(PDO::FETCH_ASSOC);
+                    }
                     
                     if ($existingUser) {
                         $userId = (int)$existingUser['id'];
