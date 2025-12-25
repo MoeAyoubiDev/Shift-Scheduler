@@ -283,16 +283,6 @@ body.login-page .login-card.signup-card {
     margin-top: 0.5rem;
 }
 
-.firebase-auth {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.firebase-login-form {
-    margin-top: 0;
-}
-
 .form-error {
     display: none;
     margin-top: 0.35rem;

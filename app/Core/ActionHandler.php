@@ -13,7 +13,6 @@ require_once __DIR__ . '/../Controllers/TeamLeaderController.php';
 require_once __DIR__ . '/../Controllers/EmployeeController.php';
 require_once __DIR__ . '/../Controllers/SeniorController.php';
 require_once __DIR__ . '/../Controllers/SupervisorController.php';
-require_once __DIR__ . '/../Controllers/NotificationController.php';
 require_once __DIR__ . '/Router.php';
 
 class ActionHandler
@@ -29,13 +28,13 @@ class ActionHandler
             return ['redirect' => '/index.php'];
         }, [], true);
 
-        Router::register('firebase_login', function(array $payload) {
-            return AuthController::handleFirebaseLogin($payload);
-        }, [], false);
+        Router::register('login', function(array $payload) {
+            return AuthController::handleLogin($payload);
+        }, [], true);
 
-        Router::register('firebase_signup', function(array $payload) {
-            return AuthController::handleFirebaseSignup($payload);
-        }, [], false);
+        Router::register('signup', function(array $payload) {
+            return AuthController::handleSignup($payload);
+        }, [], true);
         
         // Director actions
         Router::register('select_section', function(array $payload) {
@@ -154,10 +153,6 @@ class ActionHandler
             return ['message' => $result];
         }, ['Employee', 'Senior'], true);
 
-        // Notification actions
-        Router::register('save_fcm_token', function(array $payload) {
-            return NotificationController::handleSaveFcmToken($payload);
-        }, ['Employee', 'Senior', 'Team Leader', 'Supervisor', 'Director'], true);
     }
     
     /**

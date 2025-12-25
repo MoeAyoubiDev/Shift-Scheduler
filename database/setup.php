@@ -54,7 +54,7 @@ try {
     
     $pdo->exec("CREATE TABLE IF NOT EXISTS shift_definitions (id INT AUTO_INCREMENT PRIMARY KEY, shift_name VARCHAR(50) NOT NULL, start_time TIME NULL, end_time TIME NULL, duration_hours DECIMAL(4,2) NULL, category VARCHAR(20) NOT NULL CHECK (category IN ('AM','MID','PM','MIDNIGHT','OVERNIGHT','OFF')), color_code VARCHAR(20), shift_type_id INT NULL, FOREIGN KEY (shift_type_id) REFERENCES shift_types(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     
-    $pdo->exec("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, company_id INT NULL, username VARCHAR(100) NOT NULL, password_hash VARCHAR(255) NULL, email VARCHAR(150), firebase_uid VARCHAR(128) NULL, provider ENUM('email') NULL, role VARCHAR(50) NULL, onboarding_completed TINYINT(1) DEFAULT 0, is_active TINYINT(1) DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE, INDEX idx_company (company_id), UNIQUE KEY unique_username_company (username, company_id), UNIQUE KEY unique_email (email), UNIQUE KEY unique_firebase_uid (firebase_uid)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, company_id INT NULL, username VARCHAR(100) NOT NULL, password_hash VARCHAR(255) NULL, email VARCHAR(150), role VARCHAR(50) NULL, onboarding_completed TINYINT(1) DEFAULT 0, is_active TINYINT(1) DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE, INDEX idx_company (company_id), UNIQUE KEY unique_username_company (username, company_id), UNIQUE KEY unique_email (email)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     
     $pdo->exec("CREATE TABLE IF NOT EXISTS weeks (id INT AUTO_INCREMENT PRIMARY KEY, company_id INT NULL, week_start_date DATE NOT NULL, week_end_date DATE NOT NULL, is_locked_for_requests TINYINT(1) DEFAULT 0, lock_reason VARCHAR(255), created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE, INDEX idx_company (company_id), UNIQUE KEY unique_week_company (week_start_date, company_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     
@@ -80,7 +80,6 @@ try {
     
     $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (id INT AUTO_INCREMENT PRIMARY KEY, company_id INT NULL, user_id INT NOT NULL, type VARCHAR(20) NOT NULL CHECK (type IN ('SHIFT_REMINDER','SCHEDULE_PUBLISHED','REQUEST_STATUS')), title VARCHAR(150) NOT NULL, body TEXT NULL, is_read TINYINT(1) DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, read_at DATETIME NULL, FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_company (company_id), INDEX idx_user_read (user_id, is_read)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS fcm_tokens (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, employee_id INT NULL, role VARCHAR(50) NOT NULL, token VARCHAR(1024) NOT NULL, device_type VARCHAR(50) NOT NULL, last_seen DATETIME DEFAULT CURRENT_TIMESTAMP, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL, UNIQUE KEY unique_token (token(191)), INDEX idx_user (user_id), INDEX idx_employee (employee_id), INDEX idx_role (role)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $columnExists = function (string $table, string $column) use ($pdo, $dbName): bool {
         $stmt = $pdo->prepare("
@@ -106,13 +105,6 @@ try {
         $pdo->exec("ALTER TABLE companies MODIFY admin_password_hash VARCHAR(255) NULL");
     }
 
-    if (!$columnExists('users', 'firebase_uid')) {
-        $pdo->exec("ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128) NULL AFTER email");
-    }
-
-    if (!$columnExists('users', 'provider')) {
-        $pdo->exec("ALTER TABLE users ADD COLUMN provider ENUM('email') NULL AFTER firebase_uid");
-    }
 
     if (!$columnExists('users', 'role')) {
         $pdo->exec("ALTER TABLE users ADD COLUMN role VARCHAR(50) NULL AFTER provider");
@@ -126,9 +118,6 @@ try {
         $pdo->exec("ALTER TABLE users MODIFY provider ENUM('email') NULL");
     }
 
-    if (!$indexExists('users', 'unique_firebase_uid')) {
-        $pdo->exec("ALTER TABLE users ADD UNIQUE KEY unique_firebase_uid (firebase_uid)");
-    }
 
     echo "   ✓ All tables created\n\n";
     

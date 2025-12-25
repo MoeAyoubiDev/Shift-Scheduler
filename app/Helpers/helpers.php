@@ -102,10 +102,6 @@ function is_csrf_exempt(): bool
 {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
 
-    if ($path === '/auth/firebase-login') {
-        return true;
-    }
-
     return str_starts_with($path, '/api/');
 }
 

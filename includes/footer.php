@@ -4,8 +4,6 @@ declare(strict_types=1);
 $user = function_exists('current_user') ? current_user() : null;
 $role = ($user && isset($user['role'])) ? $user['role'] : null;
 $isDashboard = $role && in_array($role, ['Employee', 'Team Leader', 'Director', 'Supervisor', 'Senior'], true);
-$firebaseConfig = function_exists('config') ? config('firebase') : [];
-$vapidKey = $firebaseConfig['vapid_public_key'] ?? '';
 ?>
 </main>
 <?php if ($user): ?>
@@ -25,17 +23,6 @@ $vapidKey = $firebaseConfig['vapid_public_key'] ?? '';
 <?php if ($isDashboard): ?>
 <script src="/assets/js/dashboard.js?v=<?= @filemtime(__DIR__ . '/../public/assets/js/dashboard.js') ?: time() ?>"></script>
 <script src="/assets/js/calendar.js?v=<?= @filemtime(__DIR__ . '/../public/assets/js/calendar.js') ?: time() ?>"></script>
-<script>
-    window.AppConfig = <?= json_encode([
-        'csrfToken' => function_exists('csrf_token') ? csrf_token() : '',
-        'fcm' => [
-            'vapidKey' => $vapidKey,
-        ],
-    ], JSON_UNESCAPED_SLASHES) ?>;
-</script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
-<script src="/assets/js/firebase-messaging.js?v=<?= @filemtime(__DIR__ . '/../public/assets/js/firebase-messaging.js') ?: time() ?>"></script>
 <?php endif; ?>
 </body>
 </html>

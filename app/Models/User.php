@@ -26,8 +26,6 @@ class User extends BaseModel
             'id' => (int) $primary['user_id'],
             'username' => $primary['username'],
             'email' => $primary['email'],
-            'firebase_uid' => $primary['firebase_uid'] ?? null,
-            'provider' => $primary['provider'] ?? null,
             'company_id' => $primary['company_id'] ? (int) $primary['company_id'] : null,
             'role' => $primary['role_name'],
             'section_id' => $primary['section_id'] ? (int) $primary['section_id'] : null,
@@ -83,8 +81,6 @@ class User extends BaseModel
                 SELECT u.id AS user_id,
                        u.username,
                        u.email,
-                       u.firebase_uid,
-                       u.provider,
                        u.onboarding_completed,
                        u.is_active,
                        u.company_id,
@@ -117,7 +113,7 @@ class User extends BaseModel
         }
     }
 
-    public static function findByFirebaseUid(string $firebaseUid): ?array
+    public static function authenticate(string $identifier, string $password): ?array
     {
         try {
             $pdo = db();
@@ -125,8 +121,7 @@ class User extends BaseModel
                 SELECT u.id AS user_id,
                        u.username,
                        u.email,
-                       u.firebase_uid,
-                       u.provider,
+                       u.password_hash,
                        u.onboarding_completed,
                        u.is_active,
                        u.company_id,
@@ -145,25 +140,27 @@ class User extends BaseModel
                 INNER JOIN roles r ON r.id = ur.role_id
                 INNER JOIN sections s ON s.id = ur.section_id
                 LEFT JOIN employees e ON e.user_role_id = ur.id
-                WHERE u.firebase_uid = ? AND u.is_active = 1
+                WHERE (u.username = ? OR u.email = ?) AND u.is_active = 1
             ";
 
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$firebaseUid]);
+            $stmt->execute([$identifier, $identifier]);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($rows)) {
+                return null;
+            }
+
+            $passwordHash = $rows[0]['password_hash'] ?? '';
+            if ($passwordHash === '' || !password_verify($password, $passwordHash)) {
+                return null;
+            }
 
             return self::mapUserRows($rows);
         } catch (PDOException $e) {
-            error_log("User lookup by Firebase UID failed: " . $e->getMessage());
+            error_log("User authentication failed: " . $e->getMessage());
             return null;
         }
-    }
-
-    public static function updateFirebaseIdentity(int $userId, string $firebaseUid, string $provider): void
-    {
-        $pdo = db();
-        $stmt = $pdo->prepare("UPDATE users SET firebase_uid = ?, provider = ? WHERE id = ?");
-        $stmt->execute([$firebaseUid, $provider, $userId]);
     }
 
     public static function emailExists(string $email): bool
@@ -179,101 +176,4 @@ class User extends BaseModel
         }
     }
 
-    public static function createFirebaseUser(array $payload): ?array
-    {
-        $pdo = db();
-        $pdo->beginTransaction();
-
-        try {
-            $email = $payload['email'];
-            $firebaseUid = $payload['firebase_uid'];
-            $provider = $payload['provider'];
-            $companyId = $payload['company_id'] ?? null;
-            $roleName = $payload['role_name'] ?? 'Employee';
-            $displayName = trim($payload['name'] ?? '');
-
-            $usernameBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', strstr($email, '@', true) ?: 'user'));
-            $usernameCandidate = $usernameBase ?: 'user';
-            $suffix = 1;
-
-            while (true) {
-                $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND company_id <=> ? LIMIT 1");
-                $checkStmt->execute([$usernameCandidate, $companyId]);
-                if (!$checkStmt->fetch(PDO::FETCH_ASSOC)) {
-                    break;
-                }
-                $usernameCandidate = $usernameBase . $suffix;
-                $suffix++;
-            }
-
-            $insertUser = $pdo->prepare("
-                INSERT INTO users (company_id, username, password_hash, email, firebase_uid, provider, role, onboarding_completed)
-                VALUES (?, ?, NULL, ?, ?, ?, ?, 0)
-            ");
-            $insertUser->execute([$companyId, $usernameCandidate, $email, $firebaseUid, $provider, $roleName]);
-            $userId = (int) $pdo->lastInsertId();
-
-            if ($userId <= 0) {
-                throw new RuntimeException('Failed to create user.');
-            }
-
-            $sectionStmt = $pdo->prepare("SELECT id FROM sections WHERE company_id <=> ? ORDER BY id LIMIT 1");
-            $sectionStmt->execute([$companyId]);
-            $sectionRow = $sectionStmt->fetch(PDO::FETCH_ASSOC);
-            $sectionId = (int) ($sectionRow['id'] ?? 0);
-
-            if ($sectionId === 0) {
-                $sectionName = $payload['section_name'] ?? 'General';
-                $createSection = $pdo->prepare("INSERT INTO sections (section_name, company_id) VALUES (?, ?)");
-                $createSection->execute([$sectionName, $companyId]);
-                $sectionId = (int) $pdo->lastInsertId();
-            }
-
-            $roleStmt = $pdo->prepare("SELECT id FROM roles WHERE role_name = ? LIMIT 1");
-            $roleStmt->execute([$roleName]);
-            $roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
-            $roleId = (int) ($roleRow['id'] ?? 0);
-
-            if ($roleId === 0) {
-                throw new RuntimeException('Default role not found.');
-            }
-
-            $userRoleStmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id, section_id) VALUES (?, ?, ?)");
-            $userRoleStmt->execute([$userId, $roleId, $sectionId]);
-            $userRoleId = (int) $pdo->lastInsertId();
-
-            if (in_array($roleName, ['Employee', 'Senior'], true)) {
-                $employeeCode = 'EMP-' . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-                $codeCheck = $pdo->prepare("SELECT id FROM employees WHERE employee_code = ? LIMIT 1");
-                while (true) {
-                    $codeCheck->execute([$employeeCode]);
-                    if (!$codeCheck->fetch(PDO::FETCH_ASSOC)) {
-                        break;
-                    }
-                    $employeeCode = 'EMP-' . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-                }
-
-                $fullName = $displayName !== '' ? $displayName : ucfirst(str_replace('.', ' ', strstr($email, '@', true)));
-                $employeeStmt = $pdo->prepare("
-                    INSERT INTO employees (user_role_id, employee_code, full_name, email, is_senior, seniority_level)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ");
-                $employeeStmt->execute([
-                    $userRoleId,
-                    $employeeCode,
-                    $fullName,
-                    $email,
-                    $roleName === 'Senior' ? 1 : 0,
-                    0,
-                ]);
-            }
-
-            $pdo->commit();
-            return self::findByEmail($email);
-        } catch (Throwable $e) {
-            $pdo->rollBack();
-            error_log("Firebase user creation failed: " . $e->getMessage());
-            return null;
-        }
-    }
 }
