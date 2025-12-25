@@ -295,6 +295,12 @@ if ($role === 'Director') {
         $employees = Employee::listBySection($sectionId);
         $admins = Employee::listAdmins();
 
+        $directorPage = $_GET['page'] ?? 'overview';
+        $allowedDirectorPages = ['overview', 'employees', 'departments', 'attendance', 'reports', 'settings'];
+        if (!in_array($directorPage, $allowedDirectorPages, true)) {
+            $directorPage = 'overview';
+        }
+
         render_view('director/dashboard', [
             'user' => $user,
             'weekStart' => $weekStart,
@@ -307,6 +313,7 @@ if ($role === 'Director') {
             'roles' => $roles,
             'employees' => $employees,
             'admins' => $admins,
+            'directorPage' => $directorPage,
         ]);
     }
 } elseif ($role === 'Team Leader') {
