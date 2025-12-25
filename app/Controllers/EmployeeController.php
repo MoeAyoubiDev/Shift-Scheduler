@@ -78,9 +78,9 @@ class EmployeeController
                 'importance_level' => $importance,
             ]);
 
-            json_response(true, 'Shift request submitted successfully for next week.');
+            return 'Shift request submitted successfully for next week.';
         } catch (Exception $e) {
-            json_response(false, $e->getMessage());
+            return $e->getMessage();
         }
     }
 
@@ -93,13 +93,17 @@ class EmployeeController
         $user = current_user();
         $date = $payload['worked_date'] ?? (new DateTimeImmutable())->format('Y-m-d');
 
-        if ($action === 'start') {
-            $scheduleShiftId = isset($payload['schedule_shift_id']) ? (int) $payload['schedule_shift_id'] : null;
-            BreakModel::start((int) $user['employee_id'], $date, $scheduleShiftId);
-            return 'Break started.';
-        }
+        try {
+            if ($action === 'start') {
+                $scheduleShiftId = isset($payload['schedule_shift_id']) ? (int) $payload['schedule_shift_id'] : null;
+                BreakModel::start((int) $user['employee_id'], $date, $scheduleShiftId);
+                return 'Break started.';
+            }
 
-        BreakModel::end((int) $user['employee_id'], $date);
-        return 'Break ended.';
+            BreakModel::end((int) $user['employee_id'], $date);
+            return 'Break ended.';
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 }

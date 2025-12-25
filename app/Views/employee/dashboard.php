@@ -325,7 +325,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
             && $todayDate->format('Y-m-d') <= $currentWeekStart->modify('+6 days')->format('Y-m-d')
             && $todayDayOfWeek !== 7;
         $daysOfWeek = [];
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $dayDate = $nextWeekStart->modify("+{$i} days");
             $dayName = $dayDate->format('l');
             $dayDateStr = $dayDate->format('Y-m-d');
