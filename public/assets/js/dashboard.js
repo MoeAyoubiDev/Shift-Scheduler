@@ -80,6 +80,47 @@
     window.navigateToSection = navigateToSection;
     window.dashboard = window.dashboard || {};
     window.dashboard.navigateToSection = navigateToSection;
+
+    // ============================================
+    // RESPONSIVE TABLE LABELS
+    // ============================================
+    function applyResponsiveTableLabels() {
+        document.querySelectorAll('table').forEach(table => {
+            const headerCells = Array.from(table.querySelectorAll('thead th'));
+            if (!headerCells.length) {
+                return;
+            }
+
+            const headerLabels = [];
+            headerCells.forEach(th => {
+                const label = th.textContent.trim().replace(/\s+/g, ' ');
+                const span = th.colSpan || 1;
+                for (let i = 0; i < span; i += 1) {
+                    headerLabels.push(label);
+                }
+            });
+
+            if (!headerLabels.length) {
+                return;
+            }
+
+            table.querySelectorAll('tbody tr').forEach(row => {
+                let cellIndex = 0;
+                Array.from(row.children).forEach(cell => {
+                    if (cell.tagName !== 'TD') {
+                        return;
+                    }
+
+                    const span = cell.colSpan || 1;
+                    if (!cell.hasAttribute('data-label') && headerLabels[cellIndex]) {
+                        cell.setAttribute('data-label', headerLabels[cellIndex]);
+                    }
+
+                    cellIndex += span;
+                });
+            });
+        });
+    }
     
     // ============================================
     // FORM HANDLING - Enhanced with Animations
@@ -819,6 +860,9 @@
         
         // Initialize schedule table
         initScheduleTable();
+
+        // Apply responsive table labels
+        applyResponsiveTableLabels();
         
         // Handle hash changes
         window.addEventListener('hashchange', function() {

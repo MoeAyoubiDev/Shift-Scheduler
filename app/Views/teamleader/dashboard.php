@@ -1002,7 +1002,7 @@ for ($i = 0; $i < 7; $i++) {
                         <tbody>
                             <?php if (empty($uniqueEmployees)): ?>
                                 <tr>
-                                    <td colspan="8" class="empty-schedule">
+                                    <td colspan="8" class="empty-schedule" data-label="Schedule">
                                         <div class="empty-state">
                                             <div class="empty-state-title">No schedule data</div>
                                             <p class="empty-state-text">Generate a schedule or assign shifts to employees to see the weekly view.</p>
@@ -1012,7 +1012,7 @@ for ($i = 0; $i < 7; $i++) {
                             <?php else: ?>
                                 <?php foreach ($uniqueEmployees as $empId => $employee): ?>
                                     <tr class="employee-row" data-employee-id="<?= e((string) $empId) ?>" data-employee-name="<?= e(strtolower($employee['name'])) ?>">
-                                        <td class="employee-cell">
+                                        <td class="employee-cell" data-label="Employee">
                                             <div class="employee-info">
                                                 <div class="employee-avatar">
                                                     <?= strtoupper(substr($employee['name'], 0, 1)) ?>
@@ -1037,7 +1037,7 @@ for ($i = 0; $i < 7; $i++) {
                                                 }
                                             }
                                             ?>
-                                            <td class="shift-cell <?= $hasConflict ? 'shift-conflict' : '' ?>" data-date="<?= e($dayInfo['date']) ?>" data-employee-id="<?= e((string) $empId) ?>">
+                                            <td class="shift-cell <?= $hasConflict ? 'shift-conflict' : '' ?>" data-date="<?= e($dayInfo['date']) ?>" data-employee-id="<?= e((string) $empId) ?>" data-label="<?= e($dayInfo['day_name'] . ' ' . $dayInfo['day_number']) ?>">
                                                 <?php if (empty($dayShifts)): ?>
                                                     <div class="shift-empty">
                                                         <button type="button" class="btn-assign-shift" 
