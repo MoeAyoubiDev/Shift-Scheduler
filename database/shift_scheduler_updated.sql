@@ -324,6 +324,216 @@ INSERT INTO system_settings (system_key, system_value, description) VALUES
     ('compliance_mode', 'enabled', 'Enable compliance tracking features');
 
 -- ===============================
+-- SEED DATA: Apex Global Holdings
+-- ===============================
+
+INSERT INTO companies (
+    company_name,
+    company_slug,
+    admin_email,
+    admin_password_hash,
+    timezone,
+    country,
+    company_size,
+    status,
+    email_verified_at,
+    payment_completed_at,
+    onboarding_completed_at,
+    payment_status,
+    payment_amount
+) VALUES (
+    'Apex Global Holdings',
+    'apex-global-holdings',
+    'admin@apexglobal.com',
+    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'America/New_York',
+    'United States',
+    '1000+',
+    'ACTIVE',
+    NOW(),
+    NOW(),
+    NOW(),
+    'COMPLETED',
+    199.00
+);
+
+SET @apex_company_id = LAST_INSERT_ID();
+
+INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
+VALUES (@apex_company_id, 'apexadmin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@apexglobal.com', 'Admin', 1, 1);
+SET @apex_admin_user_id = LAST_INSERT_ID();
+
+INSERT INTO user_roles (user_id, role_id, company_id)
+VALUES (@apex_admin_user_id, (SELECT id FROM roles WHERE role_name = 'Admin' LIMIT 1), @apex_company_id);
+SET @apex_admin_user_role_id = LAST_INSERT_ID();
+
+INSERT INTO employees (company_id, user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+VALUES (@apex_company_id, @apex_admin_user_role_id, 'AGH-ADM-001', 'Avery Caldwell', 'admin@apexglobal.com', 1, 10);
+SET @apex_admin_employee_id = LAST_INSERT_ID();
+
+INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active)
+VALUES (@apex_company_id, 'apexleader', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'leader@apexglobal.com', 'Team Leader', 1, 1);
+SET @apex_leader_user_id = LAST_INSERT_ID();
+
+INSERT INTO user_roles (user_id, role_id, company_id)
+VALUES (@apex_leader_user_id, (SELECT id FROM roles WHERE role_name = 'Team Leader' LIMIT 1), @apex_company_id);
+SET @apex_leader_user_role_id = LAST_INSERT_ID();
+
+INSERT INTO employees (company_id, user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+VALUES (@apex_company_id, @apex_leader_user_role_id, 'AGH-TL-001', 'Jordan Blake', 'leader@apexglobal.com', 1, 7);
+SET @apex_leader_employee_id = LAST_INSERT_ID();
+
+INSERT INTO users (company_id, username, password_hash, email, role, onboarding_completed, is_active) VALUES
+    (@apex_company_id, 'employee01', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee01@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee02', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee02@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee03', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee03@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee04', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee04@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee05', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee05@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee06', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee06@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee07', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee07@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee08', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee08@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee09', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee09@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee10', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee10@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee11', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee11@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee12', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee12@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee13', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee13@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee14', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee14@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee15', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee15@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee16', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee16@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee17', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee17@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee18', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee18@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee19', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee19@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee20', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee20@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee21', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee21@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee22', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee22@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee23', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee23@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee24', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee24@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee25', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee25@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee26', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee26@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee27', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee27@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee28', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee28@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee29', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee29@apexglobal.com', 'Employee', 1, 1),
+    (@apex_company_id, 'employee30', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee30@apexglobal.com', 'Employee', 1, 1);
+
+INSERT INTO user_roles (user_id, role_id, company_id)
+SELECT u.id, r.id, u.company_id
+FROM users u
+JOIN roles r ON r.role_name = 'Employee'
+WHERE u.company_id = @apex_company_id AND u.username LIKE 'employee%';
+
+INSERT INTO employees (company_id, user_role_id, employee_code, full_name, email, is_senior, seniority_level)
+SELECT
+    u.company_id,
+    ur.id,
+    CONCAT('AGH-EMP-', LPAD(SUBSTRING(u.username, 9), 2, '0')),
+    CONCAT('Employee ', LPAD(SUBSTRING(u.username, 9), 2, '0')),
+    u.email,
+    CASE WHEN u.username IN ('employee01', 'employee02', 'employee03', 'employee04', 'employee05') THEN 1 ELSE 0 END,
+    CASE WHEN u.username IN ('employee01', 'employee02', 'employee03', 'employee04', 'employee05') THEN 6 ELSE 2 END
+FROM users u
+JOIN user_roles ur ON ur.user_id = u.id
+WHERE u.company_id = @apex_company_id AND u.username LIKE 'employee%';
+
+INSERT INTO weeks (company_id, week_start_date, week_end_date, is_locked_for_requests, lock_reason) VALUES
+    (@apex_company_id, '2024-09-02', '2024-09-08', 1, 'Schedule published'),
+    (@apex_company_id, '2024-09-09', '2024-09-15', 0, NULL);
+
+SET @apex_week1_id = (SELECT id FROM weeks WHERE company_id = @apex_company_id AND week_start_date = '2024-09-02');
+SET @apex_week2_id = (SELECT id FROM weeks WHERE company_id = @apex_company_id AND week_start_date = '2024-09-09');
+
+INSERT INTO shift_requirements (company_id, week_id, shift_date, shift_type_id, required_count) VALUES
+    (@apex_company_id, @apex_week2_id, '2024-09-09', 1, 4),
+    (@apex_company_id, @apex_week2_id, '2024-09-09', 2, 4),
+    (@apex_company_id, @apex_week2_id, '2024-09-09', 3, 4),
+    (@apex_company_id, @apex_week2_id, '2024-09-10', 1, 4),
+    (@apex_company_id, @apex_week2_id, '2024-09-10', 2, 4),
+    (@apex_company_id, @apex_week2_id, '2024-09-10', 3, 4);
+
+INSERT INTO schedules (company_id, week_id, generated_by_admin_id, status, notes) VALUES
+    (@apex_company_id, @apex_week1_id, @apex_admin_employee_id, 'FINAL', 'Published weekly roster.'),
+    (@apex_company_id, @apex_week2_id, @apex_leader_employee_id, 'DRAFT', 'Initial schedule draft.');
+
+SET @apex_schedule1_id = (SELECT id FROM schedules WHERE company_id = @apex_company_id AND week_id = @apex_week1_id);
+SET @apex_schedule2_id = (SELECT id FROM schedules WHERE company_id = @apex_company_id AND week_id = @apex_week2_id);
+
+INSERT INTO schedule_shifts (company_id, schedule_id, shift_date, shift_definition_id, required_count) VALUES
+    (@apex_company_id, @apex_schedule1_id, '2024-09-02', 1, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-02', 2, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-02', 3, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-03', 1, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-03', 2, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-03', 3, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-04', 1, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-04', 2, 4),
+    (@apex_company_id, @apex_schedule1_id, '2024-09-04', 3, 4),
+    (@apex_company_id, @apex_schedule2_id, '2024-09-09', 1, 4),
+    (@apex_company_id, @apex_schedule2_id, '2024-09-09', 2, 4),
+    (@apex_company_id, @apex_schedule2_id, '2024-09-09', 3, 4);
+
+INSERT INTO schedule_assignments (company_id, schedule_shift_id, employee_id, assignment_source, is_senior, notes) VALUES
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-01'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-02'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-03'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-04'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-05'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-06'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-07'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-08'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-09'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-10'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-11'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-12'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-13'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-14'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-15'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-16'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-17'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-18'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-19'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-20'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-21'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-22'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-23'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-24'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-25'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-26'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-27'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 1), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-28'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-29'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 2), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-30'), 'AUTO_ASSIGNED', 0, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 2), @apex_leader_employee_id, 'AUTO_ASSIGNED', 1, 'Team leader coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 2), @apex_admin_employee_id, 'MANUALLY_ADJUSTED', 1, 'Admin oversight'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-01'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-02'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-03'), 'AUTO_ASSIGNED', 1, 'Seeded coverage'),
+    (@apex_company_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 3), (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-04'), 'AUTO_ASSIGNED', 1, 'Seeded coverage');
+
+INSERT INTO shift_requests (
+    company_id,
+    employee_id,
+    week_id,
+    request_date,
+    shift_definition_id,
+    is_day_off,
+    schedule_pattern_id,
+    reason,
+    importance_level,
+    status,
+    reviewed_by_admin_id,
+    reviewed_at
+) VALUES
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-05'), @apex_week2_id, '2024-09-10', 1, 0, 1, 'Morning coverage request', 'MEDIUM', 'PENDING', NULL, NULL),
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-06'), @apex_week2_id, '2024-09-11', NULL, 1, 1, 'Medical appointment', 'HIGH', 'APPROVED', @apex_admin_employee_id, NOW()),
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-07'), @apex_week2_id, '2024-09-12', 2, 0, 1, 'Swap to mid shift', 'LOW', 'DECLINED', @apex_admin_employee_id, NOW()),
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-08'), @apex_week2_id, '2024-09-09', 3, 0, 1, 'Evening coverage request', 'MEDIUM', 'APPROVED', @apex_admin_employee_id, NOW()),
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-09'), @apex_week2_id, '2024-09-13', NULL, 1, 1, 'Family event', 'EMERGENCY', 'PENDING', NULL, NULL);
+
+INSERT INTO employee_breaks (company_id, employee_id, schedule_shift_id, worked_date, break_start, break_end, is_active) VALUES
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-01'), (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-02' AND shift_definition_id = 1), '2024-09-02', '2024-09-02 10:05:00', '2024-09-02 10:40:00', 0),
+    (@apex_company_id, (SELECT id FROM employees WHERE company_id = @apex_company_id AND employee_code = 'AGH-EMP-02'), (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-03' AND shift_definition_id = 2), '2024-09-03', '2024-09-03 13:12:00', NULL, 1),
+    (@apex_company_id, @apex_leader_employee_id, (SELECT id FROM schedule_shifts WHERE schedule_id = @apex_schedule1_id AND shift_date = '2024-09-04' AND shift_definition_id = 2), '2024-09-04', '2024-09-04 15:00:00', '2024-09-04 15:28:00', 0);
+
+-- ===============================
 -- STORED PROCEDURES
 -- ===============================
 DELIMITER $$
@@ -1267,4 +1477,3 @@ DELIMITER ;
 -- COMPLETION
 -- ===============================
 SELECT 'Database created successfully with multi-tenant isolation (no sections)' AS status;
-
