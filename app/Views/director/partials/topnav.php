@@ -46,25 +46,30 @@ $primaryNav = [
     ],
 ];
 ?>
-<section class="director-topnav">
-    <div class="director-topnav-header">
-        <div>
-            <h2>Supervisor Console</h2>
-            <p class="muted">Jump to any workspace with one click.</p>
+<section class="dashboard-topnav">
+    <div class="dashboard-topnav-header">
+        <div class="topnav-title">
+            <span class="topnav-eyebrow">Supervisor</span>
+            <h2>Supervisor Hub</h2>
+            <p class="muted">Navigate directly to each workspace with clear, focused actions.</p>
         </div>
         <a class="btn ghost small" href="/index.php?reset_section=1">Switch Section</a>
     </div>
-    <div class="dashboard-nav-cards">
+    <nav class="topnav-links" aria-label="Supervisor navigation">
         <?php foreach ($primaryNav as $item): ?>
-            <a href="<?= e($item['href']) ?>" class="nav-card director-nav-card <?= $directorPage === $item['slug'] ? 'active' : '' ?>" <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
-                <div class="nav-card-icon">
+            <a
+                href="<?= e($item['href']) ?>"
+                class="topnav-link <?= $directorPage === $item['slug'] ? 'active' : '' ?>"
+                <?= $directorPage === $item['slug'] ? 'aria-current="page"' : '' ?>
+            >
+                <span class="topnav-link-icon">
                     <?= $item['icon'] ?>
-                </div>
-                <div class="nav-card-content">
-                    <div class="nav-card-title"><?= e($item['label']) ?></div>
-                    <div class="nav-card-subtitle"><?= e($item['subtitle']) ?></div>
-                </div>
+                </span>
+                <span class="topnav-link-text">
+                    <span class="topnav-link-label"><?= e($item['label']) ?></span>
+                    <span class="topnav-link-meta"><?= e($item['subtitle']) ?></span>
+                </span>
             </a>
         <?php endforeach; ?>
-    </div>
+    </nav>
 </section>

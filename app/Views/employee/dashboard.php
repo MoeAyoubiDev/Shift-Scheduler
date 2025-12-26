@@ -16,8 +16,7 @@ $weekHours = 0.0;
 foreach ($mySchedule as $entry) {
     $weekHours += (float) ($entry['duration_hours'] ?? 0);
 }
-$weekHours = $weekHours > 0 ? $weekHours : 38;
-$monthHours = $weekHours > 0 ? round($weekHours * 4) : 156;
+$monthHours = $weekHours > 0 ? round($weekHours * 4) : 0;
 
 $nextShift = null;
 foreach ($mySchedule as $entry) {
@@ -26,13 +25,13 @@ foreach ($mySchedule as $entry) {
         break;
     }
 }
-$nextShiftTime = '3:00 PM';
+$nextShiftTime = 'No upcoming shift';
 if ($nextShift && !empty($nextShift['start_time'])) {
     $nextShiftTime = date('g:i A', strtotime($nextShift['start_time']));
 }
 
-$estimatedPay = $monthHours > 0 ? $monthHours * 15.5 : 2400;
-$earnedLabel = '$' . number_format($estimatedPay / 1000, 1) . 'k';
+$estimatedPay = $monthHours > 0 ? $monthHours * 15.5 : 0;
+$earnedLabel = $estimatedPay > 0 ? '$' . number_format($estimatedPay / 1000, 1) . 'k' : '$0';
 
 $recentRequests = $myRequests ?? [];
 usort($recentRequests, function($a, $b) {
@@ -49,23 +48,11 @@ if (!empty($recentRequests)) {
             'tone' => strtolower((string) ($request['status'] ?? 'info')),
         ];
     }
-} else {
-    $notifications = [
-        [
-            'title' => 'Schedule Updated',
-            'body' => 'Your Dec 28 shift time changed',
-            'tone' => 'info',
-        ],
-        [
-            'title' => 'Request Approved',
-            'body' => 'Shift swap for Dec 20 approved',
-            'tone' => 'success',
-        ],
-    ];
 }
 
 $overtimeHours = max(0, $weekHours - 40);
 $regularHours = max(0, $monthHours - $overtimeHours);
+$summaryMonthLabel = $today ? date('F', strtotime($today)) : 'Monthly';
 ?>
 
 <section class="dashboard-surface employee-dashboard-page">
@@ -238,7 +225,7 @@ $regularHours = max(0, $monthHours - $overtimeHours);
 
                 <div class="dashboard-card summary-card" id="employee-summary">
                     <div class="card-header">
-                        <h3>December Summary</h3>
+                        <h3><?= e($summaryMonthLabel) ?> Summary</h3>
                     </div>
                     <div class="summary-grid">
                         <div><span>Total Hours</span><strong><?= e(number_format($monthHours)) ?></strong></div>
@@ -254,12 +241,19 @@ $regularHours = max(0, $monthHours - $overtimeHours);
                         <h3>Notifications</h3>
                     </div>
                     <div class="notification-list">
-                        <?php foreach ($notifications as $note): ?>
-                            <div class="notification-item <?= e($note['tone']) ?>">
-                                <div class="notification-title"><?= e($note['title']) ?></div>
-                                <div class="notification-body"><?= e($note['body']) ?></div>
+                        <?php if (!empty($notifications)): ?>
+                            <?php foreach ($notifications as $note): ?>
+                                <div class="notification-item <?= e($note['tone']) ?>">
+                                    <div class="notification-title"><?= e($note['title']) ?></div>
+                                    <div class="notification-body"><?= e($note['body']) ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <div class="empty-state-title">No notifications yet</div>
+                                <p class="empty-state-text">You're up to date for this week.</p>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                     <a class="activity-link" href="/dashboard/index.php#employee-requests">View All</a>
                 </div>

@@ -60,31 +60,32 @@ $primaryNav = [
     ],
 ];
 ?>
-<section class="director-topnav">
-    <div class="director-topnav-header">
-        <div>
-            <h2>Team Leader Console</h2>
-            <p class="muted">Manage your section with focused, page-based views.</p>
+<section class="dashboard-topnav">
+    <div class="dashboard-topnav-header">
+        <div class="topnav-title">
+            <span class="topnav-eyebrow">Team Leader</span>
+            <h2>Team Leader Workspace</h2>
+            <p class="muted">Plan coverage, respond to requests, and keep schedules aligned.</p>
         </div>
         <a class="btn ghost small" href="/index.php?reset_section=1">Switch Section</a>
     </div>
-    <div class="dashboard-nav-cards">
+    <nav class="topnav-links" aria-label="Team Leader navigation">
         <?php foreach ($primaryNav as $item): ?>
             <a
                 href="<?= e($item['href']) ?>"
-                class="nav-card director-nav-card <?= $teamleaderPage === $item['slug'] ? 'active' : '' ?>"
+                class="topnav-link <?= $teamleaderPage === $item['slug'] ? 'active' : '' ?>"
                 data-teamleader-nav="true"
                 data-teamleader-page="<?= e($item['slug']) ?>"
                 <?= $teamleaderPage === $item['slug'] ? 'aria-current="page"' : '' ?>
             >
-                <div class="nav-card-icon">
+                <span class="topnav-link-icon">
                     <?= $item['icon'] ?>
-                </div>
-                <div class="nav-card-content">
-                    <div class="nav-card-title"><?= e($item['label']) ?></div>
-                    <div class="nav-card-subtitle"><?= e($item['subtitle']) ?></div>
-                </div>
+                </span>
+                <span class="topnav-link-text">
+                    <span class="topnav-link-label"><?= e($item['label']) ?></span>
+                    <span class="topnav-link-meta"><?= e($item['subtitle']) ?></span>
+                </span>
             </a>
         <?php endforeach; ?>
-    </div>
+    </nav>
 </section>
