@@ -60,11 +60,11 @@
             clickedTrigger.classList.add('active');
         }
 
-        // Ensure the primary nav card reflects the active section
-        const targetCard = document.querySelector(`.nav-card[data-section="${sectionName}"]`);
-        if (targetCard) {
-            targetCard.classList.add('active');
-            targetCard.style.animation = 'cardPulse 0.5s ease-out';
+        // Ensure the primary nav link reflects the active section
+        const targetLink = document.querySelector(`.topnav-link[data-section="${sectionName}"]`);
+        if (targetLink) {
+            targetLink.classList.add('active');
+            targetLink.style.animation = 'cardPulse 0.5s ease-out';
         }
     }
     
@@ -108,14 +108,14 @@
     }
 
     function updateTeamleaderActiveNav(page) {
-        document.querySelectorAll('.teamleader-dashboard .nav-card').forEach(card => {
-            const slug = card.getAttribute('data-teamleader-page') || '';
+        document.querySelectorAll('.teamleader-dashboard .topnav-link').forEach(link => {
+            const slug = link.getAttribute('data-teamleader-page') || '';
             const isActive = slug === page;
-            card.classList.toggle('active', isActive);
+            link.classList.toggle('active', isActive);
             if (isActive) {
-                card.setAttribute('aria-current', 'page');
+                link.setAttribute('aria-current', 'page');
             } else {
-                card.removeAttribute('aria-current');
+                link.removeAttribute('aria-current');
             }
         });
     }
@@ -346,7 +346,7 @@
             return;
         }
         const button = target.closest('button');
-        let navTrigger = target.closest('.nav-card, .quick-action-card, [data-section]');
+        let navTrigger = target.closest('.quick-action-card, [data-section]');
         if (navTrigger && navTrigger.classList.contains('dashboard-section')) {
             navTrigger = null;
         }
@@ -362,24 +362,6 @@
             }
         }
 
-        // Navigation cards - Enhanced with animations
-        if (navTrigger && navTrigger.classList.contains('nav-card')) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Add click animation
-            navTrigger.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                navTrigger.style.transform = '';
-            }, 150);
-            
-            const sectionName = navTrigger.getAttribute('data-section');
-            if (sectionName) {
-                navigateToSection(sectionName, navTrigger);
-            }
-            return false;
-        }
-        
         // Widget clicks with onclick handlers
         const widget = target.closest('.widget');
         if (widget) {
@@ -920,7 +902,7 @@
         }
         
         /* Smooth transitions for all interactive elements */
-        .nav-card,
+        .topnav-link,
         .btn,
         .form-input,
         button {
@@ -928,8 +910,8 @@
         }
         
         /* Hover effects */
-        .nav-card:hover {
-            transform: translateY(-4px) scale(1.02);
+        .topnav-link:hover {
+            transform: translateY(-2px);
         }
         
         .btn:hover {
