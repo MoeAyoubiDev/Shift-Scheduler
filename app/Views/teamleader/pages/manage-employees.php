@@ -14,7 +14,7 @@ foreach ($roles as $role) {
                     <h3>Manage Employees</h3>
                     <span><?= e(count($employees ?? [])) ?> employees in this section</span>
                 </div>
-                <a class="btn small" href="/dashboard/index.php?page=create-employee">Add Employee</a>
+                <a class="btn small" href="/dashboard/index.php?page=create-employee" data-teamleader-nav="true">Add Employee</a>
             </div>
             <?php if (!empty($employees)): ?>
                 <table>
@@ -63,6 +63,7 @@ foreach ($roles as $role) {
                 <div class="empty-state">
                     <div class="empty-state-title">No employees found</div>
                     <p class="empty-state-text">Create your first employee using the "Create Employee" page.</p>
+                    <a class="btn small" href="/dashboard/index.php?page=create-employee" data-teamleader-nav="true">Add Employee</a>
                 </div>
             <?php endif; ?>
         </div>

@@ -7494,6 +7494,16 @@ a.btn:hover::before {
     margin-top: 0;
 }
 
+.teamleader-dashboard .dashboard-main {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.teamleader-dashboard .dashboard-main.is-loading {
+    opacity: 0.45;
+    transform: translateY(6px);
+    pointer-events: none;
+}
+
 .teamleader-metric-grid {
     margin-top: 8px;
 }
