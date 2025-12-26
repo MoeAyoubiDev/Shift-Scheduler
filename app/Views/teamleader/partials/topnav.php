@@ -70,7 +70,13 @@ $primaryNav = [
     </div>
     <div class="dashboard-nav-cards">
         <?php foreach ($primaryNav as $item): ?>
-            <a href="<?= e($item['href']) ?>" class="nav-card director-nav-card <?= $teamleaderPage === $item['slug'] ? 'active' : '' ?>" <?= $teamleaderPage === $item['slug'] ? 'aria-current="page"' : '' ?>>
+            <a
+                href="<?= e($item['href']) ?>"
+                class="nav-card director-nav-card <?= $teamleaderPage === $item['slug'] ? 'active' : '' ?>"
+                data-teamleader-nav="true"
+                data-teamleader-page="<?= e($item['slug']) ?>"
+                <?= $teamleaderPage === $item['slug'] ? 'aria-current="page"' : '' ?>
+            >
                 <div class="nav-card-icon">
                     <?= $item['icon'] ?>
                 </div>

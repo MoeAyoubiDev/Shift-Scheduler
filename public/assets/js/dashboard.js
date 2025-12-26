@@ -93,6 +93,110 @@
     window.dashboard.navigateToSection = navigateToSection;
 
     // ============================================
+    // TEAM LEADER PAGE NAVIGATION (AJAX)
+    // ============================================
+
+    const teamleaderState = { isLoading: false };
+
+    function isTeamleaderDashboard() {
+        return Boolean(document.querySelector('.teamleader-dashboard'));
+    }
+
+    function getTeamleaderPageFromUrl(url) {
+        const targetUrl = new URL(url, window.location.origin);
+        return targetUrl.searchParams.get('page') || 'overview';
+    }
+
+    function updateTeamleaderActiveNav(page) {
+        document.querySelectorAll('.teamleader-dashboard .nav-card').forEach(card => {
+            const slug = card.getAttribute('data-teamleader-page') || '';
+            const isActive = slug === page;
+            card.classList.toggle('active', isActive);
+            if (isActive) {
+                card.setAttribute('aria-current', 'page');
+            } else {
+                card.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    function setTeamleaderLoading(isLoading) {
+        const main = document.querySelector('.teamleader-dashboard .dashboard-main');
+        if (!main) return;
+        main.classList.toggle('is-loading', isLoading);
+    }
+
+    async function navigateTeamleaderPage(targetUrl, { pushState = true } = {}) {
+        if (!isTeamleaderDashboard() || teamleaderState.isLoading) return;
+        const main = document.querySelector('.teamleader-dashboard .dashboard-main');
+        if (!main) return;
+
+        const currentUrl = new URL(window.location.href);
+        const destinationUrl = new URL(targetUrl, window.location.origin);
+        if (currentUrl.href === destinationUrl.href) {
+            return;
+        }
+
+        teamleaderState.isLoading = true;
+        setTeamleaderLoading(true);
+        try {
+            const response = await fetch(destinationUrl.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Navigation failed');
+            }
+
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newMain = doc.querySelector('.teamleader-dashboard .dashboard-main');
+            if (!newMain) {
+                throw new Error('Missing dashboard content');
+            }
+
+            main.innerHTML = newMain.innerHTML;
+
+            const newTitle = doc.querySelector('title');
+            if (newTitle) {
+                document.title = newTitle.textContent;
+            }
+
+            const page = getTeamleaderPageFromUrl(destinationUrl.toString());
+            updateTeamleaderActiveNav(page);
+
+            if (pushState) {
+                history.pushState({ teamleaderPage: page }, '', destinationUrl.toString());
+            }
+
+            applyResponsiveTableLabels();
+            initScheduleTable();
+        } catch (error) {
+            window.location.href = destinationUrl.toString();
+        } finally {
+            setTeamleaderLoading(false);
+            teamleaderState.isLoading = false;
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const link = event.target.closest('a[data-teamleader-nav="true"]');
+        if (!link || !isTeamleaderDashboard()) return;
+        if (link.target === '_blank' || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
+        navigateTeamleaderPage(link.href);
+    });
+
+    window.addEventListener('popstate', function() {
+        if (!isTeamleaderDashboard()) return;
+        navigateTeamleaderPage(window.location.href, { pushState: false });
+    });
+
+    // ============================================
     // RESPONSIVE TABLE LABELS
     // ============================================
     function applyResponsiveTableLabels() {

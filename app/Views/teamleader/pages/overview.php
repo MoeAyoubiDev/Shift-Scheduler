@@ -71,7 +71,7 @@ declare(strict_types=1);
             <h3>Quick Actions</h3>
         </div>
         <div class="quick-action-grid">
-            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=shift-requests">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=shift-requests" data-teamleader-nav="true">
                 <span class="quick-action-icon accent-purple">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -79,7 +79,7 @@ declare(strict_types=1);
                 </span>
                 <span>Review Requests</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=weekly-schedule">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=weekly-schedule" data-teamleader-nav="true">
                 <span class="quick-action-icon accent-teal">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -87,7 +87,7 @@ declare(strict_types=1);
                 </span>
                 <span>Manage Schedule</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=manage-employees">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=manage-employees" data-teamleader-nav="true">
                 <span class="quick-action-icon accent-green">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -96,7 +96,7 @@ declare(strict_types=1);
                 </span>
                 <span>View Team</span>
             </a>
-            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=performance">
+            <a class="dashboard-card quick-action-card" href="/dashboard/index.php?page=performance" data-teamleader-nav="true">
                 <span class="quick-action-icon accent-purple">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
